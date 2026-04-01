@@ -14,6 +14,7 @@ Use these patterns for Kotlin backend repos with GraphQL.
 - Enforce auth checks in resolvers for protected operations.
 - Validate principal/claims before data access.
 - Avoid leaking sensitive fields by default.
+- Add audit logging for lookups on person data (who looked up what, when, and purpose when available), following repo and legal requirements.
 
 ## Data access
 - Use existing transaction/repository patterns in the repo.
