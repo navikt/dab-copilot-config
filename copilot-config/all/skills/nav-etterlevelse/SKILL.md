@@ -112,41 +112,71 @@ Vurder egenskapene basert på kodegjennomgangen og foreslå endringer til bruker
 ```graphql
 {
   k0: kravById(nummer: 102, versjon: 3) {
-    kravNummer kravVersjon navn beskrivelse hensikt
-    utdypendeBeskrivelse versjonEndringer dokumentasjon
+    kravNummer kravVersjon navn hensikt
+    utdypendeBeskrivelse versjonEndringer varselMelding dokumentasjon
     suksesskriterier { id navn beskrivelse behovForBegrunnelse }
-    relevansFor { code }
-    regelverk { lov { code } }
+    relevansFor { code shortName }
+    regelverk { lov { code shortName } }
+    rettskilder
+    begreper { navn beskrivelse }
     status
   }
   k1: kravById(nummer: 107, versjon: 2) { ... }
 }
 ```
 
-**VIKTIG: Les alltid veiledningsteksten for hvert krav OG hvert suksesskriterium.**
+NB: `beskrivelse` på krav-nivå er nesten alltid `null` — hent den ikke. Bruk `hensikt` i stedet.
 
-**Krav-nivå** — feltene på selve kravet (vises som «Mer om kravet» i UI):
-- `utdypendeBeskrivelse`: Utdyper hva kravet faktisk krever — kan innsnevre eller utvide omfanget
-  vesentlig sammenlignet med den korte `beskrivelse`-teksten
-- `versjonEndringer`: Forklarer hva som er nytt fra forrige versjon — kritisk for å forstå
-  forskjellen mellom K{nr}.1 og K{nr}.2
-- `hensikt`: Formålet med kravet — hjelper å vurdere om løsningen oppfyller intensjonen
-- `dokumentasjon`: Lenker til eksterne ressurser og veiledere
+---
 
-**Suksesskriterium-nivå** — `beskrivelse`-feltet på hvert suksesskriterium (vises som
-«Utfyllende om kriteriet» i UI):
-- Inneholder detaljert veiledning om hva kriteriet faktisk spør om
-- Kan inneholde definisjoner, eksempler og avgrensninger som er avgjørende for riktig vurdering
-- Eksempel: K212.1 SK1 spør om arkivering — `beskrivelse` forklarer at «verdi som
-  dokumentasjon» betyr at informasjonen kan brukes som bevis i etterkant, og at
-  «saksbehandling» krever svært lite overveielse for å utløses
-- Les ALLTID `suksesskriterier.beskrivelse` før du vurderer et kriterium. Uten denne
-  konteksten risikerer du feilaktig vurdering.
+### ⛔ OBLIGATORISK: Forstå hva hvert suksesskriterium spør om FØR du svarer
 
-Bruk denne informasjonen aktivt i vurderingen. Et krav som virker irrelevant basert på
-kravets `beskrivelse` alene kan bli svært relevant når `utdypendeBeskrivelse` og
-suksesskriterienenes `beskrivelse` leses (eksempel: K205.1 gjaldt bare enkeltvedtak,
-men K205.2 utvidet til forhåndsvarsel og meldinger — dette fremgikk av `versjonEndringer`).
+**For hvert suksesskriterium du skal vurdere, gjør dette alltid i rekkefølge:**
+
+**Steg A — Forstå kravets intensjon og kontekst:**
+1. Les `hensikt` — dette er kravets overordnede formål og den primære kilden til hva kravet handler om
+2. Sjekk `utdypendeBeskrivelse` — hvis den finnes (ikke null), les den nøye. Den kan innsnevre
+   eller utvide omfanget vesentlig sammenlignet med `hensikt`-teksten alene
+3. Sjekk `versjonEndringer` — kritisk for å forstå hva som er nytt fra forrige versjon (K{nr}.1 → K{nr}.2)
+4. Sjekk `varselMelding` — hvis den finnes, inneholder den viktige presiseringer eller unntak
+5. Les `relevansFor` — viser hvilke systemeigenskaper som utløser kravet (f.eks. `EKSTERN_SKJERMFLATE`,
+   `PERSONOPPLYSNINGER`). Bruk dette til å bekrefte at kravet faktisk er relevant for systemet —
+   hvis systemets egenskaper ikke matcher, er kravet muligens ikke-relevant.
+6. Les `regelverk` og `rettskilder` — lovgrunnlaget (f.eks. Personvernforordningen art. 5, WCAG-forskriften).
+   Når begrunnelsen refererer til lovkrav, bruk `regelverk[].lov.shortName` og eventuelt
+   `rettskilder`-lenker som juridisk forankring.
+7. Les `begreper` — definisjoner av nøkkelbegreper brukt i kravet. Hvis kravet bruker termer
+   som «kassere», «formålsbegrensning» eller «den registrerte», finn definisjonene her og bruk
+   dem korrekt i begrunnelsen.
+
+**Steg B — Forstå hva suksesskriteriet spesifikt spør om:**
+- Les `suksesskriterier[i].beskrivelse` — dette er den detaljerte veiledningen for kriteriet.
+  Den inneholder definisjoner, eksempler og avgrensninger som er **avgjørende** for riktig vurdering.
+- Formuler spørsmålet eksplisitt for deg selv: *«Dette kriteriet spør: [...]»*
+- Eksempel: K212.1 SK1 spør om arkivering. `beskrivelse` forklarer at «verdi som dokumentasjon»
+  betyr informasjonen kan brukes som bevis i etterkant, og at «saksbehandling» krever svært lite
+  overveielse for å utløses — uten denne konteksten ville vurderingen bli feil.
+
+**Steg C — Svar på akkurat det spørsmålet:**
+- Begrunnelsen skal svare direkte på det suksesskriteriet faktisk spør om
+- Ikke skriv generelt om systemet — svar på det konkrete spørsmålet fra `beskrivelse`
+- Hvis `beskrivelse` lister opp spesifikke punkter (f.eks. en sjekkliste), adresser hvert punkt
+- Bruk funn fra kodegjennomgangen som bevis
+
+**Strukturmal for begrunnelse:**
+```
+[Svar direkte på spørsmålet fra SK beskrivelse, 1-2 setninger]
+
+[Konkrete funn fra kode/konfigurasjon som underbygger vurderingen]
+Ref: [filnavn, linje/funksjon eller nais.yaml-felt]
+
+[Eventuelle forbehold eller punkter teamet må bekrefte]
+```
+
+Et krav som virker irrelevant basert på kravnavnet alene kan bli svært relevant når
+`utdypendeBeskrivelse` og suksesskriterienenes `beskrivelse` leses (eksempel: K205.1
+gjaldt bare enkeltvedtak, men K205.2 utvidet til forhåndsvarsel og meldinger — dette
+fremgikk av `versjonEndringer`).
 
 #### Filtrer bort utgåtte krav:
 Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
