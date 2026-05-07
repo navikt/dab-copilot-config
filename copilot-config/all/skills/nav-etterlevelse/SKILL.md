@@ -47,8 +47,9 @@ Kildene leses i prioritert rekkefølge:
 
 1. **`./domain-context.md`** — domenekontekst for fagområdet (deles på tvers av systemer)
 2. **`./system-context.md`** — systemspesifikk kontekst for dette repoet
-3. **`context.md` i nav-pvk skillmappen** — fallback-kontekst. Per mai 2025 inneholder den
-   domenekunnskap for arbeidsrettet oppfølging (Team DAB).
+3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
+   NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`). Bruk den som
+   passer fagområdet systemet tilhører.
 4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
    Fortsett uten, men noter at vurderingen vil være mer generell.
 
