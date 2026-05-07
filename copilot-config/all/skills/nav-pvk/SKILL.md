@@ -46,17 +46,26 @@ har teknisk bakgrunn. Alt innhold — tekst, figurer og begrunnelser — må der
 
 ## Domenekontekst
 
-Skillmappen kan inneholde en `context.md`-fil med domenekunnskap om systemet som PVK-en
-gjelder for. **Les alltid `context.md` tidlig i arbeidsflyten** hvis filen finnes — den gir
-viktig bakgrunnsinformasjon om:
+Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 - Rettslig grunnlag og formål for behandlingen
 - Kategorier av registrerte og personopplysninger
 - Behandlingens livsløp (oppstart, avslutning)
 - Hva som er/ikke er tillatt å lagre (formålsbegrensninger)
 - Tilgangsstyring og databehandlerforhold
 
-Kontekstfilen er ment å holdes oppdatert av teamet ved endringer i fagfeltet.
-For arbeidsrettet oppfølging er Navet (NAVs intranettsider for fagfeltet) den primære kilden.
+**Les domenekontekst tidlig i arbeidsflyten**, gjerne før steg 1 (Kartlegg eksisterende dokumentasjon).
+
+Kildene leses i prioritert rekkefølge:
+
+1. **`./nav-copilot-context.md` i gjeldende katalog (CWD)** — teamets egen kontekstfil for dette
+   systemet. Opprett/oppdater denne med **nav-context**-skillen.
+
+2. **`context.md` i skillmappen** — fallback-kontekst for Teams som ikke har laget en egen fil.
+   Per mai 2025 inneholder denne domenekunnskap for arbeidsrettet oppfølging (Team DAB).
+
+3. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen
+   for å lage `nav-copilot-context.md` i gjeldende katalog. Fortsett uten kontekstfil, men
+   noter at vurderingen vil være mer generell.
 
 ## Arbeidsflyt
 

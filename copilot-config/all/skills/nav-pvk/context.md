@@ -1,5 +1,9 @@
 # Domenekontekst: Arbeidsrettet oppfølging og dialog
 
+> **Merk:** Denne filen er en fallback-kontekst for Team DAB (arbeidsrettet oppfølging).  
+> For andre systemer/team: lag `nav-copilot-context.md` i repoets rotkatalog ved hjelp av
+> **nav-context**-skillen. Den filen har høyere prioritet enn denne.
+
 Denne filen gir domenekunnskap om behandlingen av personopplysninger i arbeidsrettet oppfølging, 
 med fokus på systemene aktivitetsplanen og dialogen (arbeidsrettet-dialog / veilarbdialog).
 

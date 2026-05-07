@@ -37,6 +37,24 @@ risikoeiere, ledere). Skriv derfor i et klart og tilgjengelig språk:
   opprette/oppdatere PVK-dokumenter, risikoscenarioer og tiltak. Etterlevelse-skillen
   LESER PVK-data (steg 3e), men PVK-skillen SKRIVER til PVK-modulen.
 
+## Domenekontekst
+
+Domenekontekst gir bakgrunnsinformasjon som koden alene ikke forteller — faglige
+restriksjoner, rettslig grunnlag, hva som er tillatt å lagre, og behandlingens livsløp.
+Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
+
+Kildene leses i prioritert rekkefølge:
+
+1. **`./nav-copilot-context.md` i gjeldende katalog (CWD)** — teamets egen kontekstfil for
+   dette systemet. Opprett/oppdater denne med **nav-context**-skillen.
+
+2. **`context.md` i nav-pvk skillmappen** — fallback-kontekst. Per mai 2025 inneholder den
+   domenekunnskap for arbeidsrettet oppfølging (Team DAB).
+
+3. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen
+   for å lage `nav-copilot-context.md` i gjeldende katalog. Fortsett uten, men noter at
+   vurderingen vil være mer generell.
+
 ## Arbeidsflyt
 
 ### Steg 1: Innhent informasjon fra bruker
