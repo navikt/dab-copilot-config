@@ -44,6 +44,20 @@ har teknisk bakgrunn. Alt innhold — tekst, figurer og begrunnelser — må der
   kan bruke funn fra en etterlevelsesgjennomgang, og etterlevelse-skillen leser PVK-data
   (steg 3e). Kjør gjerne etterlevelse-skillen først for å bygge grunnlag.
 
+## Domenekontekst
+
+Skillmappen kan inneholde en `context.md`-fil med domenekunnskap om systemet som PVK-en
+gjelder for. **Les alltid `context.md` tidlig i arbeidsflyten** hvis filen finnes — den gir
+viktig bakgrunnsinformasjon om:
+- Rettslig grunnlag og formål for behandlingen
+- Kategorier av registrerte og personopplysninger
+- Behandlingens livsløp (oppstart, avslutning)
+- Hva som er/ikke er tillatt å lagre (formålsbegrensninger)
+- Tilgangsstyring og databehandlerforhold
+
+Kontekstfilen er ment å holdes oppdatert av teamet ved endringer i fagfeltet.
+For arbeidsrettet oppfølging er Navet (NAVs intranettsider for fagfeltet) den primære kilden.
+
 ## Arbeidsflyt
 
 ### Forberedelse A: Innhent informasjon fra bruker
