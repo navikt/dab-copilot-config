@@ -80,7 +80,7 @@ POST https://etterlevelse.ansatt.nav.no/api/graphql
 Content-Type: application/json
 
 {
-  "query": "{ etterlevelseDokumentasjon(filter: {id: \"DOKUMENT_ID\"}) { content { id tittel behandlinger { id navn } etterlevelser { id kravNummer kravVersjon etterleves status statusBegrunnelse suksesskriterieBegrunnelser { suksesskriterieId begrunnelse suksesskriterieStatus veiledning veiledningsTekst veiledningsTekst2 } } } } }"
+  "query": "{ etterlevelseDokumentasjon(filter: {id: \"DOKUMENT_ID\"}) { content { id title behandlinger { id navn } etterlevelser { id kravNummer kravVersjon etterleves status statusBegrunnelse suksesskriterieBegrunnelser { suksesskriterieId begrunnelse suksesskriterieStatus veiledning veiledningsTekst veiledningsTekst2 } } } } }"
 }
 ```
 
