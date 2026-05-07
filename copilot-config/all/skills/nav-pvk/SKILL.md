@@ -57,15 +57,11 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 
 Kildene leses i prioritert rekkefølge:
 
-1. **`./nav-copilot-context.md` i gjeldende katalog (CWD)** — teamets egen kontekstfil for dette
-   systemet. Opprett/oppdater denne med **nav-context**-skillen.
-
-2. **`context.md` i skillmappen** — fallback-kontekst for Teams som ikke har laget en egen fil.
-   Per mai 2025 inneholder denne domenekunnskap for arbeidsrettet oppfølging (Team DAB).
-
-3. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen
-   for å lage `nav-copilot-context.md` i gjeldende katalog. Fortsett uten kontekstfil, men
-   noter at vurderingen vil være mer generell.
+1. **`./domain-context.md`** — domenekontekst for fagområdet (deles på tvers av systemer)
+2. **`./system-context.md`** — systemspesifikk kontekst for dette repoet
+3. **`context.md` i skillmappen** — fallback-kontekst for Team DAB (arbeidsrettet oppfølging)
+4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
+   Fortsett uten kontekstfil, men noter at vurderingen vil være mer generell.
 
 ## Arbeidsflyt
 

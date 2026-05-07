@@ -1,47 +1,52 @@
 ---
 name: nav-context
 description: >
-  Lager eller oppdaterer en nav-copilot-context.md fil i gjeldende katalog. Filen gir
-  domenekunnskap om systemet som nav-etterlevelse og nav-pvk skills bruker som kontekst.
-  Henter data fra behandlingskatalog, GitHub-repoer og eventuelt Navet (NAVs intranett).
+  Lager eller oppdaterer domain-context.md og/eller system-context.md i gjeldende katalog.
+  Filene gir domenekunnskap og systemspesifikk kunnskap som nav-etterlevelse og nav-pvk
+  bruker som kontekst. Henter data fra behandlingskatalog, GitHub-repoer og eventuelt Navet.
   Bruk denne når nav-etterlevelse eller nav-pvk etterlyser kontekstfil, eller når du vil
   opprette/oppdatere konteksten for et system som skal vurderes.
 ---
 
 # NAV Kontekst-wizard
 
-Denne skillen lager `nav-copilot-context.md` i gjeldende katalog — en strukturert beskrivelsesfil
-med domenekunnskap om systemet som skal etterlevelse- eller PVK-vurderes.
+Denne skillen lager kontekstfiler i gjeldende katalog som brukes av **nav-etterlevelse**
+og **nav-pvk** for å forstå systemets formål, rettslig grunnlag, personopplysningsbehandling
+og faglige retningslinjer — informasjon som ikke alltid fremgår av koden alene.
 
-Filen brukes av **nav-etterlevelse** og **nav-pvk** for å forstå systemets formål, rettslig
-grunnlag, personopplysningsbehandling og faglige retningslinjer — informasjon som ikke alltid
-fremgår av koden alene.
+## To kontekstnivåer
 
-## Hva er nav-copilot-context.md?
+### `domain-context.md` — Domenekontekst (deles på tvers av systemer)
+Felles kunnskap for alle systemer innenfor et fagområde (f.eks. «Arbeidsrettet oppfølging»):
+- Rettslig grunnlag og GDPR-hjemmel (felles for fagområdet)
+- Hva som er/ikke er lovlig å registrere (faglige restriksjoner)
+- Faglige retningslinjer fra Navet
+- Aktuelle lover og forordninger
 
-En Markdown-fil med:
-- Systembeskrivelse og bruksområde (fra brukerens perspektiv, ikke teknisk)
-- Rettslig grunnlag og GDPR-hjemmel
-- Kategorier av registrerte og personopplysninger (fra behandlingskatalog)
+Lages én gang per fagområde. Kan legges i et felles repo eller kopieres til hvert system-repo.
+
+### `system-context.md` — Systemkontekst (system-spesifikk, committert i repoet)
+Kunnskap spesifikk for ett system:
+- Systembeskrivelse og brukere
+- Kategorier av personopplysninger (fra behandlingskatalog)
 - Behandlingens livsløp (oppstart, avslutning, lagringstid)
-- Faglige restriksjoner og retningslinjer (fra Navet)
 - Tilgangsstyring og databehandlerforhold
-- Referanser (Navet, Lovdata, behandlingskatalog)
-
-Filen er ment å holdes oppdatert av teamet ved endringer i fagfeltet eller systemet.
+- Referanser til behandlingskatalog, Navet, etterlevelse
 
 ---
 
 ## Arbeidsflyt
 
-### Steg 1: Sjekk om filen allerede finnes
+### Steg 1: Sjekk om filene allerede finnes
 
 ```bash
-ls -la ./nav-copilot-context.md 2>/dev/null && echo "FIL FINNES" || echo "FIL MANGLER"
+ls -la ./domain-context.md ./system-context.md 2>/dev/null || echo "Ingen kontekstfiler funnet"
 ```
 
-Hvis filen finnes: Spør bruker om de vil **oppdatere** den, eller **overskrive** den fra scratch.
-Vis gjeldende innhold og la brukeren bestemme hvilke seksjoner som skal oppdateres.
+Spør bruker hvilke filer som skal opprettes/oppdateres:
+- **Ny `domain-context.md`** — kun hvis det ikke finnes én for fagområdet fra før
+- **Ny `system-context.md`** — for systemet som skal vurderes
+- **Oppdatere eksisterende** — vis gjeldende innhold og la brukeren bestemme seksjoner
 
 ### Steg 2: Innhent grunnleggende info fra bruker
 
@@ -54,16 +59,57 @@ Spør om:
 
 ### Steg 3: Hent data fra Behandlingskatalog
 
-For hver behandlings-ID (f.eks. `B580`):
+Behandlingskatalog krever autentisering med `forwardauth`-cookie fra ansatt.nav.no.
+
+**Sjekk først om cookien allerede er tilgjengelig i samtalen** — hvis nav-etterlevelse eller
+nav-pvk ble kjørt i samme sesjon har brukeren sannsynligvis allerede oppgitt den. Hvis ikke,
+be bruker om den:
+> Åpne behandlingskatalog.ansatt.nav.no → DevTools → Application → Cookies → kopier `forwardauth`
 
 ```bash
-# Slå opp behandlingsnummeret for å finne UUID
-curl -s "https://behandlingskatalog.ansatt.nav.no/api/process?number=B580" | python3 -m json.tool | head -50
+cat > /tmp/bk_cookies.txt << 'COOKIEOF'
+forwardauth=<lim inn verdi her>
+COOKIEOF
 ```
 
-Deretter hent full behandlingsinfo:
+**⚠️ Viktig: `searchText`-parameteren i `/api/process` filtrerer IKKE resultater** — den
+returnerer alle behandlinger ufiltrert. Bruk paginering og filtrer lokalt:
+
 ```bash
-curl -s "https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-uuid}" | python3 -m json.tool
+# Finn behandling ved å søke gjennom alle sider
+BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
+
+python3 << 'PYEOF'
+import subprocess, json
+
+cookies_val = open('/tmp/bk_cookies.txt').read().strip()
+page = 0
+while True:
+    r = subprocess.run([
+        "curl", "-sL",
+        f"https://behandlingskatalog.ansatt.nav.no/api/process?pageSize=50&pageNumber={page}",
+        "-H", f"Cookie: {cookies_val}",
+        "-H", "Accept: application/json"
+    ], capture_output=True, text=True)
+    data = json.loads(r.stdout)
+    total_pages = data.get('pages', 1)
+    for p in data.get('content', []):
+        name = (p.get('name') or '').lower()
+        # Tilpass søkestrengen etter det du leter etter:
+        if 'oppfølging' in name or 'dialog' in name or 'aktivitet' in name:
+            print(f"{p['number']} | {p['id']} | {p['name']}")
+    page += 1
+    if page >= total_pages:
+        break
+PYEOF
+```
+
+Hent deretter full behandlingsinfo med UUID:
+
+```bash
+BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
+curl -sL "https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-uuid}" \
+  -H "Cookie: $BK_COOKIES" -H "Accept: application/json" | python3 -m json.tool
 ```
 
 **Nøkkelfelter å hente ut:**
@@ -77,11 +123,11 @@ curl -s "https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-uuid}"
 - `dpia.needForDpia`, `dpia.refToDpia` — DPIA-vurdering
 
 ```bash
-# For databehandlerdetaljer:
-curl -s "https://behandlingskatalog.ansatt.nav.no/api/processor/{processor-id}" | python3 -m json.tool
+# For databehandlerdetaljer (processor-ID-er fås fra behandlingens dataProcessing.processors[]):
+BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
+curl -sL "https://behandlingskatalog.ansatt.nav.no/api/processor/{processor-id}" \
+  -H "Cookie: $BK_COOKIES" -H "Accept: application/json" | python3 -m json.tool
 ```
-
-> **Merk:** Behandlingskatalogen er åpent tilgjengelig — ingen SSO kreves.
 
 ### Steg 4: Faglig kontekst fra Navet (valgfritt, anbefalt)
 
@@ -177,147 +223,160 @@ Fokuser på:
 - Hvem sender/mottar data? (Kafka-topics, REST-klienter)
 - Når slettes data? (slettejobber, retention-mekanismer)
 
-### Steg 6: Generer nav-copilot-context.md
+### Steg 6: Generer kontekstfiler
 
-Skriv filen til CWD. Bruk malen under. Fyll ut alle seksjoner basert på innsamlet informasjon.
+Skriv filene til CWD. Bruk malene under. Fyll ut alle seksjoner basert på innsamlet informasjon.
 Der informasjon mangler, skriv `[Teamet må fylle inn: ...]` som placeholder.
 
 ```bash
-cat > ./nav-copilot-context.md << 'EOF'
-{GENERERT INNHOLD}
+cat > ./domain-context.md << 'EOF'
+{DOMENE-INNHOLD}
+EOF
+
+cat > ./system-context.md << 'EOF'
+{SYSTEM-INNHOLD}
 EOF
 ```
 
 **Fortell brukeren:**
 - Hvilke seksjoner som er automatisk utfylt (fra behandlingskatalog/Navet/kode)
 - Hvilke placeholders som trenger manuell utfylling
-- At filen bør committes til repoet og oppdateres ved endringer
+- At `system-context.md` bør committes til repoet og oppdateres ved endringer
+- At `domain-context.md` kan deles på tvers av systemer i samme fagområde
 
 ---
 
-## Mal for nav-copilot-context.md
-
-Bruk denne strukturen. Tilpass innhold, men behold seksjonsnummerering og -overskrifter
-slik at nav-pvk og nav-etterlevelse skills kan orientere seg.
+## Mal for domain-context.md
 
 ```markdown
-# NAV Copilot Kontekst: {Systemnavn}
+# NAV Domenekontekst: {Fagområde}
+
+Generert: {YYYY-MM-DD}  
+Fagområde: {Navn og Navet-URL}  
+Gjelder systemer: {Liste over systemer som deler denne konteksten}
+
+> Deles av alle systemer innenfor fagområdet. Oppdater ved regelverksendringer
+> eller endringer i faglige retningslinjer. Ikke system-spesifikk informasjon her.
+
+---
+
+## 1. Rettslig grunnlag (felles for fagområdet)
+
+### Primær nasjonal hjemmel
+{Lov og paragraf}
+
+### GDPR-grunnlag
+**Artikkel 6(1){x}** — {begrunnelse}
+
+### Særlig om sensitive personopplysninger (art. 9)
+{Hvis aktuelt, ellers «Ikke aktuelt»}
+
+### Hva er lovlig å registrere
+{Konkrete eksempler}
+
+### Hva er IKKE lovlig å registrere
+{Konkrete eksempler — særlig viktig for fritekstfelt}
+
+---
+
+## 2. Faglige retningslinjer og restriksjoner
+
+{Fra Navet: operative krav til veiledere/systemene. «Du skal/skal ikke»-regler.}
+
+---
+
+## 3. Kategorier av registrerte (felles)
+
+{Hvem behandles i dette fagområdet?}
+
+---
+
+## 4. Referanser
+
+- **Navet**: {URL til fagområdespesifikke sider}
+- **Lovdata**: {URL til hjemmel}
+```
+
+## Mal for system-context.md
+
+```markdown
+# NAV Systemkontekst: {Systemnavn}
 
 Generert: {YYYY-MM-DD}  
 Behandlings-ID(er): {B123, B456}  
-Etterlevelsesdokumentasjon: {URL eller ID}  
-Navet-fagområde: {Fagområdets tittel og URL}
+Behandlingskatalog: {URL}  
+DPIA/PVK: {URL}  
+Domenekontekst: Se domain-context.md  
+Primær kodebase: navikt/{repo}
 
-> Denne filen vedlikeholdes av teamet og brukes av nav-etterlevelse og nav-pvk skills
-> som bakgrunnskunnskap. Oppdater ved vesentlige endringer i systemet eller regelverket.
+> Committert i repoet. Oppdater ved endringer i systemet eller nye integrasjoner.
 
 ---
 
 ## 1. Systembeskrivelse
 
 ### Hva er systemet?
-{Beskriv systemet med brukerens perspektiv, ikke teknisk. Hva gjør det? Hvem bruker det?}
+{Brukers perspektiv, ikke teknisk. Hva gjør det? Hvem bruker det?}
+
+### Komponenter
+{Hvis systemet består av flere repoer/tjenester — list dem opp}
 
 ### Hvem bruker systemet?
-- **De registrerte (brukere/borgere)**: {Hvem er de? Antall/størrelsesorden?}
-- **Interne brukere (veiledere/saksbehandlere)**: {Hvem? Hvilken rolle?}
-- **Andre aktører**: {Arbeidsgivere, samhandlere, etc. — om relevant}
+- **De registrerte (brukere/borgere)**: {Hvem? Størrelse?}
+- **Interne brukere**: {Veiledere/saksbehandlere}
 
 ---
 
-## 2. Rettslig grunnlag
+## 2. Kategorier av personopplysninger
 
-### Primær nasjonal hjemmel
-{Lov og paragraf, f.eks. «NAV-loven § 14 a»}
+### Fra behandlingskatalog
+| Opplysningstype | Sensitivitet | Registrerte |
+|-----------------|-------------|-------------|
+| {Navn} | {POL/SAERLIG} | {Bruker/Ansatt} |
 
-Kort beskrivelse av hva bestemmelsen sier og hvorfor den begrunner behandlingen.
-
-### GDPR-grunnlag
-**Artikkel 6(1){x}** — {begrunn valg av bokstav}
-
-### Særlig om sensitive personopplysninger (art. 9)
-{Hvis behandlingen inkluderer helsedata, fagforeningsmedlemskap el. — beskriv hjemmel}
-{Skriv «Ikke aktuelt» hvis art. 9-data ikke behandles}
-
-### Hva er lovlig å registrere
-{Konkrete eksempler på hva veiledere/systemet har lov til å lagre}
-
-### Hva er IKKE lovlig å registrere
-{Konkrete eksempler på hva som IKKE skal lagres — særlig viktig for fritekstfelt}
+### Systemspesifikt (fra kodegjennomgang)
+{DB-tabeller og felter med persondata, Kafka-nøkler etc.}
 
 ---
 
-## 3. Kategorier av registrerte
+## 3. Behandlingens livsløp
 
-{Liste over hvem som er registrerte i systemet}
-
-1. **{Kategori}**: {Beskrivelse og antall/størrelse}
-2. ...
-
----
-
-## 4. Kategorier av personopplysninger
-
-### Ordinære personopplysninger
-{Liste}
-
-### Sensitive/særlige kategorier (art. 9)
-{Liste, eller «Ingen» hvis ikke aktuelt}
-
-### Fritekstfelt — særskilt risiko
-{Beskriv fritekstfelt i systemet og risikoen for at sensitive opplysninger skrives inn}
-
----
-
-## 5. Behandlingens livsløp
-
-### Oppstart av behandling
-{Hva utløser at behandlingen begynner? Hvilken hendelse/handling?}
-
-### Under behandlingen
-{Kort om hva som skjer med dataene mens behandlingen pågår}
+### Oppstart
+{Hva utløser behandlingen?}
 
 ### Avslutning og sletting
-{Hva avslutter behandlingen? Hva skjer med data? Lagringstid?}
+{Hva avslutter? Lagringstid?}
 
-**Lagringstid:** {X måneder / år — fra behandlingskatalog eller policy}
-
----
-
-## 6. Faglige retningslinjer og restriksjoner
-
-{Oppsummer relevante retningslinjer fra Navet eller interne rutiner.
-Beskriv kjente begrensninger, «du skal/skal ikke»-regler for veiledere, etc.}
+**Lagringstid:** {X måneder — fra behandlingskatalog}
 
 ---
 
-## 7. Tilgangsstyring
+## 4. Tilgangsstyring
 
-### Bruker/borger-tilgang
-{Autentiseringsmekanisme, f.eks. sikkerhetsnivå 4 / BankID}
+### Bruker/borger
+{Autentisering: ID-porten, sikkerhetsnivå}
 
-### Intern tilgang (veiledere/saksbehandlere)
-{Autentisering og autorisasjon, f.eks. Azure AD + poao-tilgang}
+### Intern (veiledere)
+{Azure AD, poao-tilgang, annotasjoner}
 
-### Særskilte tilgangsbegrensninger
-{Kontorsperre, skjerming, fortrolig adresse, etc. — om aktuelt}
+### Særskilte begrensninger
+{Kontorsperre, adressebeskyttelse}
 
 ---
 
-## 8. Databehandlere og tredjeparter
+## 5. Databehandlere og integrasjoner
 
 | Aktør | Rolle | Hva deles |
 |-------|-------|-----------|
-| {Navn} | Databehandler / Behandlingsansvarlig / Mottaker | {Hva} |
+| {Navn} | Databehandler | {Hva} |
 
 ---
 
-## 9. Referanser
+## 6. Referanser
 
-- **Behandlingskatalog**: {URL til behandlingen, f.eks. https://behandlingskatalog.ansatt.nav.no/process/{uuid}}
-- **Navet**: {URL til fagområdespesifikke sider}
-- **Lovdata**: {URL til aktuell lovhjemmel}
-- **Etterlevelse**: {URL til etterlevelsesdokumentasjonen}
+- **Behandlingskatalog**: {URL}
+- **Etterlevelse**: {URL}
+- **GitHub**: {URL}
 ```
 
 ---
