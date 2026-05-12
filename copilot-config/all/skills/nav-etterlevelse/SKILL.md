@@ -53,6 +53,18 @@ Kildene leses i prioritert rekkefølge:
 4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
    Fortsett uten, men noter at vurderingen vil være mer generell.
 
+**⚠️ Hvis `system-context.md` mangler i CWD:** Vurder å opprette den underveis basert på
+funn fra kodegjennomgangen. En god `system-context.md` inneholder:
+- Behandlingens livsløp (fra opprettelse til arkivering/sletting)
+- Lagringstid og kassasjonsmekanismer
+- Særlige personopplysningskategorier (art. 9) med begrunnelse
+- Autentiserings- og autorisasjonsmønster
+- Integrasjoner og tredjeparter
+- Åpne etterlevelsespunkter
+
+Filen bør hete `system-context-{systemnavn}.md` og opprettes i CWD slik at den kan
+gjenbrukes i fremtidige gjennomganger. Informer bruker om at filen er opprettet.
+
 ## Arbeidsflyt
 
 ### Steg 1: Innhent informasjon fra bruker
