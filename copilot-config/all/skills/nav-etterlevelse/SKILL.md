@@ -100,6 +100,17 @@ Content-Type: application/json
 }
 ```
 
+⛔ **KRITISK: Bruk KUN denne GraphQL-spørringen for å hente etterlevelser — aldri REST-endepunktet `/api/etterlevelse` uten filter.**
+
+REST-endepunktet `/api/etterlevelse` (uten `etterlevelseDokumentasjonId`-filter) returnerer
+**alle etterlevelser på tvers av alle dokumenter i systemet** (26 000+). Etterlevelser fra
+fremmede dokumenter vil ha sammenfallende `(kravNummer, kravVersjon)`-par med dokumentet
+du analyserer — noe som gir fullstendig feil gap-analyse og begrunnelsesvurdering.
+
+Etterlevelsene for et spesifikt dokument hentes **alltid** som del av dokumentobjektet via
+GraphQL (feltet `etterlevelser` er nestet inne i `etterlevelseDokumentasjon`-responsen ovenfor).
+Lagre disse etterlevelsene og bruk dem konsekvent gjennom hele analysen.
+
 #### Verifiser dokumentegenskaper (RELEVANS):
 
 Etterlevelsesdokumentasjonen har egenskaper som styrer hvilke krav som vises.
@@ -233,7 +244,10 @@ manglende oppføringer.
 ```
 
 **Steg 2 (alltid): Sammenlign mot eksisterende etterlevelser:**
-Hent etterlevelser fra dokumentasjonen og bygg et set av (kravNummer, kravVersjon)-par.
+Bruk etterlevelsene du hentet fra GraphQL-spørringen i steg 3a (feltet `etterlevelser`
+nestet inne i dokumentobjektet). **Ikke** hent etterlevelser på nytt fra REST-endepunktet
+`/api/etterlevelse` — det returnerer etterlevelser på tvers av alle dokumenter i systemet.
+Bygg et set av `(kravNummer, kravVersjon)`-par fra disse etterlevelsene.
 Finn krav i gjeldende liste som IKKE har en etterlevelse-record. Disse er helt ubesvarte.
 
 **Ved «Ufullstendige krav»-modus (i tillegg til gap-analysen):**
