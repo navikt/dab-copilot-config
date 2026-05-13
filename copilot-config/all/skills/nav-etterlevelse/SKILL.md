@@ -459,7 +459,13 @@ Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 - Autentisering (ID-porten, Azure AD, TokenX)
 - Autorisasjon (poao-tilgang, roller, tilgangstyper)
 - Kontorsperre / beskyttede brukere
-- Auditlogging (@AuthorizeFnr, logback-naudit)
+- Auditlogging: Identifiser ALLE inngangspunkter (HTTP-endepunkter, GraphQL-resolvere,
+  meldingskonsumenter, bakgrunnsjobber) som eksponerer persondata til en bruker eller
+  system. Verifiser at hvert enkelt punkt logger oppslaget til NAVs oppslagslogg
+  (Arcsight/CEF). Mekanismen varierer etter rammeverk og språk — Spring: `@AuthorizeFnr`
+  (logback-naudit), Node.js: tilsvarende middleware, osv. Bekreft eksisterende
+  begrunnelse mot faktisk kode — ikke stol på at «noen kontrollere er dekket» betyr at
+  alle er det.
 
 **Personvern:**
 - Hvilke personopplysninger lagres (database-skjema)
@@ -853,7 +859,7 @@ Kun kravnummer (ikke versjon). Rekkefølgen er prioriteringsrekkefølgen.
 | K231 Klarspråk | Tekstkvalitet, NAV DS-bruk. SK om kontakt med klarspråk = organisatorisk |
 | K232 Bokmål/nynorsk | i18n-rammeverk, språkvalg-UI, hardkodet tekst |
 | K245 Risikovurdering | CSP-policy, sårbarheter, sikkerhetstiltak |
-| K253 Oppslagslogg | @AuthorizeFnr, logback-naudit, CEF-format, team-logs |
+| K253 Oppslagslogg | Identifiser ALLE inngangspunkter som eksponerer persondata (HTTP-endepunkter, GraphQL-resolvere, meldingskonsumenter, bakgrunnsjobber). Verifiser systematisk at hvert enkelt logger til Arcsight/CEF (NAVs oppslagslogg). Mekanisme varierer: Spring = logback-naudit + dedikert annotering, Node.js = middleware, osv. |
 
 ## Rapport
 
