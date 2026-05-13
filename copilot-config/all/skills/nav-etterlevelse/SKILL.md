@@ -453,6 +453,28 @@ DPIA-triggende egenskaper (fra Behandlingskatalogen), noter dette som et handlin
 
 ### Steg 4: Inspiser kildekode
 
+#### ⛔ Feilhåndtering ved delsteg og agenter
+
+**Stopp og informer bruker hvis et viktig delsteg mislykkes.** Ikke fortsett arbeidsflyten
+som om steget var fullført.
+
+Klassifiser feil etter konsekvens:
+
+| Situasjon | Handling |
+|---|---|
+| Kodegjennomgang av ett repo feilet (agent fant ikke repo, nettverksfeil, ingen tilgang) | **Stopp.** Informer bruker om hvilke repo som mangler. Ikke skriv begrunnelser for krav som avhenger av det manglende repoet. |
+| API-kall til etterlevelsesløsningen eller behandlingskatalogen feilet | **Stopp.** Informer om feilen. Be om nye cookies hvis 302/401, eller vent og prøv igjen ved nettverksfeil. |
+| Delsteg returnerte tomme eller mistenkelig mangelfulle resultater | **Verifiser** før du går videre. Eksempel: en agent som bare fant auditlogging i én kontroller der det forventes mange — sjekk om agenten faktisk leste alle filer. |
+| Ikke-kritisk informasjon mangler (f.eks. ROS-ID, lagringstid ikke funnet i koden) | Fortsett, men **merk tydelig** i rapporten: `[Teamet må bekrefte: ...]` |
+
+**Prøv alternativ tilnærming før du gir opp.** Hvis en explore-agent feiler, forsøk
+direkte GitHub MCP-oppslag eller bash-kommandoer. Hvis det fremdeles feiler, dokumenter
+hva som manglet og hvilken påvirkning det har på vurderingskvaliteten.
+
+**Ikke stol på at «noen resultater» betyr «fullstendige resultater».** En agent som
+returnerer noen funn kan ha feilet stille på resten. Vurder om omfanget er rimelig —
+f.eks. bør en kodegjennomgang av sikkerhet i et backend-repo gi funn fra mer enn én fil.
+
 Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 
 **Sikkerhet og tilgangskontroll:**
