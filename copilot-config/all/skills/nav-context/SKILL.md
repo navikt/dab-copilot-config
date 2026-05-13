@@ -397,3 +397,15 @@ Ja, det anbefales. Filen inneholder ingen hemmeligheter og bør versjoneres med 
 **Hva hvis behandlingskatalog ikke har info om systemet?**
 Fyll ut manuelt basert på teamets kunnskap. Behandlingskatalogen bør uansett oppdateres —
 alle behandlinger av personopplysninger i NAV skal være registrert der.
+
+## Modellvalg for deloppgaver
+
+nav-context er primært en datahentings- og skrivoppgave uten tung juridisk analyse.
+Bruk billige/raske modeller for nesten alt.
+
+| Oppgave | Anbefalt modell | Begrunnelse |
+|---|---|---|
+| Hente data fra Behandlingskatalog (steg 3) | `claude-haiku-4.5` | Strukturert datahenting |
+| Hente faglig kontekst fra Navet (steg 4) | `claude-haiku-4.5` | Web-skraping og strukturering |
+| Kodegjennomgang for personvernrelevante funn (steg 5) | `claude-haiku-4.5` | Explore-agenter bruker allerede Haiku som standard |
+| Skrive domain-context.md og system-context.md (steg 6) | `claude-sonnet-4.6` | Fri tekst som skal være presis og lesbar for jurister og teknikere |
