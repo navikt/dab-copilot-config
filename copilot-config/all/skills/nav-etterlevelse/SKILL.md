@@ -888,6 +888,30 @@ Kun kravnummer (ikke versjon). Rekkefølgen er prioriteringsrekkefølgen.
 Rapporten genereres i steg 6 og er den primære leveransen. Den skal alltid kvalitetssikres
 av bruker og teamet før eventuell opplasting til etterlevelsesløsningen (steg 8).
 
+## Modellvalg for deloppgaver
+
+Bruk dyrere modeller for tunge analytiske oppgaver og billigere modeller for enkle
+strukturerte deloppgaver. Skillen kjøres normalt av en kraftig modell (f.eks. Claude Opus
+4.7), men subagenter kan bruke rimeligere modeller der det holder.
+
+| Oppgave | Anbefalt modell | Begrunnelse |
+|---|---|---|
+| Full kodegjennomgang med juridisk vurdering (steg 4) | `claude-opus-4.7` | Krever dyp forståelse av kode OG lovkrav |
+| Skrive etterlevelsebegrunnelser (steg 6) | `claude-opus-4.7` | Presisjon og juridisk kontekst er kritisk |
+| Hente og parse API-responser (behandlingskatalog, etterlevelsesløsning) | `claude-haiku-4.5` | Enkel datahenting og JSON-transformasjon |
+| Søke etter spesifikke mønstre i kode (grep-lignende) | `claude-haiku-4.5` | Strukturert søk, ingen tolkning nødvendig |
+| Hente kravdetaljer via GraphQL | `claude-haiku-4.5` | Forutsigbar datastruktur |
+| Sammenligne kravliste mot etterlevelser (gap-analyse) | `claude-haiku-4.5` | Enkel set-differanse-operasjon |
+| Laste opp begrunnelser via PUT-kall (steg 8) | `claude-haiku-4.5` | Mekanisk opplasting etter ferdig rapport |
+| Sammensatt analyse: kode + behandlingskatalog + PVK | `claude-sonnet-4.6` | Moderat kompleksitet, balanse mellom kostnad og kvalitet |
+
+**Praktisk bruk med task-verktøyet:**
+```
+task(..., model: "claude-haiku-4.5")   # enkle API-kall og søk
+task(..., model: "claude-sonnet-4.6")  # mellomtunge analyser
+task(..., model: "claude-opus-4.7")    # tunge juridiske vurderinger
+```
+
 ## Viktige huskeregler
 
 - Alltid inspiser FAKTISK kode, ikke bare dokumentasjon
