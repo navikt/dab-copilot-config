@@ -602,3 +602,15 @@ EtterlevelseDokumentasjon (dok-id)
        +-- Tiltak[] [steg 6,7]
             +-- risikoscenarioIds -> scenarioer
 ```
+
+## Modellvalg for deloppgaver
+
+| Oppgave | Anbefalt modell | Begrunnelse |
+|---|---|---|
+| Kodegjennomgang med personvernvurdering (Forberedelse D) | `claude-opus-4.7` | Krever forståelse av kode OG personvernlovgivning |
+| Identifisere og formulere risikoscenarioer (steg 6) | `claude-opus-4.7` | Kreativ risikovurdering med juridisk presisjon |
+| Formulere tiltaksbeskrivelser (steg 6) | `claude-opus-4.7` | Konkrete tiltak må speile faktisk risiko |
+| Hente data fra behandlingskatalog og etterlevelsesløsning | `claude-haiku-4.5` | Enkel datahenting og JSON-parsing |
+| Steg 1–5: Oversikt, livsløp, art og omfang, dokumentasjon, involvering | `claude-haiku-4.5` | Strukturert utfylling av kjente felter |
+| Steg 7: Oppdatere risikostatus etter tiltak (tallverdier) | `claude-haiku-4.5` | Mekanisk oppdatering av kjente API-felt |
+| Steg 8: Sende inn PVK til PVO | `claude-haiku-4.5` | API-kall uten analytisk innhold |
