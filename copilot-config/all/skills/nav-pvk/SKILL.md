@@ -417,17 +417,63 @@ på **personvernkonsekvenser**, ikke generell IT-sikkerhet:
 `konsekvensNivaa` (1-5), `konsekvensNivaaBegrunnelse`,
 `generelScenario` (bool), `ingenTiltak` (bool)
 
-**VIKTIG:** `relevanteKravNummer` styres via EGNE endepunkter, IKKE via create/update!
-- Opprett med kravkobling: `POST /risikoscenario/krav/{kravnummer}`
-- Koble etterpå: `PUT /risikoscenario/update/addRelevantKrav`
+**Opprett scenario:** `POST /api/risikoscenario` med kobling inline:
+```json
+{
+  "pvkDokumentId": "...", "navn": "...", "beskrivelse": "...",
+  "sannsynlighetsNivaa": 2, "sannsynlighetsNivaaBegrunnelse": "...",
+  "konsekvensNivaa": 2, "konsekvensNivaaBegrunnelse": "...",
+  "generelScenario": false,
+  "relevanteKravNummer": [{"kravNummer": 113, "kravVersjon": 2, "temaCode": null, "navn": null}],
+  "tiltakIds": [], "ingenTiltak": false,
+  "sannsynlighetsNivaaEtterTiltak": 0, "konsekvensNivaaEtterTiltak": 0,
+  "nivaaBegrunnelseEtterTiltak": "", "tiltakOppdatert": false
+}
+```
+
+**Alternative kravkoblings-endepunkter (når scenarioet allerede finnes):**
+- `POST /risikoscenario/krav/{kravnummer}` — opprett scenario direkte under krav
+- `PUT /risikoscenario/update/addRelevantKrav` — koble eksisterende scenarioer til krav
   Body: `{ "kravnummer": 191, "risikoscenarioIder": ["{id1}", "{id2}"] }`
+
+**Pagination-gotcha:** `GET /api/risikoscenario?pvkDokumentId=X` filtrerer IKKE server-side.
+Bruk `pageSize=200` og filtrer client-side på `pvkDokumentId`.
 
 #### API for tiltak
 
 **Tiltak opprettes ALLTID under et risikoscenario:**
 `POST /api/tiltak/risikoscenario/{scenario-id}`
-Felter: `pvkDokumentId`, `navn`, `beskrivelse`, `ansvarlig` (NAV-ident),
-`ansvarligTeam` (team-ID), `frist` (dato), `iverksatt` (bool)
+
+**⛔ KRITISK DTO-FORSKJELL ved POST/PUT:** Backend forventer `ansvarlig` og `ansvarligTeam`
+som **strenger** (henholdsvis NAV-ident og team-UUID), IKKE som objekter slik GET returnerer:
+
+```json
+{
+  "pvkDokumentId": "...",
+  "navn": "...",
+  "beskrivelse": "...",
+  "ansvarlig": "E102227",
+  "ansvarligTeam": "1ad2c9ea-3221-4666-93f3-fe6f7cae94ef",
+  "frist": "2026-08-01",
+  "iverksatt": false,
+  "iverksattDato": null
+}
+```
+
+Sender du objekter (slik GET-responsen ser ut) får du `400 Bad Request`.
+Fjern også `changeStamp`, `version`, og `risikoscenarioIds` fra body — disse settes av backend
+(koblingen til scenario kommer fra URL-en).
+
+**Andre endepunkter:**
+- `GET /api/tiltak/{id}` — hent enkelt-tiltak (returnerer ansvarlig/ansvarligTeam som objekter)
+- `GET /api/tiltak/pvkdokument/{pvk-id}` — alle tiltak for en PVK
+- `PUT /api/tiltak/{id}` — oppdater (samme DTO-konvensjon: strenger)
+- `DELETE /api/tiltak/{id}` — slett tiltak
+- `/api/tiltak` (collection) støtter KUN GET — POST gir 405.
+- `/api/tiltak/{id}` med id=`new` gir 400 (UUID-validering). Ikke gjør dette.
+
+**Slå opp NAV-ident:** `GET /api/team/resource/search/{søkeord}` returnerer
+`{content: [{navIdent, fullName, email, ...}]}`.
 
 **Frist:** Påkrevd for tiltak som ikke er iverksatt. For iverksatte tiltak (`iverksatt: true`)
 er frist valgfri — `iverksattDato` settes automatisk.
