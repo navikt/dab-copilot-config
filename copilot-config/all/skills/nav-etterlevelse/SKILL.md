@@ -916,6 +916,17 @@ task(..., model: "claude-opus-4.7")    # tunge juridiske vurderinger
 
 - Alltid inspiser FAKTISK kode, ikke bare dokumentasjon
 - Verifiser plattformkrav mot docs.nais.io
+- **Verifiser lovreferanser mot lovdata før du «retter» dem.** Eksempel: Nav-loven § 4 a
+  (Behandling av personopplysninger) er en reell paragraf tilføyd i 2020 — ikke en feilskrivning
+  av § 4. Når du er usikker på om en henvisning er korrekt, slå opp på
+  `https://lovdata.no/lov/{lov-dato-nr}/§{paragraf}` før du foreslår endring.
+- **Tilordninger og koblinger ER personopplysninger.** En kobling mellom en identifiserbar
+  person og noe (kontor, sak, rolle, status) er en personopplysning etter GDPR art. 4(1) —
+  selv om det enkelte attributtet kan virke organisatorisk. Behandle slike som
+  personopplysninger ved vurdering av K102, K103, K107, K113, K191 mv.
+- **SK-IDer er ikke i numerisk rekkefølge.** Les `suksesskriterier[i].beskrivelse` for å
+  forstå hva hvert SK spør om. Begrunnelsen MÅ svare på akkurat det spørsmålet — det er en
+  vanlig feil å besvare nabo-SK-et fordi man leste i feil rekkefølge.
 - Skill mellom det som kan verifiseres i kode og det som krever teamets input
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
 - Bevar ALLTID eksisterende begrunnelser ved oppdatering

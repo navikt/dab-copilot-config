@@ -580,6 +580,32 @@ teamet trykke «Send inn» i UI-et, eller bekrefte eksplisitt at de vil sende.
 
 ---
 
+### Tilbakemelding til risikoeier (merknadTilRisikoeier)
+
+Når PVK skal sendes til **risikoeier** for godkjenning (alternativ flyt når PVO har
+godkjent under forutsetninger og teamet ikke skal sende ny PVO-runde), bruker man feltet
+`merknadTilRisikoeier` direkte på PVK-dokumentet:
+
+| Felt | UI-label | Innhold |
+|---|---|---|
+| `merknadTilRisikoeier` | «Oppsummer for risikoeieren eventuelle endringer gjort som følge av PVOs tilbakemelding» | Lederrettet oppsummering av behandlingen, vurderingen, PVOs tilbakemelding og hvordan den er adressert, samt gjenstående arbeid |
+| `merknadFraRisikoeier` | «Risikoeiers begrunnelse for godkjenning av restrisiko» | Fylles av risikoeier i UI — ikke av agenten |
+| `godkjentAvRisikoeierDato` / `godkjentAvRisikoeier` | (settes ved godkjenning) | Settes av UI når risikoeier godkjenner |
+
+Lagring: PUT på hele PvkDokument (samme DTO-transform som beskrevet over).
+
+**Tonen i `merknadTilRisikoeier`** bør være lederrettet og ikke-teknisk: forklar
+hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert, og hva
+som gjenstår — nok til at risikoeier kan ta en informert beslutning uten å lese hele PVK-en.
+
+Feltet rendres som **markdown** (jf. punkt 9 i Datamodell-avsnittet). Bruk `**fet**` for
+viktige tall/hjemler, `## ` for seksjoner, `- ` for lister.
+
+**Agenten setter ALDRI status til TRENGER_GODKJENNING** (sender til risikoeier) eller
+til GODKJENT_AV_RISIKOEIER — disse overgangene må gjøres i UI-et.
+
+---
+
 ## PVK-statusmaskin
 
 ```
@@ -681,8 +707,17 @@ BehandlingensLivslop og BehandlingensArtOgOmfang bruker `etterlevelseDokumentasj
    Gyldige verdier: `SKAL_UTFORE`, `ALLEREDE_UTFORT`, `SKAL_IKKE_UTFORE`, `UNDEFINED`.
 8c. **PUT overskriver alle felter** — send ALLTID komplett objekt ved oppdatering.
    Felter som utelates settes til null/tom. Hent GET først, modifiser, fjern `changeStamp`, send PUT.
-9. **Ren tekst i de fleste felter**: Kun `BehandlingensLivslop.beskrivelse` støtter rik tekst/markdown.
-   Alle andre felter (art og omfang, scenarioer, tiltak, involvering) vises som ren tekst — IKKE bruk markdown.
+9. **Markdown-støtte er felt-spesifikk** (verifisert i frontend-koden):
+   - **Markdown-rendret** (kan bruke `**fet**`, `*kursiv*`, `## overskrift`, `- liste`):
+     - `BehandlingensLivslop.beskrivelse`
+     - `meldingerTilPvo[].merknadTilPvo` og `meldingerTilPvo[].endringsNotat`
+     - `merknadTilRisikoeier` og `merknadFraRisikoeier`
+     - PVO-tilbakemeldingsfelter rendret med samme `<Markdown source={...}>`-komponent
+   - **Ren tekst** (HTML/markdown vises som tegn): Art-og-omfang-felter, scenarioer (`navn`/`beskrivelse`),
+     tiltak (`navn`/`beskrivelse`), involveringsbeskrivelser.
+   - **Aldri bruk HTML** — feltene som rendrer markdown bruker `escapeHtml=true` i read-only-visning.
+   - Når du er usikker: sjekk komponenten i `navikt/etterlevelse` (typisk `*ReadOnly.tsx`) — hvis verdien
+     pakkes i `<Markdown source={...}>`, er det markdown.
 10. **Tiltak-felter**: `ansvarligTeam` er en string (team-UUID), IKKE et objekt. `ansvarlig` er en string (NAV-ident), IKKE et objekt.
 11. **Livsløp-filer**: Maks 4 filer, maks 5 MB per fil, tillatte formater: PDF, PNG, JPG, JPEG.
     Filer legges til via `filer`-parts i multipart-requesten. PUT ERSTATTER alle filer — du må laste opp
