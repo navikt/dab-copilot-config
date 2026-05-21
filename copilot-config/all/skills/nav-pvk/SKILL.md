@@ -417,27 +417,42 @@ på **personvernkonsekvenser**, ikke generell IT-sikkerhet:
 `konsekvensNivaa` (1-5), `konsekvensNivaaBegrunnelse`,
 `generelScenario` (bool), `ingenTiltak` (bool)
 
-**Opprett scenario:** `POST /api/risikoscenario` med kobling inline:
+**Hent scenarioer for en PVK:**
+```
+GET /api/risikoscenario/pvkdokument/{pvk-id}/ALL
+```
+Returnerer alle scenarioer (generelle + krav-spesifikke) for den gitte PVK-en.
+Typene er `ALL`, `GENERAL` (kun generelle) og `KRAV` (kun krav-spesifikke).
+
+⛔ **Bruk IKKE** `GET /api/risikoscenario?pvkDokumentId=X` — denne parameteren
+filtrerer IKKE server-side og returnerer alle 650+ scenarioer på tvers av alle PVK-er.
+
+**Opprett scenario:** `POST /api/risikoscenario`
 ```json
 {
   "pvkDokumentId": "...", "navn": "...", "beskrivelse": "...",
   "sannsynlighetsNivaa": 2, "sannsynlighetsNivaaBegrunnelse": "...",
   "konsekvensNivaa": 2, "konsekvensNivaaBegrunnelse": "...",
-  "generelScenario": false,
-  "relevanteKravNummer": [{"kravNummer": 113, "kravVersjon": 2, "temaCode": null, "navn": null}],
-  "tiltakIds": [], "ingenTiltak": false,
+  "generelScenario": false, "ingenTiltak": false,
   "sannsynlighetsNivaaEtterTiltak": 0, "konsekvensNivaaEtterTiltak": 0,
   "nivaaBegrunnelseEtterTiltak": "", "tiltakOppdatert": false
 }
 ```
+⛔ **IKKE inkluder `relevanteKravNummer` i POST-body** — feltet strippes av backend
+(og av `tiltakIds`) og ignoreres fullstendig. Kravkoblinger MÅ settes via eget endepunkt.
 
-**Alternative kravkoblings-endepunkter (når scenarioet allerede finnes):**
-- `POST /risikoscenario/krav/{kravnummer}` — opprett scenario direkte under krav
-- `PUT /risikoscenario/update/addRelevantKrav` — koble eksisterende scenarioer til krav
-  Body: `{ "kravnummer": 191, "risikoscenarioIder": ["{id1}", "{id2}"] }`
+**Kravkobling — ENESTE fungerende metode:**
+```
+PUT /api/risikoscenario/update/addRelevantKrav
+Body: { "kravnummer": 113, "risikoscenarioIder": ["uuid1", "uuid2"] }
+```
+- Kall én gang per krav, med alle scenarioer som skal knyttes i `risikoscenarioIder`
+- Scenarioet kan knyttes til flere krav: kall endepunktet én gang per krav
+- Alternativt: `POST /api/risikoscenario/krav/{kravnummer}` for å opprette OG
+  koble i én operasjon (for scenarioer med kun ett krav)
 
-**Pagination-gotcha:** `GET /api/risikoscenario?pvkDokumentId=X` filtrerer IKKE server-side.
-Bruk `pageSize=200` og filtrer client-side på `pvkDokumentId`.
+**Fjern kravkobling:**
+`PUT /api/risikoscenario/{id}/removeKrav/{kravnummer}`
 
 #### API for tiltak
 
