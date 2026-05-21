@@ -299,7 +299,8 @@ i de fleste tilfeller.
 ### ⚠️ POST tar et ARRAY
 
 `POST /api/policy` forventer en **array av PolicyRequest**, ikke et enkelt objekt.
-Også når du oppretter én policy må du wrappe i `[...]`.
+Også når du oppretter én policy må du wrappe i `[...]`. Returnerer **HTTP 201**
+ved suksess.
 
 ## InformationType-API
 
