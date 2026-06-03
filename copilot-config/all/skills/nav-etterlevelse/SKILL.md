@@ -619,6 +619,59 @@ Du har NÅ laget en rapport. Du skal IKKE kalle API-er for å opprette eller opp
 etterlevelser. Du skal IKKE gå videre til steg 8 med mindre bruker eksplisitt ber
 om det (f.eks. «last opp», «oppdater API-et», «godkjent, publiser»).
 
+**Spør bruker om gjennomgangsmetode:**
+
+> Rapporten er klar. Hvordan vil du kvalitetssikre begrunnelsene før opplasting?
+>
+> **A) Interaktiv SK-gjennomgang** (anbefalt) — Gå gjennom én SK om gangen i terminalen.
+>    For hver SK vises suksesskriteriet og diff av hva som endres. Du godkjenner, hopper
+>    over eller redigerer én etter én. Effektivt fordi du ser krav og endring side om side.
+>
+> **B) Rapportgjennomgang** — Gå gjennom rapporten i Markdown-filen, evt. med teamet,
+>    og gi klarsignal når du er klar.
+
+#### Alternativ A: Interaktiv SK-gjennomgang
+
+For **hvert krav** med endringer, skriv til konsollet:
+
+```
+══════════════════════════════════════════════════════════════
+K{nr}.{v} – {kravnavn}
+══════════════════════════════════════════════════════════════
+```
+
+For **hvert suksesskriterium** med endring under kravet:
+
+```
+─────────────────────────────────────────
+SK{id} – {suksesskriterienavn}
+─────────────────────────────────────────
+Beskrivelse:
+  {suksesskriterier[i].beskrivelse}
+
+ENDRING:
+  Status:     {gammel_status} → {ny_status}
+  Begrunnelse (før):
+    {eksisterende begrunnelse, eller "(tom)"}
+  Begrunnelse (etter):
+    {foreslått begrunnelse}
+
+[G]odkjenn  [H]opp over  [R]ediger
+> _
+```
+
+**Regler for interaktiv gjennomgang:**
+- **G (Godkjenn):** SK markeres for opplasting. Gå til neste SK.
+- **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret.
+- **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
+  vises den oppdaterte diff-en på nytt med G/H-valg.
+- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over».
+- Etter alle krav: vis total oppsummering og spør om bekreftelse før opplasting starter.
+
+**Kun godkjente SK-er lastes opp** i steg 8. Hoppede-over SK-er røres ikke.
+
+#### Alternativ B: Rapportgjennomgang
+
 Be bruker om å:
 1. Gjennomgå rapporten sammen med teamet
 2. Korrigere eventuelle feil eller misforståelser
@@ -982,25 +1035,8 @@ task(..., model: "claude-opus-4.8")    # tunge juridiske vurderinger
 - Skill mellom det som kan verifiseres i kode og det som krever teamets input
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
 - Bevar ALLTID eksisterende begrunnelser ved oppdatering
-- Last opp én begrunnelse først og la bruker verifisere før resten
+- Bruk interaktiv SK-gjennomgang (steg 7A) for effektiv kvalitetssikring — teamet ser SK-beskrivelse og diff side om side
 - Sesjoner utløper – vær forberedt på å be om nye cookies
 - Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
 - ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
- Eksempel: Nav-loven § 4 a
-  (Behandling av personopplysninger) er en reell paragraf tilføyd i 2020 — ikke en feilskrivning
-  av § 4. Når du er usikker på om en henvisning er korrekt, slå opp på
-  `https://lovdata.no/lov/{lov-dato-nr}/§{paragraf}` før du foreslår endring.
-- **Tilordninger og koblinger ER personopplysninger.** En kobling mellom en identifiserbar
-  person og noe (kontor, sak, rolle, status) er en personopplysning etter GDPR art. 4(1) —
-  selv om det enkelte attributtet kan virke organisatorisk. Behandle slike som
-  personopplysninger ved vurdering av K102, K103, K107, K113, K191 mv.
-- **SK-IDer er ikke i numerisk rekkefølge.** Les `suksesskriterier[i].beskrivelse` for å
-  forstå hva hvert SK spør om. Begrunnelsen MÅ svare på akkurat det spørsmålet — det er en
-  vanlig feil å besvare nabo-SK-et fordi man leste i feil rekkefølge.
-- Skill mellom det som kan verifiseres i kode og det som krever teamets input
-- Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
-- Bevar ALLTID eksisterende begrunnelser ved oppdatering
-- Last opp én begrunnelse først og la bruker verifisere før resten
-- Sesjoner utløper – vær forberedt på å be om nye cookies
-- Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
-- ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
+
