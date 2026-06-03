@@ -332,6 +332,9 @@ PUT  /api/behandlingens-art-og-omfang/{id}                          -> oppdater 
 
 **For å hente PVK-krav (listen over 19 krav):** Bruk GraphQL:
 ```graphql
+POST https://etterlevelse-api.intern.nav.no/graphql
+Content-Type: application/json
+
 {
   krav(filter: { gjeldendeKrav: true, tagger: ["Personvernkonsekvensvurdering"],
     etterlevelseDokumentasjonId: "{dok-id}" }) {
@@ -345,6 +348,9 @@ PUT  /api/behandlingens-art-og-omfang/{id}                          -> oppdater 
 **VIKTIG:** REST-endepunktet `/api/etterlevelse` filtrerer IKKE på `etterlevelseDokumentasjonId` —
 det returnerer alle etterlevelser globalt. Bruk i stedet GraphQL via etterlevelseDokumentasjon:
 ```graphql
+POST https://etterlevelse-api.intern.nav.no/graphql
+Content-Type: application/json
+
 {
   etterlevelseDokumentasjon(filter: { id: "{dok-id}" }) {
     content { etterlevelser { kravNummer kravVersjon status } }

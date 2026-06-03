@@ -45,26 +45,30 @@ fokuser på *hva behandlingen faktisk gjør* heller enn tekniske detaljer.
 - **nav-pvk**: LESER fra Behandlingskatalogen for PVK-konteksten og oppretter
   PVK-dokument (`dpia.refToDpia` peker inn dit)
 
-## SSO-sesjon
+## Autentisering
 
-Samme cookies som etterlevelsesløsningen — `forwardauth`, `etterlevsession`,
-`sso-nav.no`. Lagres typisk i `/tmp/etl_cookies.txt`.
+- **Les** (GET): `https://behandlingskatalog-backend.intern.nav.no/api/` — ingen auth (krever naisdevice)
+- **Skriv** (POST/PUT): `https://behandlingskatalog-backend.intern.nav.no/api/` — SSO-cookies påkrevd
 
-Test:
+`behandlingskatalog.ansatt.nav.no` er internett-eksponert og beskyttet av forwardauth.
+Bruk alltid `behandlingskatalog-backend.intern.nav.no` for API-kall fra skillen.
+
+Test at skrivesesjonen er gyldig (etter innlogging):
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" \
-  'https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-id}' \
-  -H "Cookie: $(cat /tmp/etl_cookies.txt)"
+  'https://behandlingskatalog-backend.intern.nav.no/api/process/{behandling-id}' \
+  -H "Cookie: etterlevsession=...; sso-nav.no=..."
 ```
 200 = OK, 302 = sesjonen har utløpt.
 
 ## Base URL og swagger
 
 ```
-Base URL:  https://behandlingskatalog.ansatt.nav.no/api
-Swagger:   https://behandlingskatalog.ansatt.nav.no/api/swagger-ui/index.html
-OpenAPI:   https://behandlingskatalog.ansatt.nav.no/api/v3/api-docs
+Base URL:  https://behandlingskatalog-backend.intern.nav.no/api
+Swagger:   https://behandlingskatalog-backend.intern.nav.no/api/swagger-ui/index.html
+OpenAPI:   https://behandlingskatalog-backend.intern.nav.no/api/v3/api-docs
 ```
+
 
 OpenAPI-spec'en er den autoritative kilden for feltnavn og typer.
 

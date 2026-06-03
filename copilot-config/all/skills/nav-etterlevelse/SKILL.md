@@ -97,7 +97,7 @@ Fortsett direkte til steg 3 uten å be om innlogging. Cookies hentes rett før o
 
 #### 3a: Hent etterlevelsesdokumentasjonen med alle etterlevelser:
 ```graphql
-POST https://etterlevelse-api.intern.nav.no/api/graphql
+POST https://etterlevelse-api.intern.nav.no/graphql
 Content-Type: application/json
 
 {
