@@ -163,6 +163,16 @@ NB: `beskrivelse` på krav-nivå er nesten alltid `null` — hent den ikke. Bruk
 
 ### ⛔ OBLIGATORISK: Forstå hva hvert suksesskriterium spør om FØR du svarer
 
+**Denne regelen gjelder UTEN UNNTAK for:**
+- Alle nye begrunnelser du skriver
+- Alle eksisterende begrunnelser du vurderer som korrekte, ufullstendige eller feil
+- Alle IKKE_RELEVANT-vurderinger du skal bekrefte eller korrigere
+- Alle OPPFYLT-vurderinger du skal kvalitetssikre
+
+**Du MÅ alltid hente og lese SK-beskrivelsene fra API-et før du vurderer.** Ikke stol på
+kravnavn, SK-navn, eller din egen hukommelse om hva et SK pleier å handle om.
+En begrunnelse som svarer på feil spørsmål er verre enn ingen begrunnelse.
+
 **For hvert suksesskriterium du skal vurdere, gjør dette alltid i rekkefølge:**
 
 **Steg A — Forstå kravets intensjon og kontekst:**
@@ -210,7 +220,34 @@ Et krav som virker irrelevant basert på kravnavnet alene kan bli svært relevan
 gjaldt bare enkeltvedtak, men K205.2 utvidet til forhåndsvarsel og meldinger — dette
 fremgikk av `versjonEndringer`).
 
-#### Filtrer bort utgåtte krav:
+#### ⛔ OBLIGATORISK: Vurdering av IKKE_RELEVANT-statuser
+
+**Alle eksisterende IKKE_RELEVANT-vurderinger MÅ kvalitetssjekkes ved full gjennomgang.**
+
+Fremgangsmåte:
+
+1. **Hent SK-beskrivelsen** for hvert SK som er satt til IKKE_RELEVANT (via GraphQL `kravById`)
+2. **Formuler spørsmålet** SK-et stiller: *«Dette kriteriet spør: [...]»*
+3. **Vurder om grunnlaget er gyldig.** Gyldige grunner for IKKE_RELEVANT:
+   - Systemets egenskaper (`relevansFor`) matcher ikke SK-ets forutsetning (f.eks. SK gjelder
+     kun `EKSTERN_SKJERMFLATE` og systemet bare har intern flate)
+   - SK-et eksplisitt unntar systemets situasjon (les `beskrivelse` — ikke forutsett grunnlag)
+   - Et overordnet unntak er formelt dokumentert (f.eks. dispensasjon fra språkloven)
+4. **Avvis disse som grunnlag for IKKE_RELEVANT:**
+   - «Det er åpenbart / ikke tolkningstvil» — åpenbare tilfeller skal OPPFYLLES, ikke hoppes over
+   - «Dette gjøres i et annet system» — hvert system gjør sin egen vurdering
+   - «Det er lite hensiktsmessig» — personvernsrettighetene gjelder uavhengig av hensiktsmessighet
+   - Tom begrunnelse — alltid feil
+   - Begrunnelse som svarer på et annet spørsmål enn det SK-et stiller
+5. **Konkluder:** Korrekt IKKE_RELEVANT ✅ / Bør være OPPFYLT ⚠️ / Bør være IKKE_OPPFYLT 🔴
+
+**Eksempel på vanlig feil:**
+SK spør «Har dere dokumentert valget av behandlingsgrunnlag?»
+Eksisterende begrunnelse: «Grunnlaget er åpenbart — hjemmel i lov.»
+→ Feil: begrunnelsen svarer på «er grunnlaget klart?», ikke «er det dokumentert?»
+→ Korrekt status: OPPFYLT med B-nummer-referanse
+
+
 Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 - `AKTIV` → kravet er gjeldende, kan oppdateres
 - `UTGAATT` → kravet er erstattet av ny versjon, **IKKE oppdater etterlevelse på denne versjonen**
@@ -923,7 +960,33 @@ task(..., model: "claude-opus-4.7")    # tunge juridiske vurderinger
 
 - Alltid inspiser FAKTISK kode, ikke bare dokumentasjon
 - Verifiser plattformkrav mot docs.nais.io
+- **⛔ Les ALLTID SK-beskrivelsen fra API-et før du vurderer status eller begrunnelse.**
+  Hverken kravnavn, SK-navn, din hukommelse eller andres begrunnelse er tilstrekkelig grunnlag.
+  En begrunnelse som svarer på feil spørsmål er verre enn ingen begrunnelse.
+  Dette gjelder for: nye begrunnelser, kvalitetssjekk av eksisterende, og IKKE_RELEVANT-vurderinger.
+- **⛔ IKKE_RELEVANT krever gyldig grunnlag.** Gyldige grunner: systemets egenskaper matcher ikke
+  SK-ets `relevansFor`, eller SK-ets `beskrivelse` eksplisitt unntar situasjonen. Ugyldige grunner:
+  «åpenbart», «gjøres i annet system», «lite hensiktsmessig», tom begrunnelse, eller begrunnelse
+  som svarer på et annet spørsmål enn det SK-et faktisk stiller.
 - **Verifiser lovreferanser mot lovdata før du «retter» dem.** Eksempel: Nav-loven § 4 a
+  (Behandling av personopplysninger) er en reell paragraf tilføyd i 2020 — ikke en feilskrivning
+  av § 4. Når du er usikker på om en henvisning er korrekt, slå opp på
+  `https://lovdata.no/lov/{lov-dato-nr}/§{paragraf}` før du foreslår endring.
+- **Tilordninger og koblinger ER personopplysninger.** En kobling mellom en identifiserbar
+  person og noe (kontor, sak, rolle, status) er en personopplysning etter GDPR art. 4(1) —
+  selv om det enkelte attributtet kan virke organisatorisk. Behandle slike som
+  personopplysninger ved vurdering av K102, K103, K107, K113, K191 mv.
+- **SK-IDer er ikke i numerisk rekkefølge.** Les `suksesskriterier[i].beskrivelse` for å
+  forstå hva hvert SK spør om. Begrunnelsen MÅ svare på akkurat det spørsmålet — det er en
+  vanlig feil å besvare nabo-SK-et fordi man leste i feil rekkefølge.
+- Skill mellom det som kan verifiseres i kode og det som krever teamets input
+- Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
+- Bevar ALLTID eksisterende begrunnelser ved oppdatering
+- Last opp én begrunnelse først og la bruker verifisere før resten
+- Sesjoner utløper – vær forberedt på å be om nye cookies
+- Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
+- ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
+ Eksempel: Nav-loven § 4 a
   (Behandling av personopplysninger) er en reell paragraf tilføyd i 2020 — ikke en feilskrivning
   av § 4. Når du er usikker på om en henvisning er korrekt, slå opp på
   `https://lovdata.no/lov/{lov-dato-nr}/§{paragraf}` før du foreslår endring.
