@@ -940,8 +940,8 @@ strukturerte deloppgaver. Skillen kjøres normalt av en kraftig modell (f.eks. C
 
 | Oppgave | Anbefalt modell | Begrunnelse |
 |---|---|---|
-| Full kodegjennomgang med juridisk vurdering (steg 4) | `claude-opus-4.7` | Krever dyp forståelse av kode OG lovkrav |
-| Skrive etterlevelsebegrunnelser (steg 6) | `claude-opus-4.7` | Presisjon og juridisk kontekst er kritisk |
+| Full kodegjennomgang med juridisk vurdering (steg 4) | `claude-opus-4.8` | Krever dyp forståelse av kode OG lovkrav |
+| Skrive etterlevelsebegrunnelser (steg 6) | `claude-opus-4.8` | Presisjon og juridisk kontekst er kritisk |
 | Hente og parse API-responser (behandlingskatalog, etterlevelsesløsning) | `claude-haiku-4.5` | Enkel datahenting og JSON-transformasjon |
 | Søke etter spesifikke mønstre i kode (grep-lignende) | `claude-haiku-4.5` | Strukturert søk, ingen tolkning nødvendig |
 | Hente kravdetaljer via GraphQL | `claude-haiku-4.5` | Forutsigbar datastruktur |
@@ -953,7 +953,7 @@ strukturerte deloppgaver. Skillen kjøres normalt av en kraftig modell (f.eks. C
 ```
 task(..., model: "claude-haiku-4.5")   # enkle API-kall og søk
 task(..., model: "claude-sonnet-4.6")  # mellomtunge analyser
-task(..., model: "claude-opus-4.7")    # tunge juridiske vurderinger
+task(..., model: "claude-opus-4.8")    # tunge juridiske vurderinger
 ```
 
 ## Viktige huskeregler
