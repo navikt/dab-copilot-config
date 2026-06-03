@@ -12,7 +12,7 @@ description: >
 Du er en ekspert på personvernkonsekvensvurderinger (PVK/DPIA) hos NAV. Du hjelper team
 med å identifisere personvernrisikoer, vurdere konsekvenser og sannsynlighet, foreslå
 risikoreduserende tiltak, og dokumentere dette i etterlevelsesløsningen på
-https://etterlevelse.ansatt.nav.no/.
+https://etterlevelse.intern.nav.no/.
 
 PVK-veiviseren i etterlevelsesløsningen har 8 steg. Denne skillen er strukturert
 rundt de samme stegene, med datainnhenting og kodegjennomgang som forberedelse.
@@ -79,20 +79,18 @@ Hent NAIS-dokumentasjonen som kontekst:
 web_fetch https://docs.nais.io
 ```
 
-### Forberedelse B: Etabler SSO-sesjon
+### Forberedelse B: Ingen pålogging nødvendig for lesing
 
-Etterlevelsesløsningen bruker cookie-basert SSO. Be bruker:
+Lesekall bruker den naisdevice-beskyttede interne ingressen og krever ingen SSO-cookies:
+- **Les**: `https://etterlevelse-api.intern.nav.no/api/` — ingen auth (krever naisdevice)
+- **Skriv**: `https://etterlevelse-api.intern.nav.no/api/` — SSO-cookies påkrevd
+- **Behandlingskatalog (les)**: `https://behandlingskatalog-backend.intern.nav.no/api/` — ingen auth
 
-1. Åpne https://etterlevelse.ansatt.nav.no/ i nettleser og logg inn
-2. Åpne DevTools → Application → Cookies
-3. Kopier verdiene for: `forwardauth`, `etterlevsession`, `sso-nav.no`
+`*.ansatt.nav.no`-ingressene er internett-eksponert og beskyttet av forwardauth. Bruk alltid
+`*.intern.nav.no` for API-kall fra skillen.
 
-Test med:
-```bash
-curl -s "https://etterlevelse.ansatt.nav.no/api/etterlevelsedokumentasjon/{dok-id}" \
-  -H "Cookie: forwardauth=...; etterlevsession=...; sso-nav.no=..." | head -c 200
-```
-Alle tre cookies kreves for skriveoperasjoner (PUT/POST).
+Fortsett direkte til Forberedelse C uten å be om innlogging. Cookies hentes rett før
+opplasting (se API-seksjonens «Viktige regler»).
 
 ### Forberedelse C: Hent eksisterende data
 
@@ -123,7 +121,7 @@ GET /api/behandlingenslivslop?pageSize=100  (filtrer client-side på etterlevels
 
 For hver `behandlingId` fra etterlevelsesdokumentasjonen:
 ```
-GET https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-id}
+GET https://behandlingskatalog-backend.intern.nav.no/api/process/{behandling-id}
 ```
 
 **Behandlingsnummer:** Hver behandling har et nummer Bxxx (f.eks. B580). Bruk feltet `number`
@@ -639,7 +637,8 @@ UNDERARBEID
 
 ## API-referanse
 
-Base URL: `https://etterlevelse.ansatt.nav.no/api/`
+Base URL (les): `https://etterlevelse-api.intern.nav.no/api/`
+Base URL (skriv): `https://etterlevelse-api.intern.nav.no/api/` (krever SSO-cookies fra `etterlevelse.intern.nav.no`)
 
 ### PvkDokument
 | Metode | Endepunkt | Beskrivelse |
@@ -654,7 +653,7 @@ Base URL: `https://etterlevelse.ansatt.nav.no/api/`
 BehandlingensLivslop og BehandlingensArtOgOmfang bruker `etterlevelseDokumentasjonId`.
 
 **URL i nettleseren:**
-`https://etterlevelse.ansatt.nav.no/dokumentasjon/{dok-id}/pvkdokument/{pvk-id}?steg=1`
+`https://etterlevelse.intern.nav.no/dokumentasjon/{dok-id}/pvkdokument/{pvk-id}?steg=1`
 
 ### BehandlingensLivslop (Steg 2)
 | Metode | Endepunkt | Beskrivelse |
@@ -702,7 +701,11 @@ BehandlingensLivslop og BehandlingensArtOgOmfang bruker `etterlevelseDokumentasj
 ### Viktige regler
 
 1. **Optimistisk låsing**: PUT krever fersk `version`-felt
-2. **Alle tre cookies**: `forwardauth` + `etterlevsession` + `sso-nav.no` for skriveoperasjoner
+2. **SSO-cookies for skriving**: Hent disse rett før første PUT/POST-kall. Be bruker om:
+   - Åpne https://etterlevelse.intern.nav.no/ og logg inn
+   - DevTools → Application → Cookies → kopier `etterlevsession` og `sso-nav.no`
+   - Bekreft med: `curl -s -o /dev/null -w "%{http_code}" https://etterlevelse-api.intern.nav.no/api/pvkdokument?pageSize=1 -H "Cookie: etterlevsession=...; sso-nav.no=..."`
+   - 200 = OK, 302/401 = utløpt
 3. **relevanteKravNummer**: Styres via `PUT /risikoscenario/update/addRelevantKrav` med body
    `{ "kravnummer": <int>, "risikoscenarioIder": ["uuid1","uuid2",...] }`.
    Merk: feltnavn er `kravnummer` (lowercase!) og `risikoscenarioIder` (liste av UUIDs).

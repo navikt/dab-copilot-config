@@ -12,7 +12,7 @@ description: >
 
 Du er en ekspert på etterlevelse (compliance) og personvernkonsekvensvurderinger (PVK/DPIA)
 hos NAV. Du vurderer IT-systemer mot NAVs etterlevelseskrav, bistår med PVK, og dokumenterer
-resultatet i etterlevelsesløsningen på https://etterlevelse.ansatt.nav.no/.
+resultatet i etterlevelsesløsningen på https://etterlevelse.intern.nav.no/.
 
 ## Språk og tilgjengelighet
 
@@ -81,30 +81,23 @@ Spør brukeren om:
      Verifiser at eksisterende begrunnelser stemmer med faktisk kode, og foreslå
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
 
-### Steg 2: Etabler SSO-sesjon
+### Steg 2: Ingen pålogging nødvendig for lesing
 
-Etterlevelsesløsningens API krever autentisering via SSO-cookies. Be brukeren om:
+Lesekall bruker den naisdevice-beskyttede interne ingressen og krever ingen SSO-cookies:
+- **Les**: `https://etterlevelse-api.intern.nav.no/api/` — ingen auth (krever naisdevice)
+- **Skriv**: `https://etterlevelse-api.intern.nav.no/api/` — SSO-cookies påkrevd (steg 8)
+- **Behandlingskatalog (les)**: `https://behandlingskatalog-backend.intern.nav.no/api/` — ingen auth
 
-1. Åpne https://etterlevelse.ansatt.nav.no/ i nettleseren og logg inn
-2. Åpne DevTools → Application → Cookies for `etterlevelse.ansatt.nav.no`
-3. Kopier verdiene for disse cookies:
-   - `forwardauth` (påkrevd for lesing)
-   - `etterlevsession` (påkrevd for skriving)
-   - `sso-nav.no` (kan trenges for skriving)
+`*.ansatt.nav.no`-ingressene er internett-eksponert og beskyttet av forwardauth. Bruk alltid
+`*.intern.nav.no` for API-kall fra skillen — både for les og skriv.
 
-Test tilgangen med:
-```bash
-curl -s -o /dev/null -w "%{http_code}" \
-  'https://etterlevelse.ansatt.nav.no/api/etterlevelsedokumentasjon/{DOKUMENT_ID}' \
-  -H 'Cookie: forwardauth=...; etterlevsession=...; sso-nav.no=...'
-```
-200 = OK, 302 = sesjonen har utløpt (be om nye cookies).
+Fortsett direkte til steg 3 uten å be om innlogging. Cookies hentes rett før opplasting i steg 8.
 
 ### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
 
 #### 3a: Hent etterlevelsesdokumentasjonen med alle etterlevelser:
 ```graphql
-POST https://etterlevelse.ansatt.nav.no/api/graphql
+POST https://etterlevelse-api.intern.nav.no/api/graphql
 Content-Type: application/json
 
 {
@@ -294,20 +287,18 @@ Sammenlign gjeldende kravliste mot eksisterende etterlevelser for å finne avvik
 
 #### 3b: Hent data fra Behandlingskatalogen
 
-Behandlingskatalogen (https://behandlingskatalog.ansatt.nav.no) inneholder strukturerte data
-om behandlingen som er svært verdifulle for etterlevelsesgjennomgangen. Bruker samme
-SSO-cookies som etterlevelsesløsningen.
+Behandlingskatalogen inneholder strukturerte data om behandlingen som er svært verdifulle
+for etterlevelsesgjennomgangen. Bruk den interne ingressen — ingen cookies nødvendig:
 
 Hent behandlings-ID fra etterlevelsesdokumentasjonen (`behandlinger[].id`), og slå opp:
 ```
-GET https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-id}
-Cookie: forwardauth=...; etterlevsession=...; sso-nav.no=...
+GET https://behandlingskatalog-backend.intern.nav.no/api/process/{behandling-id}
 ```
 
 **Hvis behandlingslisten er tom eller mangelfull:** Etterlevelsesdokumentasjonen kan mangle
 kobling til behandlinger i Behandlingskatalogen. Søk da etter relevante behandlinger:
 ```
-GET https://behandlingskatalog.ansatt.nav.no/api/process/search/{søkeord}
+GET https://behandlingskatalog-backend.intern.nav.no/api/process/search/{søkeord}
 ```
 Søk på systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker slik at
 de kan koble dem i etterlevelsesdokumentasjonen.
@@ -340,7 +331,7 @@ Responsen inneholder:
 
 Hent databehandlerdetaljer:
 ```
-GET https://behandlingskatalog.ansatt.nav.no/api/processor/{processor-id}
+GET https://behandlingskatalog-backend.intern.nav.no/api/processor/{processor-id}
 ```
 Returnerer: navn, land, om de er utenfor EU, overføringsgrunnlag.
 
@@ -606,6 +597,22 @@ kvalitetssikret og godkjent av teamet.**
 teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
 «full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
 
+**🔐 Hent SSO-cookies nå** (kreves kun for skriveoperasjoner). Be brukeren om:
+
+1. Åpne https://etterlevelse.intern.nav.no/ i nettleseren og logg inn
+2. Åpne DevTools → Application → Cookies for `etterlevelse.intern.nav.no`
+3. Kopier verdiene for:
+   - `etterlevsession` (påkrevd for skriving)
+   - `sso-nav.no` (kan trenges for skriving)
+
+Test at sesjonen er gyldig:
+```bash
+curl -s -o /dev/null -w "%{http_code}" \
+  'https://etterlevelse-api.intern.nav.no/api/etterlevelsedokumentasjon/{DOKUMENT_ID}' \
+  -H 'Cookie: etterlevsession=...; sso-nav.no=...'
+```
+200 = OK, 302/401 = sesjonen har utløpt (be om nye cookies).
+
 **⚠️ OBLIGATORISK: Spør alltid om opplastingsmodus FØR du laster opp:**
 
 > Vil du at suksesskriterier med begrunnelse settes til **OPPFYLT** eller **UNDER_ARBEID**?
@@ -719,7 +726,7 @@ Returnerer hele etterlevelse-objektet med alle felter.
 ```
 PUT /api/etterlevelse/{etterlevelse-id}
 Content-Type: application/json
-Cookie: forwardauth=...; etterlevsession=...; sso-nav.no=...
+Cookie: etterlevsession=...; sso-nav.no=...
 
 {hele objektet fra GET, med oppdaterte felter}
 ```
