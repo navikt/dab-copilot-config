@@ -687,7 +687,36 @@ kvalitetssikret og godkjent av teamet.**
 teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
 «full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
 
-**🔐 Hent SSO-cookies nå** (kreves kun for skriveoperasjoner). Be brukeren om:
+**🔐 Autentisering for skriveoperasjoner — velg ett alternativ:**
+
+#### Alternativ A: Lokal broker (anbefalt)
+
+Sjekk om brokeren kjører:
+```bash
+curl -s http://localhost:9876/health
+```
+`{"status":"ok"}` = broker er oppe. Send da alle skriveoperasjoner via brokeren:
+
+```bash
+# I stedet for direkte PUT til API-et, POST til broker:
+curl -s -X POST http://localhost:9876/write \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "url": "https://etterlevelse-api.intern.nav.no/api/etterlevelse/{id}",
+    "method": "PUT",
+    "body": { ...etterlevelse-objektet... }
+  }'
+```
+
+Brokeren viser diff og ber om godkjenning (G/H/R) i terminalen. Token hentes
+automatisk via device-code ved første skriving.
+
+Start broker: `cd tools/etterlevelse-broker && BROKER_CLIENT_ID=<id> node broker.js`
+(se `tools/etterlevelse-broker/README.md` i navikt/dab-copilot-config)
+
+#### Alternativ B: SSO-cookies (fallback hvis broker ikke er tilgjengelig)
+
+Be brukeren om:
 
 1. Åpne https://etterlevelse.intern.nav.no/ i nettleseren og logg inn
 2. Åpne DevTools → Application → Cookies for `etterlevelse.intern.nav.no`
