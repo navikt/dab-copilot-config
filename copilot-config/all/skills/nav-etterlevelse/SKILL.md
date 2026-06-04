@@ -43,27 +43,27 @@ Domenekontekst gir bakgrunnsinformasjon som koden alene ikke forteller — fagli
 restriksjoner, rettslig grunnlag, hva som er tillatt å lagre, og behandlingens livsløp.
 Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
 
+### ⛔ OBLIGATORISK: Sjekk kontekstfiler FØR analysen starter
+
+**Gjør dette alltid som første handling i arbeidsflyten (steg 1):**
+
+1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
+2. Sjekk om `domain-context.md` finnes i CWD
+
+**Hvis ingen kontekstfiler finnes:**
+→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
+nav-context henter data fra behandlingskatalog og GitHub og oppretter filene i CWD.
+Vent til nav-context er ferdig før du fortsetter med etterlevelsesanalysen.
+
+**Hvis kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
+
 Kildene leses i prioritert rekkefølge:
 
-1. **`./domain-context.md`** — domenekontekst for fagområdet (deles på tvers av systemer)
-2. **`./system-context.md`** — systemspesifikk kontekst for dette repoet
+1. **`./system-context.md`** (eller `system-context-{systemnavn}.md`) — systemspesifikk kontekst
+2. **`./domain-context.md`** — domenekontekst for fagområdet
 3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
-   NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`). Bruk den som
-   passer fagområdet systemet tilhører.
-4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
-   Fortsett uten, men noter at vurderingen vil være mer generell.
-
-**⚠️ Hvis `system-context.md` mangler i CWD:** Vurder å opprette den underveis basert på
-funn fra kodegjennomgangen. En god `system-context.md` inneholder:
-- Behandlingens livsløp (fra opprettelse til arkivering/sletting)
-- Lagringstid og kassasjonsmekanismer
-- Særlige personopplysningskategorier (art. 9) med begrunnelse
-- Autentiserings- og autorisasjonsmønster
-- Integrasjoner og tredjeparter
-- Åpne etterlevelsespunkter
-
-Filen bør hete `system-context-{systemnavn}.md` og opprettes i CWD slik at den kan
-gjenbrukes i fremtidige gjennomganger. Informer bruker om at filen er opprettet.
+   NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`)
+4. **Ingen kontekstfil funnet etter nav-context** — noter at vurderingen vil være mer generell
 
 ## Arbeidsflyt
 
@@ -86,7 +86,7 @@ EOF
 Filen finnes også ferdig utfylt i
 `tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
-### Steg 1: Innhent informasjon fra bruker
+### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
@@ -99,6 +99,9 @@ Spør brukeren om:
    - **Full gjennomgang (deep)** — kvalitetssikre ALLE krav, inkludert de som allerede er utfylt.
      Verifiser at eksisterende begrunnelser stemmer med faktisk kode, og foreslå
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
+
+**Etter at du har fått svar — sjekk kontekstfiler (se «Domenekontekst» over).**
+Hvis `system-context.md` mangler i CWD: invokér nav-context-skillen nå, før du fortsetter.
 
 ### Steg 2: Ingen pålogging nødvendig for lesing
 
