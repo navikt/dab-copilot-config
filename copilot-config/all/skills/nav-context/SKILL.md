@@ -48,13 +48,19 @@ ls -la ./domain-context.md ./system-context*.md 2>/dev/null || echo "Ingen konte
 | Situasjon | Handling |
 |-----------|----------|
 | `system-context.md` mangler i CWD | **Opprett alltid** — dette er hovedleveransen |
-| `domain-context.md` mangler i CWD, men finnes i nav-context skillmappen | Bruk skillmappens fil som grunnlag; kopier/tilpass til CWD kun hvis nødvendig |
-| `domain-context.md` mangler helt | Opprett den |
-| Begge finnes | Spør bruker om oppdatering er ønsket; avslutt ellers |
+| `domain-context.md` finnes i CWD og matcher systemets domene | Bruk eksisterende |
+| `domain-context.md` finnes i CWD men tilhører et annet domene | **Opprett ny** for riktig domene |
+| `domain-context.md` mangler i CWD, skillmappens bundlede fil matcher domenet | Bruk/kopier den bundlede filen |
+| `domain-context.md` mangler i CWD, og bundlet fil matcher ikke | **Opprett ny** for riktig domene |
+| Begge finnes og matcher | Spør bruker om oppdatering er ønsket; avslutt ellers |
 
 **`system-context.md` skal alltid opprettes hvis den mangler** — selv om `domain-context.md`
 finnes fra før. Domenekonteksten er generell; systemkonteksten er unik per system og er
 det nav-etterlevelse og nav-pvk trenger for presise vurderinger.
+
+**Domain-match-sjekk:** Les første linje/tittel i eksisterende `domain-context.md` og
+sammenlign med systemets fagområde (f.eks. «Arbeidsrettet oppfølging» vs. «Sosiale tjenester»).
+Hvis domenet ikke stemmer, opprett ny `domain-context-{domene}.md` i CWD.
 
 Spør bruker om nødvendig informasjon (steg 2) og fortsett direkte til å opprette filene
 uten å spørre om «hvilke filer» — det avgjøres av tabellen over.
