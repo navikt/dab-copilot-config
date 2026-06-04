@@ -40,13 +40,24 @@ Kunnskap spesifikk for ett system:
 ### Steg 1: Sjekk om filene allerede finnes
 
 ```bash
-ls -la ./domain-context.md ./system-context.md 2>/dev/null || echo "Ingen kontekstfiler funnet"
+ls -la ./domain-context.md ./system-context*.md 2>/dev/null || echo "Ingen kontekstfiler funnet"
 ```
 
-Spør bruker hvilke filer som skal opprettes/oppdateres:
-- **Ny `domain-context.md`** — kun hvis det ikke finnes én for fagområdet fra før
-- **Ny `system-context.md`** — for systemet som skal vurderes
-- **Oppdatere eksisterende** — vis gjeldende innhold og la brukeren bestemme seksjoner
+**Beslutningsregel:**
+
+| Situasjon | Handling |
+|-----------|----------|
+| `system-context.md` mangler i CWD | **Opprett alltid** — dette er hovedleveransen |
+| `domain-context.md` mangler i CWD, men finnes i nav-context skillmappen | Bruk skillmappens fil som grunnlag; kopier/tilpass til CWD kun hvis nødvendig |
+| `domain-context.md` mangler helt | Opprett den |
+| Begge finnes | Spør bruker om oppdatering er ønsket; avslutt ellers |
+
+**`system-context.md` skal alltid opprettes hvis den mangler** — selv om `domain-context.md`
+finnes fra før. Domenekonteksten er generell; systemkonteksten er unik per system og er
+det nav-etterlevelse og nav-pvk trenger for presise vurderinger.
+
+Spør bruker om nødvendig informasjon (steg 2) og fortsett direkte til å opprette filene
+uten å spørre om «hvilke filer» — det avgjøres av tabellen over.
 
 ### Steg 2: Innhent grunnleggende info fra bruker
 
