@@ -67,6 +67,25 @@ Kildene leses i prioritert rekkefølge:
 
 ## Arbeidsflyt
 
+### Forberedelse 0: Konfigurer sandkassemiljø (cplt)
+
+Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
+`.cplt.toml` som tillater tilgang til interne NAV-ingresser.
+
+Sjekk om filen finnes — hvis ikke, opprett den:
+```bash
+test -f .cplt.toml || cat > .cplt.toml << 'EOF'
+[propose.proxy]
+allow_private_domains = ["intern.nav.no"]
+
+[propose.allow]
+localhost = [9876]
+EOF
+```
+
+Filen finnes også ferdig utfylt i
+`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
+
 ### Forberedelse A: Innhent informasjon fra bruker
 
 Spør bruker om:

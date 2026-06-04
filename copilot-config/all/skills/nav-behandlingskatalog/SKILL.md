@@ -353,6 +353,25 @@ GET /api/process/search/{søkeord}                  # Søk behandlinger
 GET /api/process/number/{number}                   # Hent på B-nummer (hvis støttet)
 ```
 
+## Sandkassemiljø (cplt)
+
+Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
+`.cplt.toml` som tillater tilgang til interne NAV-ingresser.
+
+Sjekk om filen finnes — hvis ikke, opprett den:
+```bash
+test -f .cplt.toml || cat > .cplt.toml << 'EOF'
+[propose.proxy]
+allow_private_domains = ["intern.nav.no"]
+
+[propose.allow]
+localhost = [9876]
+EOF
+```
+
+Filen finnes også ferdig utfylt i
+`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
+
 ## Arbeidsflyt for typiske oppgaver
 
 ### Oppgave A: Rett feil i eksisterende behandling

@@ -1,0 +1,12 @@
+# cplt-sandkassekonfigurasjon for etterlevelse-skills
+# Kopier denne fila til arbeidsmappen din før du starter cplt.
+#
+# Mer info: https://github.com/navikt/cplt
+
+[propose.proxy]
+# Intern.nav.no-ingresser omgår web-proxyen (nødvendig for etterlevelse/pvk/behandlingskatalog API)
+allow_private_domains = ["intern.nav.no"]
+
+[propose.allow]
+# Port 9876: lokal etterlevelse-broker (OAuth2 device-code, se tools/etterlevelse-broker/)
+localhost = [9876]
