@@ -43,9 +43,16 @@ ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-behandlingskatalog ~/.c
 ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-context          ~/.copilot/skills/nav-context
 ```
 
-### Steg 3: Start etterlevelse-broker
+### Steg 3: Autentisering
 
-Skills trenger en lokal broker som holder Azure AD-token i minnet og proxyer kall til NAV-APIene.
+**Status per juni 2026:** Verken brokeren eller MCP-serveren er operativ enda — begge venter på godkjenning fra team datajegerne (inbound access policy). Inntil videre autentiserer skills ved at du limer inn SSO-cookies manuelt når skillen ber om det:
+
+- **etterlevelse/PVK:** `forwardauth`-cookie fra `etterlevelse.ansatt.nav.no`
+- **Behandlingskatalog:** `forwardauth`-cookie fra `behandlingskatalog.ansatt.nav.no`
+
+Åpne nettstedet i nettleseren → DevTools (F12) → Application → Cookies → kopier verdien.
+
+**Når brokeren er klar** (krever at datajegerne har lagt app-ID inn i inbound access policy):
 
 ```bash
 cd ~/dab-copilot-config/tools/etterlevelse-broker
@@ -53,14 +60,13 @@ npm install
 npm start
 ```
 
-Kopier `.cplt.toml` fra broker-mappen til arbeidsmappen din (eller rot av repoet du jobber i):
+Kopier `.cplt.toml` til arbeidsmappen din:
 
 ```bash
 cp ~/dab-copilot-config/tools/etterlevelse-broker/.cplt.toml .
 ```
 
-> **Merk:** Brokeren forutsetter at naisdevice er tilkoblet og at du har fått klient-ID fra team etterlevelse.
-> Se [tools/etterlevelse-broker/README.md](tools/etterlevelse-broker/README.md) for detaljer.
+Se [tools/etterlevelse-broker/README.md](tools/etterlevelse-broker/README.md) for detaljer.
 
 ### Oppdatering
 
