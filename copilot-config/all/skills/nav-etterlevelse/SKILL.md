@@ -70,7 +70,7 @@ Kildene leses i prioritert rekkefølge:
 ### Steg 0: Konfigurer sandkassemiljø (cplt)
 
 Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
-`.cplt.toml` som tillater tilgang til interne NAV-ingresser og lokal broker-port.
+`.cplt.toml` som tillater tilgang til interne NAV-ingresser.
 
 Sjekk om filen finnes — hvis ikke, opprett den:
 ```bash
@@ -78,13 +78,8 @@ test -f .cplt.toml || cat > .cplt.toml << 'EOF'
 [propose.proxy]
 allow_private_domains = ["intern.nav.no"]
 
-[propose.allow]
-localhost = [9876]
 EOF
 ```
-
-Filen finnes også ferdig utfylt i
-`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
@@ -711,34 +706,7 @@ kvalitetssikret og godkjent av teamet.**
 teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
 «full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
 
-**🔐 Autentisering for skriveoperasjoner — velg ett alternativ:**
-
-#### Alternativ A: Lokal broker (anbefalt)
-
-Sjekk om brokeren kjører:
-```bash
-curl -s http://localhost:9876/health
-```
-`{"status":"ok"}` = broker er oppe. Send da alle skriveoperasjoner via brokeren:
-
-```bash
-# I stedet for direkte PUT til API-et, POST til broker:
-curl -s -X POST http://localhost:9876/write \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "url": "https://etterlevelse-api.intern.nav.no/api/etterlevelse/{id}",
-    "method": "PUT",
-    "body": { ...etterlevelse-objektet... }
-  }'
-```
-
-Brokeren viser diff og ber om godkjenning (G/H/R) i terminalen. Token hentes
-automatisk via device-code ved første skriving.
-
-Start broker: `cd tools/etterlevelse-broker && BROKER_CLIENT_ID=<id> node broker.js`
-(se `tools/etterlevelse-broker/README.md` i navikt/dab-copilot-config)
-
-#### Alternativ B: SSO-cookies (fallback hvis broker ikke er tilgjengelig)
+**🔐 Autentisering for skriveoperasjoner:**
 
 Be brukeren om:
 

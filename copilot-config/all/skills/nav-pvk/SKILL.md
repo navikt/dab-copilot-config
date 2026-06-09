@@ -78,13 +78,8 @@ test -f .cplt.toml || cat > .cplt.toml << 'EOF'
 [propose.proxy]
 allow_private_domains = ["intern.nav.no"]
 
-[propose.allow]
-localhost = [9876]
 EOF
 ```
-
-Filen finnes også ferdig utfylt i
-`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Forberedelse A: Innhent informasjon fra bruker
 
