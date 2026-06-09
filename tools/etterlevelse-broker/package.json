@@ -1,0 +1,13 @@
+{
+  "name": "etterlevelse-broker",
+  "version": "0.1.0",
+  "description": "Lokal credential-broker for GitHub Copilot CLI → NAV etterlevelse/PVK/Behandlingskatalog",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node broker.js"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^2.16.2"
+  }
+}
