@@ -315,7 +315,9 @@ Bygg et set av `(kravNummer, kravVersjon)`-par fra disse etterlevelsene.
 Finn krav i gjeldende liste som IKKE har en etterlevelse-record. Disse er helt ubesvarte.
 
 **Ved «Ufullstendige krav»-modus (i tillegg til gap-analysen):**
-- Tom `begrunnelse` på suksesskriterier = trenger utfylling
+- Tom `begrunnelse` på suksesskriterier der `behovForBegrunnelse = true` = trenger utfylling
+- Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse — disse skal
+  IKKE flagges som ufullstendige selv om `begrunnelse`-feltet er tomt
 - Sjekk `behovForBegrunnelse` på kravets suksesskriterier for å vite HVOR teksten skal
 
 **Ved «Nye og oppdaterte krav»-modus:**
@@ -754,20 +756,13 @@ curl -s -o /dev/null -w "%{http_code}" \
 ```
 200 = OK, 302/401 = sesjonen har utløpt (be om nye cookies).
 
-**⚠️ OBLIGATORISK: Spør alltid om opplastingsmodus FØR du laster opp:**
+**Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
+oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
+enkelt i etterlevelsesløsningen. Bare dersom bruker eksplisitt ber om det (f.eks. «sett
+til oppfylt», «merk som ferdig») brukes `OPPFYLT` for besvarte suksesskriterier.
 
-> Vil du at suksesskriterier med begrunnelse settes til **OPPFYLT** eller **UNDER_ARBEID**?
->
-> - **OPPFYLT**: Alle besvarte suksesskriterier merkes som ferdige. Velg dette hvis
->   teamet allerede har gjennomgått begrunnelsene og er fornøyd.
-> - **UNDER_ARBEID**: Alle besvarte suksesskriterier holdes åpne. Teamet kan deretter
->   gå gjennom listen i etterlevelsesløsningen og kvittere ut hvert enkelt med «Oppfylt»
->   etter hvert som de kvalitetssikrer besvarelsen.
->
-> Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` beholdes uansett.
-
-Bruk svaret fra bruker konsekvent for ALLE suksesskriterier som agenten har vurdert
-som oppfylt i denne opplastingsrunden.
+Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
+disse statusene uavhengig av modus.
 
 ## KRITISK: Feltmapping for opplasting
 
@@ -833,13 +828,13 @@ Brukes for handlingspunkter når kravet IKKE er fullt oppfylt. Eksempel:
 Bruk `UNDER_REDIGERING` ved opprettelse/oppdatering. IKKE bruk `UNDER_ARBEID` her — det
 er kun gyldig for suksesskriterieStatus.
 
-**VIKTIG: Sett suksesskriterieStatus basert på opplastingsmodus og faktisk vurdering:**
-- Hvis bruker valgte **UNDER_ARBEID**-modus:
+**VIKTIG: Sett suksesskriterieStatus basert på standard UNDER_ARBEID-modus, med mindre bruker eksplisitt ber om OPPFYLT:**
+- **Standard (UNDER_ARBEID-modus):**
   - Suksesskriterier agenten har vurdert som oppfylt → sett til `UNDER_ARBEID`
-  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT` (uansett modus)
-  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT` (uansett modus)
-  - Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID` (uansett modus)
-- Hvis bruker valgte **OPPFYLT**-modus:
+  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
+  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
+  - Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
+- **Kun hvis bruker eksplisitt ber om OPPFYLT-modus:**
   - Suksesskriterier agenten har vurdert som oppfylt uten forbehold → `OPPFYLT`
   - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
   - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
@@ -847,10 +842,10 @@ er kun gyldig for suksesskriterieStatus.
 - Bruk `veiledningsTekst2` for handlingspunkter når status er `UNDER_ARBEID` eller `IKKE_OPPFYLT`
 
 ⛔ **KRITISK: Etterlevelse-status MÅ gjenspeile suksesskriteriene.**
-- Sett etterlevelse `status` til `FERDIG_DOKUMENTERT` KUN når ALLE suksesskriterier har
-  endelig status (OPPFYLT eller IKKE_RELEVANT).
-- Hvis bruker valgte **UNDER_ARBEID**-modus, sett alltid etterlevelse `status` til
-  `UNDER_REDIGERING` — siden suksesskriteriene ikke er endelig kvittert ut.
+- Standard er alltid `UNDER_REDIGERING` ved opplasting — siden SK-ene holdes som `UNDER_ARBEID`
+  for manuell kvittering av teamet.
+- Sett etterlevelse `status` til `FERDIG_DOKUMENTERT` KUN dersom bruker eksplisitt ber om
+  OPPFYLT-modus OG ALLE suksesskriterier har endelig status (OPPFYLT eller IKKE_RELEVANT).
 - Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ etterlevelsens
   status settes til `UNDER_REDIGERING`, IKKE `FERDIG_DOKUMENTERT`.
 - Denne regelen gjelder alltid — også ved batch-oppdateringer.
