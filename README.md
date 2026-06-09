@@ -43,6 +43,14 @@ ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-behandlingskatalog ~/.c
 ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-context          ~/.copilot/skills/nav-context
 ```
 
+### Steg 3: Kopier .cplt.toml til arbeidsmappen din
+
+cplt krever en `.cplt.toml` i arbeidsmappen for å tillate kall mot `intern.nav.no`. Kopier den fra broker-mappen:
+
+```bash
+cp ~/dab-copilot-config/tools/etterlevelse-broker/.cplt.toml .
+```
+
 ### Oppdatering
 
 Skills og broker oppdateres med en vanlig `git pull` i `~/dab-copilot-config`.
