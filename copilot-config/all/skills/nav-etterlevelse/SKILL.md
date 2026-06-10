@@ -70,7 +70,7 @@ Kildene leses i prioritert rekkefølge:
 ### Steg 0: Konfigurer sandkassemiljø (cplt)
 
 Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
-`.cplt.toml` som tillater tilgang til interne NAV-ingresser.
+`.cplt.toml` som tillater tilgang til interne NAV-ingresser og lokal broker-port.
 
 Sjekk om filen finnes — hvis ikke, opprett den:
 ```bash
@@ -78,8 +78,13 @@ test -f .cplt.toml || cat > .cplt.toml << 'EOF'
 [propose.proxy]
 allow_private_domains = ["intern.nav.no"]
 
+[propose.allow]
+localhost = [9876]
 EOF
 ```
+
+Filen finnes også ferdig utfylt i
+`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
@@ -706,7 +711,34 @@ kvalitetssikret og godkjent av teamet.**
 teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
 «full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
 
-**🔐 Autentisering for skriveoperasjoner:**
+**🔐 Autentisering for skriveoperasjoner — velg ett alternativ:**
+
+#### Alternativ A: Lokal broker (anbefalt)
+
+Sjekk om brokeren kjører:
+```bash
+curl -s http://localhost:9876/health
+```
+`{"status":"ok"}` = broker er oppe. Send da alle skriveoperasjoner via brokeren:
+
+```bash
+# I stedet for direkte PUT til API-et, POST til broker:
+curl -s -X POST http://localhost:9876/write \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "url": "https://etterlevelse-api.intern.nav.no/api/etterlevelse/{id}",
+    "method": "PUT",
+    "body": { ...etterlevelse-objektet... }
+  }'
+```
+
+Brokeren viser diff og ber om godkjenning (G/H/R) i terminalen. Token hentes
+automatisk via device-code ved første skriving.
+
+Start broker: `cd tools/etterlevelse-broker && BROKER_CLIENT_ID=<id> node broker.js`
+(se `tools/etterlevelse-broker/README.md` i navikt/dab-copilot-config)
+
+#### Alternativ B: SSO-cookies (fallback hvis broker ikke er tilgjengelig)
 
 Be brukeren om:
 
@@ -778,7 +810,43 @@ Brukes for handlingspunkter når kravet IKKE er fullt oppfylt. Eksempel:
 }
 ```
 
-### Gyldige verdier for `suksesskriterieStatus`:
+### Tekstformatering — alle begrunnelsesfelt støtter markdown
+
+Feltene `begrunnelse`, `veiledningsTekst` og `veiledningsTekst2` rendres som markdown i
+etterlevelsesløsningen (via `react-markdown` med GFM-støtte). Bruk alltid markdown for å
+gjøre besvarelsene mer lesbare — særlig for ikke-teknisk personell som jurister og risikoeiere.
+
+**Støttede formateringselementer:**
+
+| Element | Markdown-syntaks |
+|---|---|
+| Fet tekst | `**tekst**` |
+| Punktliste | `- punkt` |
+| Nummerert liste | `1. punkt` |
+| Overskrift (nivå 3) | `### Overskrift` |
+| Kodereferanse (inline) | `` `filnavn.ts` `` |
+| Lenke | `[tekst](url)` |
+| Sitat/notat | `> tekst` |
+
+**Eksempel på god begrunnelse med markdown:**
+```
+Applikasjonen benytter ID-porten via NAIS-sidecar med sikkerhetsnivå høyt
+(`idporten-loa-high`), konfigurert i `.nais/prod.yaml`:
+
+- Alle forespørsler til `/api/*` krever gyldig sesjon
+- Token valideres mot `NAIS_TOKEN_INTROSPECTION_ENDPOINT` ved hvert kall
+- Sesjonslengde er begrenset til 1 time inaktivitet
+
+Se `src/auth/middleware.ts` for implementasjonen.
+```
+
+**Retningslinjer:**
+- Bruk punktlister for å ramse opp tiltak, funn eller kodehenvisninger
+- Bruk kodereferanser (backticks) for filnavn, konfigurasjonsnøkler og tekniske begreper
+- Hold overskrifter til nivå 3 (`###`) eller unngå dem — begrunnelsesfeltet er ikke et dokument
+- Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
+
+
 - `OPPFYLT` – kravet er oppfylt, ingen åpne punkter
 - `IKKE_OPPFYLT` – en klar mangel er identifisert som teamet må fikse
 - `UNDER_ARBEID` – arbeid gjenstår (f.eks. organisatorisk bekreftelse trengs)
