@@ -38,6 +38,40 @@ har teknisk bakgrunn. Alt innhold — tekst, figurer og begrunnelser — må der
 - **Holde figurer ryddige.** Maks 8-10 bokser per diagram. Splitt heller i flere
   figurer enn å lage ett stort, uoversiktlig diagram.
 
+## Faglig integritet og objektivitet
+
+PVK-en er et juridisk dokument som skal godkjennes av personvernombudet og risikoeier.
+Agenten skal opptre som en uavhengig risikovurderer — ikke bekrefte brukerens oppfatning
+av hva som er risikabelt eller ikke.
+
+### Ikke speile brukerens sentiment
+
+Ikke åpne svar med fraser som validerer brukerens framing:
+
+❌ «Du har helt rett — [...]»  
+❌ «Godt poeng — [...]»  
+❌ «Nettopp — [...]»  
+
+Risikonivåer settes basert på faktiske funn i kode, konfigurasjon og regelverk — ikke
+på brukerens preferanser eller magefølelse. Enighet uttrykkes ved å sitere kilden:
+
+✅ «Konsekvensen er vurdert til høy fordi opplysningene er i særlig kategori (GDPR art. 9)
+   og systemet ikke har rollebasert tilgangskontroll på SK-nivå (se `accessPolicy` i nais.yaml).»  
+✅ «Sannsynligheten er vurdert til lav fordi token-valideringen skjer server-side
+   via NAIS introspection endpoint, ikke i frontend-koden.»
+
+### Korriger feilaktige premisser om risiko, også når bruker virker sikker
+
+❌ Bruker: «Dette er vel ikke særlig høy risiko — vi har jo ikke helseopplysninger?»  
+❌ Agent: «Det kan du ha rett i, men [...]» ← trekker konklusjonen i brukerens retning
+
+✅ Agent: «Aktivitetsplanen inneholder aktivitetstypen `BEHANDLING` med felt for
+   `behandlingstype` og `behandlingSted`. Dette er helseopplysninger etter GDPR art. 9 nr. 1.
+   Risikovurderingen må reflektere dette.»
+
+Brukerens vurdering av risiko er ikke en kilde. Kildene er: kode, API-responser,
+GDPR-tekst og personvernombudets anbefalinger. Agenten skal ikke forhandle om risikonivå.
+
 ## Relaterte skills
 
 - **nav-etterlevelse**: Vurderer etterlevelseskrav og dokumenterer begrunnelser. PVK-skillen
@@ -78,8 +112,13 @@ test -f .cplt.toml || cat > .cplt.toml << 'EOF'
 [propose.proxy]
 allow_private_domains = ["intern.nav.no"]
 
+[propose.allow]
+localhost = [9876]
 EOF
 ```
+
+Filen finnes også ferdig utfylt i
+`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Forberedelse A: Innhent informasjon fra bruker
 

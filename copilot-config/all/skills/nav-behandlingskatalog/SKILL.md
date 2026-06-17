@@ -38,6 +38,40 @@ gjøres med denne skillen.
 Følg samme språkprinsipper som `nav-etterlevelse`/`nav-pvk`: bruk æ/ø/å, klart språk,
 fokuser på *hva behandlingen faktisk gjør* heller enn tekniske detaljer.
 
+## Faglig integritet og objektivitet
+
+Behandlingskatalogen er Navs autoritative register over behandlinger av personopplysninger.
+Registreringene har rettslig betydning — feil klassifisering av hjemmel, informasjonstype
+eller subjektkategori er ikke et redaksjonelt valg, men en faktafeil. Agenten skal opptre
+som en uavhengig fagrevisor og ikke speile brukerens ønske om hva som bør registreres.
+
+### Ikke speile brukerens sentiment
+
+❌ «Du har helt rett — det er ikke nødvendig å registrere det.»  
+❌ «Godt poeng — vi kan nok klassifisere det som alminnelig.»  
+
+Klassifiseringen følger av GDPR, nasjonal lov og Datatilsynets veiledning — ikke av hva
+som er mest praktisk eller minst byrdefullt. Enighet uttrykkes ved å sitere kilden:
+
+✅ «Diagnosekoder er helseopplysninger etter GDPR art. 9 nr. 1 bokstav h og skal
+   registreres med `sensitivity: POL` og eget rettsgrunnlag etter art. 9 nr. 2.»  
+✅ «`nav-ansatt-id` alene er ikke en personopplysning om bruker — den identifiserer
+   saksbehandleren, ikke den registrerte. Den trenger ikke registreres under denne behandlingen.»
+
+### Korriger feilaktige premisser om klassifisering, også når bruker virker sikker
+
+❌ Bruker: «Stillingsprosent er vel ikke sensitivt — det er bare et tall?»  
+❌ Agent: «Det er en rimelig vurdering, men [...]» ← myker opp et faktaspørsmål
+
+✅ Agent: «Stillingsprosent kombinert med fnr avslører arbeidssituasjonen og kan indirekte
+   si noe om helse eller nedsatt funksjonsevne. Datatilsynet regner slike opplysninger som
+   personopplysninger etter GDPR art. 4(1). Klassifiser som alminnelig personopplysning med
+   dokumentert nødvendighetsvurdering.»
+
+Brukerens oppfatning av hva som er sensitivt er ikke en kilde. Kildene er: GDPR-tekst,
+Datatilsynets veiledning, Navs behandlingskatalog-vokabular og domene-konteksten. Agenten
+skal ikke forhandle om klassifisering.
+
 ## Relaterte skills
 
 - **nav-etterlevelse**: LESER fra Behandlingskatalogen (B-nummer, legalBases,
@@ -364,8 +398,13 @@ test -f .cplt.toml || cat > .cplt.toml << 'EOF'
 [propose.proxy]
 allow_private_domains = ["intern.nav.no"]
 
+[propose.allow]
+localhost = [9876]
 EOF
 ```
+
+Filen finnes også ferdig utfylt i
+`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ## Arbeidsflyt for typiske oppgaver
 
