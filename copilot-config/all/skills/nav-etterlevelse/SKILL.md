@@ -345,8 +345,7 @@ Sammenlign gjeldende kravliste mot eksisterende etterlevelser for å finne avvik
 
 Behandlingskatalogen inneholder strukturerte data om behandlingen som er svært verdifulle
 for etterlevelsesgjennomgangen. Hent behandlings-ID fra etterlevelsesdokumentasjonen
-(`behandlingIds[]`) og bruk MCP-tool
-`get_behandling` for å slå opp behandlingsdetaljer.
+(`behandlingIds[]`) og bruk MCP-tool `get_behandling` for å slå opp behandlingsdetaljer.
 
 **Hvis behandlingslisten er tom eller mangelfull:** Bruk `search_behandlinger` for å søke på
 systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker slik at de kan
@@ -357,6 +356,11 @@ formål. Sjekk koden for dataflyter til analytics (DVH, BigQuery, NADA), kontrol
 eller andre sekundære bruksområder som kan ha egne behandlinger.
 
 **Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
+
+Typiske søkekriterier for `search_behandlinger`:
+- Systemnavnet eller formålet (sjekk `purpose`, `name`, `description`)
+- Teamets navn (sjekk `affiliation.products[].teams[]`)
+- Personopplysningstyper som finnes i koden (sjekk `policies[]`)
 
 Responsen fra `get_behandling` inneholder:
 
@@ -371,6 +375,7 @@ Responsen fra `get_behandling` inneholder:
 | `dataProcessing.processors[]` | Databehandler-IDer | K190 Databehandler |
 
 Hent databehandlerdetaljer med MCP-tool `get_processor` (UUID fra `dataProcessing.processors[]`).
+Returnerer: navn, land, om de er utenfor EU, overføringsgrunnlag.
 
 **Bruk denne dataen til å:**
 - Berike begrunnelsene med eksakte lovhenvisninger fra `legalBases`
