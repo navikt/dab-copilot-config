@@ -429,6 +429,17 @@ for tekniske tiltak, og beskriv personvernkonsekvensen i PVK.
 
 #### 3d: Sett innledende prioritert kravliste
 
+`prioritertKravNummer` er et felt på etterlevelsesdokumentasjonen som angir hvilke krav
+teamet bør fokusere på, i prioritert rekkefølge. Feltet vises som en fremhevet liste i
+UI-et og hjelper teamet å finne de viktigste kravene raskt.
+
+**Format:** Array av kravnumre som strenger, sortert etter prioritet — kun nummer, ikke versjon:
+```json
+["253", "191", "190", "230", "128", "196"]
+```
+
+Oppdateres med `write_etterlevelse_dokumentasjon` → feltet `prioritertKravNummer`.
+
 Basert på data fra steg 3a, 3b og 3c, sett en **innledende prioritert kravliste** FØR
 kodegjennomgangen. Vurder systemets natur:
 
@@ -438,9 +449,8 @@ kodegjennomgangen. Vurder systemets natur:
 - **Databehandlere/tredjeparter?** → K190 (databehandleravtaler)
 - **Arkivverdig innhold?** → K128 (arkivrutiner), K230 (avlevering/sletting)
 
-Foreslå listen for bruker og oppdater `prioritertKravNummer` på
-etterlevelsesdokumentasjonen (se API-seksjon under). Listen justeres eventuelt
-etter kodegjennomgangen i steg 6 hvis alvorlige mangler avdekkes.
+Foreslå listen for bruker og oppdater `prioritertKravNummer` på etterlevelsesdokumentasjonen.
+Listen justeres eventuelt etter kodegjennomgangen i steg 6 hvis alvorlige mangler avdekkes.
 
 #### 3e: Hent PVK-data (personvernkonsekvensvurdering)
 
