@@ -707,57 +707,22 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 **Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
 oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
-enkelt i etterlevelsesløsningen. Bare dersom bruker eksplisitt ber om det (f.eks. «sett
-til oppfylt», «merk som ferdig») brukes `OPPFYLT` for besvarte suksesskriterier.
+enkelt i etterlevelsesløsningen. `OPPFYLT` kan ikke settes via MCP-serveren — det settes
+manuelt i etterlevelse.ansatt.nav.no etter at teamet har gjennomgått begrunnelsen.
 
 Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
 disse statusene uavhengig av modus.
 
 ## KRITISK: Feltmapping for opplasting
 
+`write_etterlevelse` tar `suksesskriterieBegrunnelser` som en liste av objekter med tre
+felter: `suksesskriterieId`, `begrunnelse` og `suksesskriterieStatus`.
+
 Etterlevelsesløsningen har et `behovForBegrunnelse`-felt per suksesskriterium i kravdefinisjonen.
-Dette bestemmer HVOR teksten skal plasseres:
+Dette avgjør om begrunnelse er forventet:
 
-### Når `behovForBegrunnelse = true`:
-Bruk `begrunnelse`-feltet direkte:
-```json
-{
-  "suksesskriterieId": 1,
-  "suksesskriterieStatus": "OPPFYLT",
-  "begrunnelse": "Teksten her...",
-  "veiledning": false,
-  "veiledningsTekst": null,
-  "veiledningsTekst2": null
-}
-```
-
-### Når `behovForBegrunnelse = false`:
-UI-et viser IKKE begrunnelse-feltet. Du trenger normalt IKKE skrive veiledning her —
-sett bare riktig `suksesskriterieStatus` og la begrunnelse/veiledning stå tom.
-
-Skriv kun veiledning (`veiledning: true` + `veiledningsTekst`) hvis det er spesielt
-relevante momenter som bør dokumenteres (f.eks. funn fra kodegjennomgang, kjente risikoer,
-eller avvik som teamet bør følge opp). Eksempel:
-```json
-{
-  "suksesskriterieId": 1,
-  "suksesskriterieStatus": "OPPFYLT",
-  "begrunnelse": "",
-  "veiledning": true,
-  "veiledningsTekst": "Viktig funn: ...",
-  "veiledningsTekst2": null
-}
-```
-
-### Feltet `veiledningsTekst2` (praktisk veiledning):
-Brukes for handlingspunkter når kravet IKKE er fullt oppfylt. Eksempel:
-```json
-{
-  "suksesskriterieStatus": "UNDER_ARBEID",
-  "veiledningsTekst": "Fra kodegjennomgangen kan det bekreftes at...",
-  "veiledningsTekst2": "Ta kontakt med Team X for å bekrefte at..."
-}
-```
+- **`behovForBegrunnelse = true`**: Skriv alltid en begrunnelse
+- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet — ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
 
 ### Tekstformatering — alle begrunnelsesfelt støtter markdown
 
@@ -808,26 +773,17 @@ Se `src/auth/middleware.ts` for implementasjonen.
 ⛔ **`OPPFYLT`/`FERDIG`/`FERDIGSTILT` settes manuelt i etterlevelse.ansatt.nav.no** —
 MCP-verktøyet støtter ikke disse statusene direkte.
 
-**VIKTIG: Sett suksesskriterieStatus basert på standard UNDER_ARBEID-modus, med mindre bruker eksplisitt ber om OPPFYLT:**
-- **Standard (UNDER_ARBEID-modus):**
-  - Suksesskriterier agenten har vurdert som oppfylt → sett til `UNDER_ARBEID`
-  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
-  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
-  - Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
-- **Kun hvis bruker eksplisitt ber om OPPFYLT-modus:**
-  - Suksesskriterier agenten har vurdert som oppfylt uten forbehold → `OPPFYLT`
-  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
-  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
-  - Suksesskriterier med `[Teamet må dokumentere: ...]` → ALDRI `OPPFYLT`, bruk `UNDER_ARBEID`
-- Bruk `veiledningsTekst2` for handlingspunkter når status er `UNDER_ARBEID` eller `IKKE_OPPFYLT`
+**Sett suksesskriterieStatus slik:**
+- Suksesskriterier agenten har vurdert som oppfylt → `UNDER_ARBEID`
+- Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
+- Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
+- Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
 
 ⛔ **KRITISK: Etterlevelse-status MÅ gjenspeile suksesskriteriene.**
-- Standard er alltid `UNDER_REDIGERING` ved opplasting — siden SK-ene holdes som `UNDER_ARBEID`
-  for manuell kvittering av teamet.
-- Sett etterlevelse `status` til `FERDIG_DOKUMENTERT` KUN dersom bruker eksplisitt ber om
-  OPPFYLT-modus OG ALLE suksesskriterier har endelig status (OPPFYLT eller IKKE_RELEVANT).
+- Bruk alltid `UNDER_ARBEID` ved opplasting — SK-ene holdes som `UNDER_ARBEID`
+  for manuell kvittering av teamet i etterlevelsesløsningen.
 - Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ etterlevelsens
-  status settes til `UNDER_REDIGERING`, IKKE `FERDIG_DOKUMENTERT`.
+  status settes til `UNDER_ARBEID`, ikke `IKKE_RELEVANT`.
 - Denne regelen gjelder alltid — også ved batch-oppdateringer.
 
 ## API for oppdatering
