@@ -613,22 +613,13 @@ Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med tea
 
 **⛔ STOPP — OBLIGATORISK GODKJENNINGSPUNKT.**
 
-Du har NÅ laget en rapport. Du skal IKKE kalle API-er for å opprette eller oppdatere
-etterlevelser. Du skal IKKE gå videre til steg 8 med mindre bruker eksplisitt ber
-om det (f.eks. «last opp», «oppdater API-et», «godkjent, publiser»).
+Du har NÅ laget en rapport. Gå gjennom rapporten med teamet før du starter den
+interaktive gjennomgangen. Fyll inn plassholdere merket `[Teamet må dokumentere: ...]`
+og korriger eventuelle feil. Gi beskjed når teamet er klart.
 
-**Spør bruker om gjennomgangsmetode:**
+**Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
-> Rapporten er klar. Hvordan vil du kvalitetssikre begrunnelsene før opplasting?
->
-> **A) Interaktiv SK-gjennomgang** (anbefalt) — Gå gjennom én SK om gangen i terminalen.
->    For hver SK vises suksesskriteriet og diff av hva som endres. Du godkjenner, hopper
->    over eller redigerer én etter én. Effektivt fordi du ser krav og endring side om side.
->
-> **B) Rapportgjennomgang** — Gå gjennom rapporten i Markdown-filen, evt. med teamet,
->    og gi klarsignal når du er klar.
-
-#### Alternativ A: Interaktiv SK-gjennomgang
+#### Interaktiv SK-gjennomgang
 
 For **hvert krav** med endringer, skriv til konsollet:
 
@@ -667,17 +658,6 @@ ENDRING:
 - Etter alle krav: vis total oppsummering og spør om bekreftelse før opplasting starter.
 
 **Kun godkjente SK-er lastes opp** i steg 8. Hoppede-over SK-er røres ikke.
-
-#### Alternativ B: Rapportgjennomgang
-
-Be bruker om å:
-1. Gjennomgå rapporten sammen med teamet
-2. Korrigere eventuelle feil eller misforståelser
-3. Fylle inn plassholdere merket `[Teamet må dokumentere: ...]`
-4. Bekrefte at begrunnelsene er klare for opplasting
-
-**Ikke gå videre til opplasting før bruker eksplisitt bekrefter at rapporten er
-kvalitetssikret og godkjent av teamet.**
 
 ### Steg 8: Last opp begrunnelser (KUN etter eksplisitt godkjenning fra bruker)
 
