@@ -557,12 +557,10 @@ Når PVK skal sendes til **risikoeier** for godkjenning, brukes feltet `merknadT
 Bruk `write_pvk_egenskaper` for å oppdatere PVK-felter. **Agenten setter ALDRI status
 til TRENGER_GODKJENNING eller GODKJENT_AV_RISIKOEIER** — gjøres i UI-et.
 
-**Tonen i `merknadTilRisikoeier`** bør være lederrettet og ikke-teknisk: forklar
-hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert, og hva
-som gjenstår — nok til at risikoeier kan ta en informert beslutning uten å lese hele PVK-en.
-
-Feltet rendres som **markdown**. Bruk `**fet**` for viktige tall/hjemler,
-`## ` for seksjoner, `- ` for lister.
+**`merknadTilRisikoeier`** — feltet som sendes til risikoeier ved godkjenning — støttes
+ikke av MCP-serveren og må fylles ut manuelt i UI-et. Tonen bør være lederrettet og
+ikke-teknisk: hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert,
+og hva som gjenstår. Feltet rendres som markdown i UI-et.
 
 ---
 
