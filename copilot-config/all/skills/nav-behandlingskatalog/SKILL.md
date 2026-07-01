@@ -33,6 +33,8 @@ og henvis bruker til å rette det selv i UI-et.
 
 ## Når brukes skillen
 
+- Etterlevelse/PVK-vurdering har avdekket gap (tomme felter, feil hjemmel, feil
+  subjektkategori, manglende risikoeier) — agenten leser og rapporterer hva som mangler
 - nav-etterlevelse/nav-pvk trenger behandlingsdata som kontekst for etterlevelsesgjennomgang
 - Et team vil forstå hva som er registrert for sine behandlinger (B-nummer)
 - Agenten skal identifisere gap mellom registrert data og faktisk system-adferd
@@ -109,6 +111,7 @@ Process (Behandling)             <-- B-nummer (f.eks. B975)
 
 Policy                            <-- Kobling mellom Process og InformationType
   |                                   (én policy per kombinasjon process × informasjonstype)
+  +-- process { id, number, name } <-- Behandlingen policyen tilhører (number = B-nummer)
   +-- informationType { id, name, sensitivity, ... }
   +-- subjectCategories[]         <-- BRUKER / ANSATTE / ARBEIDSGIVERE / m.fl.
   +-- legalBasesInherited (bool)  <-- Arver fra Process eller har egne grunnlag?
