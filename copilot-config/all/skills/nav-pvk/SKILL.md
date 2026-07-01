@@ -122,6 +122,16 @@ Kildene leses i prioritert rekkefølge:
 
 ### Forberedelse A: Innhent informasjon fra bruker
 
+**Anbefalt arbeidsmappe:** En PVK-gjennomgang produserer flere filer (rapport, figurer,
+kontekstfiler). Det anbefales å opprette en dedikert tom mappe og stå der:
+
+```bash
+mkdir ~/pvk-{systemnavn} && cd ~/pvk-{systemnavn}
+```
+
+Kildekoden sjekkes ut som undermapper her (Forberedelse D), og rapport, figurer og
+kontekstfiler lagres i samme mappe.
+
 Spør bruker om:
 - **Etterlevelsesdokumentasjon**: URL eller ID (format: `a5cc7dfe-2fb9-4ff2-...`)
 - **GitHub-repoer**: navikt/{repo} — ett eller flere repoer som utgjør systemet
@@ -197,10 +207,11 @@ For hvert repo som skal analyseres:
    ```
    Spør bruker om de vil pulle hvis det er commits bak `origin/main`.
 
-3. **Hvis ikke funnet — klon:**
+3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
    ```bash
-   git clone https://github.com/navikt/{repo} ~/src/navikt/{repo}
+   git clone https://github.com/navikt/{repo}
    ```
+   Repoet klones da som undermappe i CWD (`{repo}/`).
 
 Bruk deretter lokale verktøy (`bash`, `ripgrep`, `find`) og explore-agenter parallelt.
 

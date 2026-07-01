@@ -37,6 +37,13 @@ Kunnskap spesifikk for ett system:
 
 ## Arbeidsflyt
 
+**Anbefalt arbeidsmappe:** Kjør nav-context fra en dedikert tom mappe for gjennomgangen.
+Kontekstfilene skrives til CWD og brukes av nav-etterlevelse og nav-pvk herfra:
+
+```bash
+mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
+```
+
 ### Steg 1: Sjekk om filene allerede finnes
 
 ```bash

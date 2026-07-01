@@ -125,6 +125,17 @@ Kildene leses i prioritert rekkefølge:
 
 ### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
+**Anbefalt arbeidsmappe:** En etterlevelsesgjennomgang involverer ofte flere repoer og
+produserer flere filer (rapport, figurer, kontekstfiler). Det anbefales å opprette en
+dedikert tom mappe og stå der når skillen kjøres:
+
+```bash
+mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
+```
+
+Kildekoden sjekkes ut som undermapper her (steg 4), og rapporten, kontekstfilene og
+eventuelle genererte figurer lagres i samme mappe.
+
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
 2. **Etterlevelsesdokumentasjon-ID** (UUID fra URL-en i etterlevelsesløsningen, f.eks. `a5cc7dfe-2fb9-4ff2-8eda-52d7079cda4c`)
@@ -523,10 +534,11 @@ For hvert repo som skal analyseres (f.eks. `navikt/veilarbdialog`):
    ```
    Hvis det er commits bak `origin/main`: spør bruker om de vil pulle først.
 
-3. **Hvis ikke funnet — klon:**
+3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
    ```bash
-   git clone https://github.com/navikt/{repo} ~/src/navikt/{repo}
+   git clone https://github.com/navikt/{repo}
    ```
+   Repoet klones da som undermappe i CWD (`{repo}/`).
 
 Bruk deretter lokale verktøy for søk — `bash`, `grep`/`ripgrep`, `find` — i stedet for
 GitHub API. Bruk explore-agenter parallelt på de lokale repoene.
