@@ -557,12 +557,29 @@ Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 
 ### Steg 5: Verifiser mot NAIS-plattformen
 
-Hent NAIS-dokumentasjon for å verifisere plattformkrav:
-- https://docs.nais.io/auth/idporten/ (ID-porten)
-- https://docs.nais.io/auth/tokenx/ (TokenX)
-- https://docs.nais.io/persistence/cloudsql/ (Cloud SQL sikkerhet)
-- https://docs.nais.io/observability/logging/ (Logging)
-- https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg (Arcsight/CEF)
+Hent NAIS-dokumentasjon som kontekst:
+
+```
+web_fetch https://docs.nais.io
+```
+
+**Dette er spesielt viktig for etterlevelse:** NAIS-plattformen oppfyller en rekke
+sikkerhetskrav automatisk for alle apper som kjører der. Når du kan bekrefte at et krav
+er oppfylt av plattformen, er det tilstrekkelig å referere til NAIS-funksjonen — teamet
+trenger ikke dokumentere en egenutviklet løsning.
+
+Eksempler på plattformgarantier som løser etterlevelseskrav:
+
+| NAIS-funksjon | Dokumentasjon | Relevant for |
+|---|---|---|
+| Cloud SQL — kryptering i hvile og private IP | `docs.nais.io/persistence/cloudsql` | K190, K245 |
+| ID-porten sidecar — autentisering og sikkerhetsnivå | `docs.nais.io/auth/idporten` | K102, K107 |
+| Azure AD / TokenX — intern autentisering | `docs.nais.io/auth/azuread`, `tokenx` | K245 |
+| Network policies — utgående trafikk begrenset | `docs.nais.io/nais-application/access-policy` | K245 |
+| Nais-logging — strukturert logging til Elastic | `docs.nais.io/observability/logging` | K245 |
+| Arcsight/CEF oppslagslogg | `sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg` | K253 |
+
+Hent spesifikke sider ved behov for å bekrefte detaljer som er relevante for kravene du vurderer.
 
 ### Steg 6: Skriv begrunnelser og generer rapport
 
