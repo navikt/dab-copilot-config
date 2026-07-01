@@ -638,6 +638,9 @@ For **hvert krav** med endringer, skriv til konsollet:
 ```
 ══════════════════════════════════════════════════════════════
 K{nr}.{v} – {kravnavn}
+──────────────────────────────────────────────────────────────
+Hensikt:
+  {krav.hensikt}
 ══════════════════════════════════════════════════════════════
 ```
 
@@ -647,7 +650,7 @@ For **hvert suksesskriterium** med endring under kravet:
 ─────────────────────────────────────────
 SK{id} – {suksesskriterienavn}
 ─────────────────────────────────────────
-Beskrivelse:
+Kriteriet spør:
   {suksesskriterier[i].beskrivelse}
 
 ENDRING:
