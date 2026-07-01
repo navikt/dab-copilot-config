@@ -269,7 +269,7 @@ Fremgangsmåte:
    - «Det er åpenbart / ikke tolkningstvil» — åpenbare tilfeller skal OPPFYLLES, ikke hoppes over
    - «Dette gjøres i et annet system» — hvert system gjør sin egen vurdering
    - «Det er lite hensiktsmessig» — personvernsrettighetene gjelder uavhengig av hensiktsmessighet
-   - Tom begrunnelse — alltid feil
+   - Tom begrunnelse — alltid feil for IKKE_RELEVANT (uansett `behovForBegrunnelse`)
    - Begrunnelse som svarer på et annet spørsmål enn det SK-et stiller
 5. **Konkluder:** Korrekt IKKE_RELEVANT ✅ / Bør være OPPFYLT ⚠️ / Bør være IKKE_OPPFYLT 🔴
 
