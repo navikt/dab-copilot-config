@@ -98,11 +98,19 @@ Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
 1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
 2. Sjekk om `domain-context.md` finnes i CWD
 
-**Hvis én eller begge kontekstfiler mangler:**
+**Hvis `domain-context.md` mangler:**
+→ Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
+`domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
+til `./domain-context.md` i CWD — ikke kjør nav-context for domenekonteksten da.
+Hvis ingen passer, invokér nav-context-skillen for å opprette den.
+
+**Hvis `system-context.md` mangler:**
 → **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
-nav-context henter data fra behandlingskatalog og GitHub og oppretter filene i CWD.
-**Vent til nav-context er ferdig før du fortsetter med etterlevelsesanalysen.**
-Det er ikke tillatt å starte analysen uten at begge filer eksisterer.
+System-kontekst er alltid system-spesifikk og kan ikke gjenbrukes.
+
+**Vent til begge filer eksisterer før du fortsetter.**
+Det er ikke tillatt å starte analysen uten at både `domain-context.md` og
+`system-context.md` er på plass.
 
 **Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
