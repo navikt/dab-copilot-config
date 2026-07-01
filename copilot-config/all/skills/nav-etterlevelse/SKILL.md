@@ -343,7 +343,9 @@ Sammenlign gjeldende kravliste mot eksisterende etterlevelser for å finne avvik
 
 #### 3b: Hent data fra Behandlingskatalogen
 
-Hent behandlings-ID fra etterlevelsesdokumentasjonen (`behandlingIds[]`) og bruk MCP-tool
+Behandlingskatalogen inneholder strukturerte data om behandlingen som er svært verdifulle
+for etterlevelsesgjennomgangen. Hent behandlings-ID fra etterlevelsesdokumentasjonen
+(`behandlingIds[]`) og bruk MCP-tool
 `get_behandling` for å slå opp behandlingsdetaljer.
 
 **Hvis behandlingslisten er tom eller mangelfull:** Bruk `search_behandlinger` for å søke på
