@@ -503,6 +503,34 @@ DPIA-triggende egenskaper (fra Behandlingskatalogen), noter dette som et handlin
 
 ### Steg 4: Inspiser kildekode
 
+#### Hent kildekoden lokalt
+
+**Foretrekk alltid lokal kildekode fremfor GitHub API-kall** — det er raskere, mer komplett
+og har ingen rate limits.
+
+For hvert repo som skal analyseres (f.eks. `navikt/veilarbdialog`):
+
+1. **Sjekk om repoet allerede er sjekket ut:**
+   ```bash
+   # Vanlige steder å lete:
+   ls ~/src/navikt/{repo} ~/IdeaProjects/{repo} ~/dev/{repo} ./{repo} 2>/dev/null
+   ```
+   Spør bruker om de har en kjent sti hvis ikke funnet.
+
+2. **Hvis funnet lokalt — verifiser at koden er oppdatert:**
+   ```bash
+   git -C {sti} fetch --quiet && git -C {sti} status
+   ```
+   Hvis det er commits bak `origin/main`: spør bruker om de vil pulle først.
+
+3. **Hvis ikke funnet — klon:**
+   ```bash
+   git clone https://github.com/navikt/{repo} ~/src/navikt/{repo}
+   ```
+
+Bruk deretter lokale verktøy for søk — `bash`, `grep`/`ripgrep`, `find` — i stedet for
+GitHub API. Bruk explore-agenter parallelt på de lokale repoene.
+
 #### ⛔ Feilhåndtering ved delsteg og agenter
 
 **Stopp og informer bruker hvis et viktig delsteg mislykkes.** Ikke fortsett arbeidsflyten

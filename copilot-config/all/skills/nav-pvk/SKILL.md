@@ -180,7 +180,29 @@ nøkkelfunn (identifiserte risikoer, tiltak, restrisikoer).
 
 ### Forberedelse D: Inspiser kildekode
 
-Bruk explore-agenter parallelt for å analysere repoene. Fokusér på personvernrelevante funn:
+**Foretrekk alltid lokal kildekode fremfor GitHub API-kall** — det er raskere, mer komplett
+og har ingen rate limits.
+
+For hvert repo som skal analyseres:
+
+1. **Sjekk om repoet allerede er sjekket ut:**
+   ```bash
+   ls ~/src/navikt/{repo} ~/IdeaProjects/{repo} ~/dev/{repo} ./{repo} 2>/dev/null
+   ```
+   Spør bruker om de har en kjent sti hvis ikke funnet.
+
+2. **Hvis funnet lokalt — verifiser at koden er oppdatert:**
+   ```bash
+   git -C {sti} fetch --quiet && git -C {sti} status
+   ```
+   Spør bruker om de vil pulle hvis det er commits bak `origin/main`.
+
+3. **Hvis ikke funnet — klon:**
+   ```bash
+   git clone https://github.com/navikt/{repo} ~/src/navikt/{repo}
+   ```
+
+Bruk deretter lokale verktøy (`bash`, `ripgrep`, `find`) og explore-agenter parallelt.
 
 **Dataflyter og personopplysninger:**
 - Hvilke personopplysninger lagres? (database-skjema, entities, DTOs)
