@@ -606,8 +606,26 @@ Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 | `write_tiltak` | Opprett/oppdater tiltak |
 | `delete_tiltak` | Slett tiltak |
 
-**Markdown-støtte:** `write_behandlingens_livsloep.beskrivelse` støtter markdown.
-Felter for scenarioer og tiltak (`navn`/`beskrivelse`) vises som ren tekst — ikke bruk markdown der.
+## Markdown-støtte per felt
+
+Markdown-støtte er felt-spesifikk, verifisert i frontend-koden. Feil her gir
+synlige markdown-tegn i UI-et for brukere som leser PVK-en.
+
+**Markdown-rendret** (kan bruke `**fet**`, `*kursiv*`, `## overskrift`, `- liste`):
+- `BehandlingensLivslop.beskrivelse`
+- `meldingerTilPvo[].merknadTilPvo` og `meldingerTilPvo[].endringsNotat`
+- `merknadTilRisikoeier` og `merknadFraRisikoeier`
+
+**Ren tekst** (markdown vises som rå tegn — ikke bruk formatering her):
+- Art-og-omfang-felter (`personkategoriAntallBeskrivelse`, `tilgangsBeskrivelsePersonopplysningene`, `lagringsBeskrivelsePersonopplysningene`)
+- Risikoscenarioer: `navn` og `beskrivelse`
+- Tiltak: `navn` og `beskrivelse`
+- Involveringsbeskrivelser (`representantInvolveringsBeskrivelse`, `dataBehandlerRepresentantInvolveringBeskrivelse`)
+
+**Aldri bruk HTML** — feltene som rendrer markdown bruker `escapeHtml=true` i read-only-visning.
+
+Når du er usikker: sjekk komponenten i `navikt/etterlevelse` (typisk `*ReadOnly.tsx`) — hvis
+verdien pakkes i `<Markdown source={...}>`, er det markdown.
 
 ## Datamodell
 
