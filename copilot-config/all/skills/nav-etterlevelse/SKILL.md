@@ -146,6 +146,18 @@ Alle kall til etterlevelsesløsningen og behandlingskatalogen går via **nav-ett
 Ingen manuell pålogging eller SSO-cookies er nødvendig — MCP-serveren håndterer autentisering
 via Azure AD OAuth 2.1 PKCE og Texas OBO-sidecar automatisk.
 
+**Sesjonsutløp:** MCP-tokenet lever i 1 time, men klienten fornyer det automatisk ved hjelp
+av et refresh-token (24 timer) uten brukerinteraksjon. Full re-autentisering via nettleser
+er normalt kun nødvendig én gang per dag.
+
+Hvis et MCP-tool-kall feiler med autentiseringsfeil («Unknown or expired MCP access token»
+eller «Azure access token has expired»):
+- **Stopp arbeidsflyten** og informer bruker om feilen
+- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` i et nytt terminalvindu.
+  Nettleseren åpner seg for re-autentisering. Sesjonen kan fortsettes der den slapp.
+- **Copilot CLI:** Prøv `/mcp`-kommandoen i chat-vinduet for å re-autentisere.
+- Ikke gjenta det feilende kallet automatisk — vent til bruker bekrefter at sesjonen er fornyet.
+
 Fortsett direkte til steg 3.
 
 ### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
