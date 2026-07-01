@@ -414,7 +414,23 @@ på **personvernkonsekvenser**, ikke generell IT-sikkerhet:
 Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`):
 
 - **Les:** `list_risikoscenarioer` — henter alle scenarioer for låst PVK-dokument
-- **Opprett/oppdater:** `write_risikoscenario` med `navn`, `beskrivelse`, nivåer og begrunnelser. Sett `generelScenario: true` for øvrige scenarioer uten kravkobling.
+- **Opprett/oppdater:** `write_risikoscenario` med feltene under. Sett `generelScenario: true` for øvrige scenarioer uten kravkobling.
+
+**Risikoscenario-felter:**
+
+| Felt | Type | Beskrivelse |
+|------|------|-------------|
+| `navn` | string | Kort navn på scenarioet |
+| `beskrivelse` | string | Detaljert beskrivelse av risikoen |
+| `sannsynlighetsNivaa` | int 1-5 | Sannsynlighet FØR tiltak |
+| `sannsynlighetsNivaaBegrunnelse` | string | Begrunnelse for sannsynlighetsvurderingen |
+| `konsekvensNivaa` | int 1-5 | Konsekvens FØR tiltak |
+| `konsekvensNivaaBegrunnelse` | string | Begrunnelse for konsekvensvurderingen |
+| `sannsynlighetsNivaaEtterTiltak` | int 1-5 | Sannsynlighet ETTER tiltak |
+| `konsekvensNivaaEtterTiltak` | int 1-5 | Konsekvens ETTER tiltak |
+| `nivaaBegrunnelseEtterTiltak` | string | Begrunnelse for risikonivå etter tiltak |
+| `generelScenario` | bool | `true` = øvrig scenario uten kravkobling |
+| `ingenTiltak` | bool | `true` = scenarioet håndteres uten tiltak |
 - **Slett:** `delete_risikoscenario` (cascade-sletter tilknyttede tiltak)
 - **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
 - **Fjern kravkobling:** `unlink_krav_from_risikoscenario`

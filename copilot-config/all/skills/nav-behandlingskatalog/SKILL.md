@@ -104,23 +104,42 @@ Process (Behandling)             <-- B-nummer (f.eks. B975)
   +-- affiliation                 <-- Avdeling, team, system, NOM-tilknytning
   +-- automaticProcessing (bool)  <-- Er behandlingen automatisert?
   +-- profiling (bool)            <-- Skjer det profilering?
+  +-- aiUsageDescription          <-- KI-bruk
+  +-- usesAllInformationTypes (bool)
 
 Policy                            <-- Kobling mellom Process og InformationType
   |                                   (én policy per kombinasjon process × informasjonstype)
-  +-- informationType { id, name, sensitivity }
+  +-- informationType { id, name, sensitivity, ... }
   +-- subjectCategories[]         <-- BRUKER / ANSATTE / ARBEIDSGIVERE / m.fl.
-  +-- legalBasesInherited (bool)
-  +-- legalBases[]
+  +-- legalBasesInherited (bool)  <-- Arver fra Process eller har egne grunnlag?
+  +-- legalBases[]                <-- Egne grunnlag (hvis ikke arvet)
+  +-- start / end                 <-- Gyldighet i tid
 
 InformationType                   <-- Personopplysningstype (f.eks. «Fødselsnummer»)
-  +-- name, sensitivity           <-- Sentralt forvaltet
+  +-- name, sensitivity, ...      <-- Sentralt forvaltet, ikke per behandling
 
 Processor (Databehandler)
   +-- name, country, outsideEU, transferGrounds
 ```
 
 **Viktig:** Subjektkategori (BRUKER, ANSATTE, ARBEIDSGIVERE, m.fl.) settes
-**per policy** (informasjonstype-kobling), ikke per behandling.
+**per policy** (informasjonstype-kobling), ikke per behandling. Samme
+informasjonstype kan derfor brukes om både brukere og ansatte hvis det er reelt.
+
+## Codelists
+
+Mange felter i behandlingsdata er strenger som matcher koder i en codelist (dropdown).
+Dette er nyttig å kjenne for å tolke verdier fra `get_behandling` riktig:
+
+| Liste | Brukes i | Eksempler |
+|---|---|---|
+| `PURPOSE` | `process.purposes` | `OPPFOLGING_MOT_ARBEID`, `FORVALTNING_REGISTRE` |
+| `GDPR_ARTICLE` | `legalBases.gdpr` | `ART61E`, `ART61C`, `ART91B` |
+| `NATIONAL_LAW` | `legalBases.nationalLaw` | `NAV_LOVEN`, `FVL`, `PERSONOPPLYSNINGSLOVEN`, `ARBEIDSMARKEDSLOVEN` |
+| `DEPARTMENT` | `affiliation.department` | `ATA`, `YTA`, `DIR` |
+| `SYSTEM` | `affiliation.products` | `MODIA_ARB_OPPFOLGING` |
+| `SUBJECT_CATEGORY` | `policy.subjectCategories` | `BRUKER`, `ANSATTE`, `ARBEIDSGIVERE` |
+| `THIRD_PARTY` | `process.commonExternalProcessResponsible` | Felles behandlingsansvarlig |
 
 ## Viktige felter for etterlevelsesgjennomgang
 
