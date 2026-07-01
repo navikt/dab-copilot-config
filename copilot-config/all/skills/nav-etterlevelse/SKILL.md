@@ -125,16 +125,28 @@ Kildene leses i prioritert rekkefølge:
 
 ### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
-**Anbefalt arbeidsmappe:** En etterlevelsesgjennomgang involverer ofte flere repoer og
-produserer flere filer (rapport, figurer, kontekstfiler). Det anbefales å opprette en
-dedikert tom mappe og stå der når skillen kjøres:
+**Sjekk arbeidsmappen FØR du spør om noe annet:**
 
 ```bash
-mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
+pwd && ls -la
 ```
 
-Kildekoden sjekkes ut som undermapper her (steg 4), og rapporten, kontekstfilene og
-eventuelle genererte figurer lagres i samme mappe.
+Vurder CWD:
+- **Tom mappe eller mappe som allerede inneholder kontekstfiler/repoer for denne gjennomgangen** → fortsett herfra
+- **Inne i et Git-repo** (`ls .git`) eller **mappe med urelatert innhold** → informer bruker:
+
+> Jeg anbefaler å opprette en dedikert arbeidsmappe for denne gjennomgangen.
+> En etterlevelsesgjennomgang består ofte av flere repoer og produserer flere filer
+> (rapport, kontekstfiler, figurer). En egen mappe holder alt samlet:
+>
+> ```bash
+> mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
+> ```
+>
+> Kildekoden klones som undermapper her, og rapport og kontekstfiler lagres samme sted.
+> Vil du opprette en slik mappe før vi starter?
+
+Vent på brukerens svar før du fortsetter.
 
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)

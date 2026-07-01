@@ -122,15 +122,28 @@ Kildene leses i prioritert rekkefølge:
 
 ### Forberedelse A: Innhent informasjon fra bruker
 
-**Anbefalt arbeidsmappe:** En PVK-gjennomgang produserer flere filer (rapport, figurer,
-kontekstfiler). Det anbefales å opprette en dedikert tom mappe og stå der:
+**Sjekk arbeidsmappen FØR du spør om noe annet:**
 
 ```bash
-mkdir ~/pvk-{systemnavn} && cd ~/pvk-{systemnavn}
+pwd && ls -la
 ```
 
-Kildekoden sjekkes ut som undermapper her (Forberedelse D), og rapport, figurer og
-kontekstfiler lagres i samme mappe.
+Vurder CWD:
+- **Tom mappe eller mappe som allerede inneholder kontekstfiler/repoer for denne gjennomgangen** → fortsett herfra
+- **Inne i et Git-repo** (`ls .git`) eller **mappe med urelatert innhold** → informer bruker:
+
+> Jeg anbefaler å opprette en dedikert arbeidsmappe for denne PVK-gjennomgangen.
+> En PVK produserer flere filer (rapport, figurer, kontekstfiler) og involverer
+> ofte flere repoer. En egen mappe holder alt samlet:
+>
+> ```bash
+> mkdir ~/pvk-{systemnavn} && cd ~/pvk-{systemnavn}
+> ```
+>
+> Kildekoden klones som undermapper her, og rapport og figurer lagres samme sted.
+> Vil du opprette en slik mappe før vi starter?
+
+Vent på brukerens svar før du fortsetter.
 
 Spør bruker om:
 - **Etterlevelsesdokumentasjon**: URL eller ID (format: `a5cc7dfe-2fb9-4ff2-...`)
