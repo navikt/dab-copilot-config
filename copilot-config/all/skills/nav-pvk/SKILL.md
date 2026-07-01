@@ -664,12 +664,12 @@ EtterlevelseDokumentasjon (dok-id)
 
 ## Modellvalg for deloppgaver
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Kodegjennomgang med personvernvurdering (Forberedelse D) | `claude-opus-4.8` | Krever forståelse av kode OG personvernlovgivning |
-| Identifisere og formulere risikoscenarioer (steg 6) | `claude-opus-4.8` | Kreativ risikovurdering med juridisk presisjon |
-| Formulere tiltaksbeskrivelser (steg 6) | `claude-opus-4.8` | Konkrete tiltak må speile faktisk risiko |
-| Hente data via MCP-tools | `claude-haiku-4.5` | Enkel datahenting og JSON-parsing |
-| Steg 1–5: Oversikt, livsløp, art og omfang, dokumentasjon, involvering | `claude-haiku-4.5` | Strukturert utfylling av kjente felter |
-| Steg 7: Oppdatere risikostatus etter tiltak (tallverdier) | `claude-haiku-4.5` | Mekanisk oppdatering via MCP write_risikoscenario |
-| Steg 8: Sende inn PVK til PVO | `claude-haiku-4.5` | Validering og klargjøring uten analytisk innhold |
+| Kodegjennomgang med personvernvurdering (Forberedelse D) | **Høy** | Krever forståelse av kode OG personvernlovgivning |
+| Identifisere og formulere risikoscenarioer (steg 6) | **Høy** | Kreativ risikovurdering med juridisk presisjon |
+| Formulere tiltaksbeskrivelser (steg 6) | **Høy** | Konkrete tiltak må speile faktisk risiko |
+| Hente data via MCP-tools | **Lav** | Enkel datahenting og JSON-parsing |
+| Steg 1–5: Oversikt, livsløp, art og omfang, dokumentasjon, involvering | **Lav** | Strukturert utfylling av kjente felter |
+| Steg 7: Oppdatere risikostatus etter tiltak (tallverdier) | **Lav** | Mekanisk oppdatering via MCP write_risikoscenario |
+| Steg 8: Sende inn PVK til PVO | **Lav** | Validering og klargjøring uten analytisk innhold |

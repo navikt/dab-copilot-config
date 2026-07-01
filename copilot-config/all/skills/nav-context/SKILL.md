@@ -318,12 +318,12 @@ alle behandlinger av personopplysninger i NAV skal være registrert der.
 
 ## Modellvalg for deloppgaver
 
-nav-context er primært en datahentings- og skrivoppgave uten tung juridisk analyse.
-Bruk billige/raske modeller for nesten alt.
+nav-context er primært en datahentings- og skriveoppgave uten tung juridisk analyse.
+Bruk lave/middels kapasitetsnivåer for nesten alt.
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Hente data fra Behandlingskatalog via MCP-tools (steg 3) | `claude-haiku-4.5` | Strukturert datahenting |
-| Strukturere Navet-innhold fra brukerens oppsummering (steg 4) | `claude-haiku-4.5` | Strukturering av oppgitt tekst |
-| Kodegjennomgang for personvernrelevante funn (steg 5) | `claude-haiku-4.5` | Explore-agenter bruker allerede Haiku som standard |
-| Skrive domain-context.md og system-context.md (steg 6) | `claude-sonnet-4.6` | Fri tekst som skal være presis og lesbar for jurister og teknikere |
+| Hente data fra Behandlingskatalog via MCP-tools (steg 3) | **Lav** | Strukturert datahenting |
+| Strukturere Navet-innhold fra brukerens oppsummering (steg 4) | **Lav** | Strukturering av oppgitt tekst |
+| Kodegjennomgang for personvernrelevante funn (steg 5) | **Lav** | Explore-agenter bruker allerede lavkapasitetsmodell som standard |
+| Skrive domain-context.md og system-context.md (steg 6) | **Middels** | Fri tekst som skal være presis og lesbar for jurister og teknikere |

@@ -1010,27 +1010,18 @@ av bruker og teamet før eventuell opplasting til etterlevelsesløsningen (steg 
 
 ## Modellvalg for deloppgaver
 
-Bruk dyrere modeller for tunge analytiske oppgaver og billigere modeller for enkle
-strukturerte deloppgaver. Skillen kjøres normalt av en kraftig modell (f.eks. Claude Opus
-4.7), men subagenter kan bruke rimeligere modeller der det holder.
+Bruk mer kapable modeller for tunge analytiske oppgaver og raskere/billigere modeller
+for enkle strukturerte deloppgaver.
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Full kodegjennomgang med juridisk vurdering (steg 4) | `claude-opus-4.8` | Krever dyp forståelse av kode OG lovkrav |
-| Skrive etterlevelsebegrunnelser (steg 6) | `claude-opus-4.8` | Presisjon og juridisk kontekst er kritisk |
-| Hente data via MCP-tools (etterlevelse, krav, behandling) | `claude-haiku-4.5` | Enkel datahenting og JSON-parsing |
-| Søke etter spesifikke mønstre i kode (grep-lignende) | `claude-haiku-4.5` | Strukturert søk, ingen tolkning nødvendig |
-| Hente kravdetaljer via MCP-tools | `claude-haiku-4.5` | Forutsigbar datastruktur |
-| Sammenligne kravliste mot etterlevelser (gap-analyse) | `claude-haiku-4.5` | Enkel set-differanse-operasjon |
-| Last opp begrunnelser via MCP write_etterlevelse (steg 8) | `claude-haiku-4.5` | Mekanisk opplasting etter ferdig rapport |
-| Sammensatt analyse: kode + behandlingskatalog + PVK | `claude-sonnet-4.6` | Moderat kompleksitet, balanse mellom kostnad og kvalitet |
-
-**Praktisk bruk med task-verktøyet:**
-```
-task(..., model: "claude-haiku-4.5")   # enkle API-kall og søk
-task(..., model: "claude-sonnet-4.6")  # mellomtunge analyser
-task(..., model: "claude-opus-4.8")    # tunge juridiske vurderinger
-```
+| Full kodegjennomgang med juridisk vurdering (steg 4) | **Høy** | Krever dyp forståelse av kode OG lovkrav |
+| Skrive etterlevelsebegrunnelser (steg 6) | **Høy** | Presisjon og juridisk kontekst er kritisk |
+| Sammensatt analyse: kode + behandlingskatalog + PVK | **Middels** | Moderat kompleksitet, balanse mellom kostnad og kvalitet |
+| Hente data via MCP-tools (etterlevelse, krav, behandling) | **Lav** | Enkel datahenting og JSON-parsing |
+| Søke etter spesifikke mønstre i kode | **Lav** | Strukturert søk, ingen tolkning nødvendig |
+| Sammenligne kravliste mot etterlevelser (gap-analyse) | **Lav** | Enkel set-differanse-operasjon |
+| Laste opp begrunnelser via MCP write_etterlevelse (steg 8) | **Lav** | Mekanisk opplasting etter ferdig rapport |
 
 ## Viktige huskeregler
 
