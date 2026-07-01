@@ -990,6 +990,14 @@ b) **Alternativ: teamsData fra etterlevelse-API.**
 
 c) **Spør bruker** om informasjonen ikke finnes i eksisterende dokumentasjoner.
 
+**Aldri bruk HTML** — feltet bruker `escapeHtml=true` og HTML-tagger vises som rå tekst.
+
+Retningslinjer:
+- Bruk punktlister for tiltak, funn og kodehenvisninger
+- Bruk backticks for filnavn, konfigurasjonsnøkler og tekniske begreper
+- Hold overskrifter til `###` eller unngå dem — begrunnelsesfeltet er ikke et dokument
+- Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
+
 Agenten kan utlede: `irrelevansFor` (fra kodeanalyse), `behandlerPersonopplysninger`,
 `gjenbrukBeskrivelse`, `behandlingIds` (fra Behandlingskatalogen).
 
