@@ -557,10 +557,10 @@ Når PVK skal sendes til **risikoeier** for godkjenning, brukes feltet `merknadT
 Bruk `write_pvk_egenskaper` for å oppdatere PVK-felter. **Agenten setter ALDRI status
 til TRENGER_GODKJENNING eller GODKJENT_AV_RISIKOEIER** — gjøres i UI-et.
 
-**`merknadTilRisikoeier`** — feltet som sendes til risikoeier ved godkjenning — støttes
-ikke av MCP-serveren og må fylles ut manuelt i UI-et. Tonen bør være lederrettet og
-ikke-teknisk: hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert,
-og hva som gjenstår. Feltet rendres som markdown i UI-et.
+**`merknadTilRisikoeier`** skrives med `write_pvk_risikoeier`. Tonen bør være lederrettet
+og ikke-teknisk: hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert,
+og hva som gjenstår — nok til at risikoeier kan ta en informert beslutning uten å lese hele
+PVK-en. Feltet rendres som markdown i UI-et.
 
 ---
 
@@ -592,6 +592,7 @@ Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 | `delete_pvk_dokument` | Slett PVK-dokumentet |
 | `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
 | `write_pvk_involvering` | Oppdater involveringsfelter |
+| `write_pvk_risikoeier` | Skriv merknad til risikoeier (lederrettet, markdown) |
 | `get_behandlingens_livsloep` | Hent livsløpsbeskrivelse |
 | `write_behandlingens_livsloep` | Opprett/oppdater livsløp (støtter filvedlegg som base64) |
 | `delete_behandlingens_livsloep` | Slett livsløp |
