@@ -110,9 +110,12 @@ eksterne modeller.
 | Fagområde | Navet-URL |
 |-----------|-----------|
 | Arbeidsrettet oppfølging og veiledning | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsrettet-brukeroppfolging` |
+| Arbeidsavklaringspenger (AAP) | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsavklaringspenger` |
+| Dagpenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-dagpenger` |
 | Sykefraværsoppfølging og sykepenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-sykefravarsoppfolging-og-sykepenger` |
 | Sosiale tjenester | `https://navno.sharepoint.com/sites/fag-og-ytelser-sosiale-tjenester` |
 | Tiltak og virkemidler | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-tiltak-og-virkemidler` |
+| Alderspensjon | `https://navno.sharepoint.com/sites/fag-og-ytelser-pensjon-alderspensjon` |
 | Markedsarbeid | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-markedsarbeid` |
 
 Spør bruker om å åpne den relevante Navet-siden og lime inn eller oppsummere innhold fra:
