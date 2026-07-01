@@ -87,7 +87,28 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 - Hva som er/ikke er tillatt å lagre (formålsbegrensninger)
 - Tilgangsstyring og databehandlerforhold
 
-**Les domenekontekst tidlig i arbeidsflyten**, gjerne før steg 1 (Kartlegg eksisterende dokumentasjon).
+**Les domenekontekst tidlig i arbeidsflyten**, som første handling før steg 1.
+
+### ⛔ OBLIGATORISK: Sjekk kontekstfiler FØR arbeidsflyten starter
+
+1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
+2. Sjekk om `domain-context.md` finnes i CWD
+
+**Hvis `domain-context.md` mangler:**
+→ Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
+`domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
+til `./domain-context.md` i CWD — ikke kjør nav-context for domenekonteksten da.
+Hvis ingen passer, invokér nav-context-skillen for å opprette den.
+
+**Hvis `system-context.md` mangler:**
+→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
+System-kontekst er alltid system-spesifikk og kan ikke gjenbrukes.
+
+**Vent til begge filer eksisterer før du fortsetter.**
+Det er ikke tillatt å starte PVK-analysen uten at både `domain-context.md` og
+`system-context.md` er på plass.
+
+**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
 Kildene leses i prioritert rekkefølge:
 
@@ -96,29 +117,8 @@ Kildene leses i prioritert rekkefølge:
 3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
    NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`). Bruk den som
    passer fagområdet systemet tilhører.
-4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
-   Fortsett uten kontekstfil, men noter at vurderingen vil være mer generell.
 
 ## Arbeidsflyt
-
-### Forberedelse 0: Konfigurer sandkassemiljø (cplt)
-
-Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
-`.cplt.toml` som tillater tilgang til interne NAV-ingresser.
-
-Sjekk om filen finnes — hvis ikke, opprett den:
-```bash
-test -f .cplt.toml || cat > .cplt.toml << 'EOF'
-[propose.proxy]
-allow_private_domains = ["intern.nav.no"]
-
-[propose.allow]
-localhost = [9876]
-EOF
-```
-
-Filen finnes også ferdig utfylt i
-`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Forberedelse A: Innhent informasjon fra bruker
 
@@ -132,53 +132,37 @@ Hent NAIS-dokumentasjonen som kontekst:
 web_fetch https://docs.nais.io
 ```
 
-### Forberedelse B: Ingen pålogging nødvendig for lesing
+### Forberedelse B: Autentisering via MCP-serveren
 
-Lesekall bruker den naisdevice-beskyttede interne ingressen og krever ingen SSO-cookies:
-- **Les**: `https://etterlevelse-api.intern.nav.no/api/` — ingen auth (krever naisdevice)
-- **Skriv**: `https://etterlevelse-api.intern.nav.no/api/` — SSO-cookies påkrevd
-- **Behandlingskatalog (les)**: `https://behandlingskatalog-backend.intern.nav.no/api/` — ingen auth
+Alle kall til etterlevelsesløsningen og behandlingskatalogen går via **nav-etterlevelse-mcp**.
+Ingen manuell pålogging eller SSO-cookies er nødvendig.
 
-`*.ansatt.nav.no`-ingressene er internett-eksponert og beskyttet av forwardauth. Bruk alltid
-`*.intern.nav.no` for API-kall fra skillen.
-
-Fortsett direkte til Forberedelse C uten å be om innlogging. Cookies hentes rett før
-opplasting (se API-seksjonens «Viktige regler»).
+Fortsett direkte til Forberedelse C.
 
 ### Forberedelse C: Hent eksisterende data
 
 #### C1: Hent etterlevelsesdokumentasjonen
-```
-GET /api/etterlevelsedokumentasjon/{dok-id}
-```
+
+Bruk MCP-tool `get_etterlevelse_dokumentasjon` med dokumentets UUID.
 Viktige felter: `title`, `behandlingIds[]`, `teams[]`, `behandlerPersonopplysninger`,
-`risikovurderinger[]` (TryggNok ROS-lenker), `risikoeiere[]`, `nomAvdelingId`.
+`risikovurderinger[]` (TryggNok ROS-lenker), `risikoeiere[]`.
 
 #### C2: Sjekk om PVK allerede finnes
-```
-GET /api/pvkdokument?pageSize=100
-```
-Filtrer responsen client-side: `item.etterlevelseDokumentId == {dok-id}`.
 
-**VIKTIG:** Query-parametere filtrerer IKKE — endepunktet returnerer ALLE PVK-dokumenter
-globalt. Du må filtrere manuelt. Paginer med `pageNumber=0,1,...` ved behov.
+Lås dokumentet med `lock_document` (dokumentets UUID) — dette aktiverer PVK-verktøyene.
+Bruk deretter `get_pvk_dokument` for å sjekke status og hente PVK-id.
 
-Hvis PVK finnes, hent også:
-```
-GET /api/risikoscenario/pvkdokument/{pvk-id}/ALL
-GET /api/tiltak/pvkdokument/{pvk-id}
-GET /api/behandlingenslivslop?pageSize=100  (filtrer client-side på etterlevelseDokumentasjonId)
-```
+Hvis PVK finnes, hent risikoscenarioer og tiltak:
+- `list_risikoscenarioer` — alle scenarioer (generelle og krav-spesifikke)
+- `list_tiltak` — alle tiltak for PVK-dokumentet
+- `get_behandlingens_livsloep` — livsløpsbeskrivelse og filer
 
 #### C3: Hent data fra Behandlingskatalogen
 
-For hver `behandlingId` fra etterlevelsesdokumentasjonen:
-```
-GET https://behandlingskatalog-backend.intern.nav.no/api/process/{behandling-id}
-```
+Bruk MCP-tool `get_behandling` for hver `behandlingId` fra etterlevelsesdokumentasjonen.
+Bruk `search_behandlinger` hvis behandlingslisten er tom.
 
-**Behandlingsnummer:** Hver behandling har et nummer Bxxx (f.eks. B580). Bruk feltet `number`
-fra API-responsen. Referer alltid til behandlinger med dette nummeret, ikke UUID-en.
+**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
 
 Viktige felter for PVK:
 - `policies[]` — personopplysningstyper, personkategorier, sensitivitet
@@ -383,34 +367,11 @@ PUT  /api/behandlingens-art-og-omfang/{id}                          -> oppdater 
 - Risikovurdering(er) er koblet (`risikovurderinger.length > 0`)
 - PVK-relaterte etterlevelseskrav er besvart (krav tagget med "Personvernkonsekvensvurdering")
 
-**For å hente PVK-krav (listen over 19 krav):** Bruk GraphQL:
-```graphql
-POST https://etterlevelse-api.intern.nav.no/graphql
-Content-Type: application/json
+**For å hente PVK-krav:** Bruk `list_krav` med `tagger: ["Personvernkonsekvensvurdering"]`
+og `etterlevelseDokumentasjonId` for å få kravlisten for dette dokumentet.
 
-{
-  krav(filter: { gjeldendeKrav: true, tagger: ["Personvernkonsekvensvurdering"],
-    etterlevelseDokumentasjonId: "{dok-id}" }) {
-    content { kravNummer kravVersjon navn status }
-  }
-}
-```
-
-**For å sjekke etterlevelse-status per krav:**
-
-**VIKTIG:** REST-endepunktet `/api/etterlevelse` filtrerer IKKE på `etterlevelseDokumentasjonId` —
-det returnerer alle etterlevelser globalt. Bruk i stedet GraphQL via etterlevelseDokumentasjon:
-```graphql
-POST https://etterlevelse-api.intern.nav.no/graphql
-Content-Type: application/json
-
-{
-  etterlevelseDokumentasjon(filter: { id: "{dok-id}" }) {
-    content { etterlevelser { kravNummer kravVersjon status } }
-  }
-}
-```
-Kryss-referer kravNummer fra de to spørringene for å finne status per PVK-krav.
+**For å sjekke etterlevelse-status per krav:** Bruk `get_etterlevelse_dokumentasjon` —
+etterlevelsene er nestet i dokumentobjektet under `etterlevelser`.
 
 **Steg 4 er primært lesing/validering — ingen skriveoperasjoner mot PVK.**
 
@@ -469,86 +430,39 @@ på **personvernkonsekvenser**, ikke generell IT-sikkerhet:
 
 #### API for risikoscenarioer
 
-**Risikoscenario-felter:** `pvkDokumentId`, `navn`, `beskrivelse`,
-`sannsynlighetsNivaa` (1-5), `sannsynlighetsNivaaBegrunnelse`,
-`konsekvensNivaa` (1-5), `konsekvensNivaaBegrunnelse`,
-`generelScenario` (bool), `ingenTiltak` (bool)
+Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`):
 
-**Hent scenarioer for en PVK:**
-```
-GET /api/risikoscenario/pvkdokument/{pvk-id}/ALL
-```
-Returnerer alle scenarioer (generelle + krav-spesifikke) for den gitte PVK-en.
-Typene er `ALL`, `GENERAL` (kun generelle) og `KRAV` (kun krav-spesifikke).
+- **Les:** `list_risikoscenarioer` — henter alle scenarioer for låst PVK-dokument
+- **Opprett/oppdater:** `write_risikoscenario` med feltene under. Sett `generelScenario: true` for øvrige scenarioer uten kravkobling.
 
-⛔ **Bruk IKKE** `GET /api/risikoscenario?pvkDokumentId=X` — denne parameteren
-filtrerer IKKE server-side og returnerer alle 650+ scenarioer på tvers av alle PVK-er.
+**Risikoscenario-felter:**
 
-**Opprett scenario:** `POST /api/risikoscenario`
-```json
-{
-  "pvkDokumentId": "...", "navn": "...", "beskrivelse": "...",
-  "sannsynlighetsNivaa": 2, "sannsynlighetsNivaaBegrunnelse": "...",
-  "konsekvensNivaa": 2, "konsekvensNivaaBegrunnelse": "...",
-  "generelScenario": false, "ingenTiltak": false,
-  "sannsynlighetsNivaaEtterTiltak": 0, "konsekvensNivaaEtterTiltak": 0,
-  "nivaaBegrunnelseEtterTiltak": "", "tiltakOppdatert": false
-}
-```
-⛔ **IKKE inkluder `relevanteKravNummer` i POST-body** — feltet strippes av backend
-(og av `tiltakIds`) og ignoreres fullstendig. Kravkoblinger MÅ settes via eget endepunkt.
+| Felt | Type | Beskrivelse |
+|------|------|-------------|
+| `navn` | string | Kort navn på scenarioet |
+| `beskrivelse` | string | Detaljert beskrivelse av risikoen |
+| `sannsynlighetsNivaa` | int 1-5 | Sannsynlighet FØR tiltak |
+| `sannsynlighetsNivaaBegrunnelse` | string | Begrunnelse for sannsynlighetsvurderingen |
+| `konsekvensNivaa` | int 1-5 | Konsekvens FØR tiltak |
+| `konsekvensNivaaBegrunnelse` | string | Begrunnelse for konsekvensvurderingen |
+| `sannsynlighetsNivaaEtterTiltak` | int 1-5 | Sannsynlighet ETTER tiltak |
+| `konsekvensNivaaEtterTiltak` | int 1-5 | Konsekvens ETTER tiltak |
+| `nivaaBegrunnelseEtterTiltak` | string | Begrunnelse for risikonivå etter tiltak |
+| `generelScenario` | bool | `true` = øvrig scenario uten kravkobling |
+| `ingenTiltak` | bool | `true` = scenarioet håndteres uten tiltak |
+- **Slett:** `delete_risikoscenario` (cascade-sletter tilknyttede tiltak)
+- **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
+- **Fjern kravkobling:** `unlink_krav_from_risikoscenario`
 
-**Kravkobling — ENESTE fungerende metode:**
-```
-PUT /api/risikoscenario/update/addRelevantKrav
-Body: { "kravnummer": 113, "risikoscenarioIder": ["uuid1", "uuid2"] }
-```
-- Kall én gang per krav, med alle scenarioer som skal knyttes i `risikoscenarioIder`
-- Scenarioet kan knyttes til flere krav: kall endepunktet én gang per krav
-- Alternativt: `POST /api/risikoscenario/krav/{kravnummer}` for å opprette OG
-  koble i én operasjon (for scenarioer med kun ett krav)
-
-**Fjern kravkobling:**
-`PUT /api/risikoscenario/{id}/removeKrav/{kravnummer}`
+⛔ **Kravkoblinger MÅ settes via `link_krav_to_risikoscenario`** — ikke som del av `write_risikoscenario`.
 
 #### API for tiltak
 
-**Tiltak opprettes ALLTID under et risikoscenario:**
-`POST /api/tiltak/risikoscenario/{scenario-id}`
+Bruk MCP-tools for tiltak (krever aktiv `lock_document`):
 
-**⛔ KRITISK DTO-FORSKJELL ved POST/PUT:** Backend forventer `ansvarlig` og `ansvarligTeam`
-som **strenger** (henholdsvis NAV-ident og team-UUID), IKKE som objekter slik GET returnerer:
-
-```json
-{
-  "pvkDokumentId": "...",
-  "navn": "...",
-  "beskrivelse": "...",
-  "ansvarlig": "E102227",
-  "ansvarligTeam": "1ad2c9ea-3221-4666-93f3-fe6f7cae94ef",
-  "frist": "2026-08-01",
-  "iverksatt": false,
-  "iverksattDato": null
-}
-```
-
-Sender du objekter (slik GET-responsen ser ut) får du `400 Bad Request`.
-Fjern også `changeStamp`, `version`, og `risikoscenarioIds` fra body — disse settes av backend
-(koblingen til scenario kommer fra URL-en).
-
-**Andre endepunkter:**
-- `GET /api/tiltak/{id}` — hent enkelt-tiltak (returnerer ansvarlig/ansvarligTeam som objekter)
-- `GET /api/tiltak/pvkdokument/{pvk-id}` — alle tiltak for en PVK
-- `PUT /api/tiltak/{id}` — oppdater (samme DTO-konvensjon: strenger)
-- `DELETE /api/tiltak/{id}` — slett tiltak
-- `/api/tiltak` (collection) støtter KUN GET — POST gir 405.
-- `/api/tiltak/{id}` med id=`new` gir 400 (UUID-validering). Ikke gjør dette.
-
-**Slå opp NAV-ident:** `GET /api/team/resource/search/{søkeord}` returnerer
-`{content: [{navIdent, fullName, email, ...}]}`.
-
-**Frist:** Påkrevd for tiltak som ikke er iverksatt. For iverksatte tiltak (`iverksatt: true`)
-er frist valgfri — `iverksattDato` settes automatisk.
+- **Les:** `list_tiltak` — alle tiltak for låst PVK-dokument
+- **Opprett/oppdater:** `write_tiltak` med `risikoscenarioId`, `navn`, `beskrivelse`, og `frist` (YYYY-MM-DD). Ansvarlig person settes manuelt i UI.
+- **Slett:** `delete_tiltak`
 
 ### PVK Steg 7: Risikobildet etter tiltak
 
@@ -559,10 +473,8 @@ er frist valgfri — `iverksattDato` settes automatisk.
 - Begrunn endringen
 - Generer risikomatrise (oppsummering)
 
-**Risikoscenario tilleggsfelter (via PUT):**
-- `sannsynlighetsNivaaEtterTiltak` (int 1-5)
-- `konsekvensNivaaEtterTiltak` (int 1-5)
-- `nivaaBegrunnelseEtterTiltak` (string)
+**Risikoscenario etter tiltak:** Bruk `write_risikoscenario` med `scenarioId` og feltene
+`sannsynlighetsNivaaEtterTiltak`, `konsekvensNivaaEtterTiltak`, `nivaaBegrunnelseEtterTiltak`.
 
 **Risikomatrise (5x5):**
 ```
@@ -654,27 +566,20 @@ teamet trykke «Send inn» i UI-et, eller bekrefte eksplisitt at de vil sende.
 
 ### Tilbakemelding til risikoeier (merknadTilRisikoeier)
 
-Når PVK skal sendes til **risikoeier** for godkjenning (alternativ flyt når PVO har
-godkjent under forutsetninger og teamet ikke skal sende ny PVO-runde), bruker man feltet
-`merknadTilRisikoeier` direkte på PVK-dokumentet:
+Når PVK skal sendes til **risikoeier** for godkjenning, brukes feltet `merknadTilRisikoeier`:
 
 | Felt | UI-label | Innhold |
 |---|---|---|
-| `merknadTilRisikoeier` | «Oppsummer for risikoeieren eventuelle endringer gjort som følge av PVOs tilbakemelding» | Lederrettet oppsummering av behandlingen, vurderingen, PVOs tilbakemelding og hvordan den er adressert, samt gjenstående arbeid |
-| `merknadFraRisikoeier` | «Risikoeiers begrunnelse for godkjenning av restrisiko» | Fylles av risikoeier i UI — ikke av agenten |
-| `godkjentAvRisikoeierDato` / `godkjentAvRisikoeier` | (settes ved godkjenning) | Settes av UI når risikoeier godkjenner |
+| `merknadTilRisikoeier` | «Oppsummer for risikoeieren...» | Lederrettet oppsummering — behandling, vurdering, PVOs tilbakemelding og gjenstående arbeid |
+| `merknadFraRisikoeier` | «Risikoeiers begrunnelse...» | Fylles av risikoeier i UI — ikke av agenten |
 
-Lagring: PUT på hele PvkDokument (samme DTO-transform som beskrevet over).
+Bruk `write_pvk_egenskaper` for å oppdatere PVK-felter. **Agenten setter ALDRI status
+til TRENGER_GODKJENNING eller GODKJENT_AV_RISIKOEIER** — gjøres i UI-et.
 
-**Tonen i `merknadTilRisikoeier`** bør være lederrettet og ikke-teknisk: forklar
-hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert, og hva
-som gjenstår — nok til at risikoeier kan ta en informert beslutning uten å lese hele PVK-en.
-
-Feltet rendres som **markdown** (jf. punkt 9 i Datamodell-avsnittet). Bruk `**fet**` for
-viktige tall/hjemler, `## ` for seksjoner, `- ` for lister.
-
-**Agenten setter ALDRI status til TRENGER_GODKJENNING** (sender til risikoeier) eller
-til GODKJENT_AV_RISIKOEIER — disse overgangene må gjøres i UI-et.
+**`merknadTilRisikoeier`** skrives med `write_pvk_risikoeier`. Tonen bør være lederrettet
+og ikke-teknisk: hva behandlingen er, hovedkonklusjon, hvordan PVOs bemerkninger er håndtert,
+og hva som gjenstår — nok til at risikoeier kan ta en informert beslutning uten å lese hele
+PVK-en. Feltet rendres som markdown i UI-et.
 
 ---
 
@@ -694,114 +599,52 @@ UNDERARBEID
 
 ---
 
-## API-referanse
+## MCP-tools oversikt for PVK
 
-Base URL (les): `https://etterlevelse-api.intern.nav.no/api/`
-Base URL (skriv): `https://etterlevelse-api.intern.nav.no/api/` (krever SSO-cookies fra `etterlevelse.intern.nav.no`)
+Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 
-### PvkDokument
-| Metode | Endepunkt | Beskrivelse |
-|--------|-----------|-------------|
-| GET | `/pvkdokument?pageSize=100` | List alle (filtrer client-side) |
-| GET | `/pvkdokument/{id}` | Hent en |
-| POST | `/pvkdokument` | Opprett ny |
-| PUT | `/pvkdokument/{id}` | Oppdater (krever `version`) |
-| DELETE | `/pvkdokument/{id}` | Slett |
+| Tool | Beskrivelse |
+|---|---|
+| `lock_document` | Lås dokument — aktiverer PVK-verktøyene |
+| `get_pvk_dokument` | Hent PVK-status og nøkkelfelter |
+| `create_pvk_dokument` | Opprett nytt PVK-dokument |
+| `delete_pvk_dokument` | Slett PVK-dokumentet |
+| `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
+| `write_pvk_involvering` | Oppdater involveringsfelter |
+| `write_pvk_risikoeier` | Skriv merknad til risikoeier (lederrettet, markdown) |
+| `get_behandlingens_livsloep` | Hent livsløpsbeskrivelse |
+| `write_behandlingens_livsloep` | Opprett/oppdater livsløp (støtter filvedlegg som base64) |
+| `delete_behandlingens_livsloep` | Slett livsløp |
+| `write_behandlingens_art_og_omfang` | Oppdater art og omfang (steg 3) |
+| `list_risikoscenarioer` | List risikoscenarioer |
+| `write_risikoscenario` | Opprett/oppdater risikoscenario |
+| `delete_risikoscenario` | Slett (cascade-sletter tiltak) |
+| `link_krav_to_risikoscenario` | Koble krav til scenarioer |
+| `unlink_krav_from_risikoscenario` | Fjern kravkobling |
+| `list_tiltak` | List tiltak |
+| `write_tiltak` | Opprett/oppdater tiltak |
+| `delete_tiltak` | Slett tiltak |
 
-**VIKTIG feltnavn:** PvkDokument bruker `etterlevelseDokumentId` (IKKE `etterlevelseDokumentasjonId`).
-BehandlingensLivslop og BehandlingensArtOgOmfang bruker `etterlevelseDokumentasjonId`.
+## Markdown-støtte per felt
 
-**URL i nettleseren:**
-`https://etterlevelse.intern.nav.no/dokumentasjon/{dok-id}/pvkdokument/{pvk-id}?steg=1`
+Markdown-støtte er felt-spesifikk, verifisert i frontend-koden. Feil her gir
+synlige markdown-tegn i UI-et for brukere som leser PVK-en.
 
-### BehandlingensLivslop (Steg 2)
-| Metode | Endepunkt | Beskrivelse |
-|--------|-----------|-------------|
-| GET | `/behandlingenslivslop?pageSize=100` | List alle (filtrer client-side) |
-| POST | `/behandlingenslivslop` | Opprett (multipart/form-data) |
-| PUT | `/behandlingenslivslop/{id}` | Oppdater (multipart/form-data) |
+**Markdown-rendret** (kan bruke `**fet**`, `*kursiv*`, `## overskrift`, `- liste`):
+- `BehandlingensLivslop.beskrivelse`
+- `meldingerTilPvo[].merknadTilPvo` og `meldingerTilPvo[].endringsNotat`
+- `merknadTilRisikoeier` og `merknadFraRisikoeier`
 
-### BehandlingensArtOgOmfang (Steg 3 — separat entitet!)
-| Metode | Endepunkt | Beskrivelse |
-|--------|-----------|-------------|
-| GET | `/behandlingens-art-og-omfang/etterlevelsedokument/{dok-id}` | Hent per dok |
-| GET | `/behandlingens-art-og-omfang/{id}` | Hent en |
-| POST | `/behandlingens-art-og-omfang` | Opprett (JSON) |
-| PUT | `/behandlingens-art-og-omfang/{id}` | Oppdater (JSON, krever `version`) |
+**Ren tekst** (markdown vises som rå tegn — ikke bruk formatering her):
+- Art-og-omfang-felter (`personkategoriAntallBeskrivelse`, `tilgangsBeskrivelsePersonopplysningene`, `lagringsBeskrivelsePersonopplysningene`)
+- Risikoscenarioer: `navn` og `beskrivelse`
+- Tiltak: `navn` og `beskrivelse`
+- Involveringsbeskrivelser (`representantInvolveringsBeskrivelse`, `dataBehandlerRepresentantInvolveringBeskrivelse`)
 
-**Felter:** `etterlevelseDokumentasjonId`, `stemmerPersonkategorier` (bool),
-`personkategoriAntallBeskrivelse`, `tilgangsBeskrivelsePersonopplysningene`,
-`lagringsBeskrivelsePersonopplysningene`
+**Aldri bruk HTML** — feltene som rendrer markdown bruker `escapeHtml=true` i read-only-visning.
 
-### Risikoscenario
-| Metode | Endepunkt | Beskrivelse |
-|--------|-----------|-------------|
-| GET | `/risikoscenario/pvkdokument/{pvkId}/{type}` | List (ALL/GENERAL/KRAV) |
-| GET | `/risikoscenario/{id}` | Hent en |
-| GET | `/risikoscenario/kravnummer/{nr}` | List per krav |
-| POST | `/risikoscenario` | Opprett |
-| POST | `/risikoscenario/krav/{kravnr}` | Opprett med kravkobling |
-| PUT | `/risikoscenario/{id}` | Oppdater |
-| PUT | `/risikoscenario/update/addRelevantKrav` | Koble krav |
-| PUT | `/risikoscenario/{id}/removeKrav/{nr}` | Fjern kravkobling |
-| PUT | `/risikoscenario/update/addRelevanteTiltak` | Koble tiltak |
-| PUT | `/risikoscenario/{id}/removeTiltak/{tiltakId}` | Fjern tiltakskobling |
-| DELETE | `/risikoscenario/{id}` | Slett |
-
-### Tiltak
-| Metode | Endepunkt | Beskrivelse |
-|--------|-----------|-------------|
-| GET | `/tiltak/pvkdokument/{pvkId}` | List per PVK |
-| GET | `/tiltak/{id}` | Hent en |
-| POST | `/tiltak/risikoscenario/{scenarioId}` | Opprett under scenario |
-| PUT | `/tiltak/{id}` | Oppdater (krever `id` i body) |
-| DELETE | `/tiltak/{id}` | Slett |
-
-### Viktige regler
-
-1. **Optimistisk låsing**: PUT krever fersk `version`-felt
-2. **SSO-cookies for skriving**: Hent disse rett før første PUT/POST-kall. Be bruker om:
-   - Åpne https://etterlevelse.intern.nav.no/ og logg inn
-   - DevTools → Application → Cookies → kopier `etterlevsession` og `sso-nav.no`
-   - Bekreft med: `curl -s -o /dev/null -w "%{http_code}" https://etterlevelse-api.intern.nav.no/api/pvkdokument?pageSize=1 -H "Cookie: etterlevsession=...; sso-nav.no=..."`
-   - 200 = OK, 302/401 = utløpt
-3. **relevanteKravNummer**: Styres via `PUT /risikoscenario/update/addRelevantKrav` med body
-   `{ "kravnummer": <int>, "risikoscenarioIder": ["uuid1","uuid2",...] }`.
-   Merk: feltnavn er `kravnummer` (lowercase!) og `risikoscenarioIder` (liste av UUIDs).
-   Scenarioer bør kobles til krav (generelScenario: false) når mulig — bare bruk generelScenario: true
-   for risikoer som genuint ikke har en kravkobling.
-4. **Tiltak opprettes under scenario**: POST til `/tiltak/risikoscenario/{id}`, IKKE til `/tiltak`
-5. **Status**: Agenten setter UNDERARBEID — teamet bestemmer SENDT_TIL_PVO
-6. **BehandlingensLivslop**: Multipart/form-data med JSON-blob i `request`-del, IKKE ren JSON.
-   Bruk: `-F "request=@file.json;type=application/json"` eller tilsvarende FormData.
-6b. **BehandlingensLivslop JSON MÅ inneholde `"filer": []`** selv uten vedlegg.
-   Backend krasjer med NullPointerException (`Cannot invoke "java.util.List.stream()"`) hvis `filer` er null.
-7. **Steg 3-data**: Lagres i `BehandlingensArtOgOmfang`, IKKE i PvkDokument (kun ytterligereEgenskaper på PvkDokument)
-8. **antallInnsendingTilPvo**: MÅ settes til `0` (ikke null) ved opprettelse/oppdatering.
-   Hvis null, feiler frontenden med "Denne tilstanden finnes ikke" fordi `null === 0` er `false` i JS.
-8b. **pvkVurdering**: MÅ settes ved opprettelse — bruk `"SKAL_UTFORE"` for nye PVK-er.
-   Hvis null, viser frontenden «Denne tilstanden finnes ikke» i stedet for PVK-knappen.
-   Gyldige verdier: `SKAL_UTFORE`, `ALLEREDE_UTFORT`, `SKAL_IKKE_UTFORE`, `UNDEFINED`.
-8c. **PUT overskriver alle felter** — send ALLTID komplett objekt ved oppdatering.
-   Felter som utelates settes til null/tom. Hent GET først, modifiser, fjern `changeStamp`, send PUT.
-9. **Markdown-støtte er felt-spesifikk** (verifisert i frontend-koden):
-   - **Markdown-rendret** (kan bruke `**fet**`, `*kursiv*`, `## overskrift`, `- liste`):
-     - `BehandlingensLivslop.beskrivelse`
-     - `meldingerTilPvo[].merknadTilPvo` og `meldingerTilPvo[].endringsNotat`
-     - `merknadTilRisikoeier` og `merknadFraRisikoeier`
-     - PVO-tilbakemeldingsfelter rendret med samme `<Markdown source={...}>`-komponent
-   - **Ren tekst** (HTML/markdown vises som tegn): Art-og-omfang-felter, scenarioer (`navn`/`beskrivelse`),
-     tiltak (`navn`/`beskrivelse`), involveringsbeskrivelser.
-   - **Aldri bruk HTML** — feltene som rendrer markdown bruker `escapeHtml=true` i read-only-visning.
-   - Når du er usikker: sjekk komponenten i `navikt/etterlevelse` (typisk `*ReadOnly.tsx`) — hvis verdien
-     pakkes i `<Markdown source={...}>`, er det markdown.
-10. **Tiltak-felter**: `ansvarligTeam` er en string (team-UUID), IKKE et objekt. `ansvarlig` er en string (NAV-ident), IKKE et objekt.
-11. **Livsløp-filer**: Maks 4 filer, maks 5 MB per fil, tillatte formater: PDF, PNG, JPG, JPEG.
-    Filer legges til via `filer`-parts i multipart-requesten. PUT ERSTATTER alle filer — du må laste opp
-    alle filer du vil beholde på nytt, ikke bare de nye.
-    Spør alltid bruker om de har egne figurer/diagrammer FØR du genererer nye.
-    Generer egne diagrammer med Python (matplotlib/graphviz/PIL) når bruker ikke har egne,
-    basert på funn fra kodegjennomgangen. Bruk klart, ikke-teknisk språk i figurene.
+Når du er usikker: sjekk komponenten i `navikt/etterlevelse` (typisk `*ReadOnly.tsx`) — hvis
+verdien pakkes i `<Markdown source={...}>`, er det markdown.
 
 ## Datamodell
 
@@ -821,12 +664,12 @@ EtterlevelseDokumentasjon (dok-id)
 
 ## Modellvalg for deloppgaver
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Kodegjennomgang med personvernvurdering (Forberedelse D) | `claude-opus-4.8` | Krever forståelse av kode OG personvernlovgivning |
-| Identifisere og formulere risikoscenarioer (steg 6) | `claude-opus-4.8` | Kreativ risikovurdering med juridisk presisjon |
-| Formulere tiltaksbeskrivelser (steg 6) | `claude-opus-4.8` | Konkrete tiltak må speile faktisk risiko |
-| Hente data fra behandlingskatalog og etterlevelsesløsning | `claude-haiku-4.5` | Enkel datahenting og JSON-parsing |
-| Steg 1–5: Oversikt, livsløp, art og omfang, dokumentasjon, involvering | `claude-haiku-4.5` | Strukturert utfylling av kjente felter |
-| Steg 7: Oppdatere risikostatus etter tiltak (tallverdier) | `claude-haiku-4.5` | Mekanisk oppdatering av kjente API-felt |
-| Steg 8: Sende inn PVK til PVO | `claude-haiku-4.5` | API-kall uten analytisk innhold |
+| Kodegjennomgang med personvernvurdering (Forberedelse D) | **Høy** | Krever forståelse av kode OG personvernlovgivning |
+| Identifisere og formulere risikoscenarioer (steg 6) | **Høy** | Kreativ risikovurdering med juridisk presisjon |
+| Formulere tiltaksbeskrivelser (steg 6) | **Høy** | Konkrete tiltak må speile faktisk risiko |
+| Hente data via MCP-tools | **Lav** | Enkel datahenting og JSON-parsing |
+| Steg 1–5: Oversikt, livsløp, art og omfang, dokumentasjon, involvering | **Lav** | Strukturert utfylling av kjente felter |
+| Steg 7: Oppdatere risikostatus etter tiltak (tallverdier) | **Lav** | Mekanisk oppdatering via MCP write_risikoscenario |
+| Steg 8: Sende inn PVK til PVO | **Lav** | Validering og klargjøring uten analytisk innhold |

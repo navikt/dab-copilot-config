@@ -33,24 +33,54 @@ Sett `team_config.repo` til `navikt/dab-copilot-config` og `team_config.path` ti
 git clone https://github.com/navikt/dab-copilot-config ~/dab-copilot-config
 ```
 
-### Steg 2: Symlink skills inn i Copilot-skills-mappen
+### Steg 2: Symlink skills inn i skill-konfigurasjonsmappene
+
+Skills må symlinkes inn i de mappene som GitHub Copilot CLI og OpenCode leser fra.
+Fordi symlinker peker direkte inn i repoet, vil en vanlig `git pull` oppdatere skillene
+automatisk uten å gjøre noe mer.
+
+**GitHub Copilot CLI** leser fra `~/.copilot/skills/`:
 
 ```bash
 mkdir -p ~/.copilot/skills
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-etterlevelse     ~/.copilot/skills/nav-etterlevelse
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-pvk              ~/.copilot/skills/nav-pvk
+ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-etterlevelse      ~/.copilot/skills/nav-etterlevelse
+ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-pvk               ~/.copilot/skills/nav-pvk
 ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-behandlingskatalog ~/.copilot/skills/nav-behandlingskatalog
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-context          ~/.copilot/skills/nav-context
+ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-context            ~/.copilot/skills/nav-context
 ```
 
-### Steg 3: Kopier .cplt.toml til arbeidsmappen din
-
-cplt krever en `.cplt.toml` i arbeidsmappen for å tillate kall mot `intern.nav.no`. Kopier den fra broker-mappen:
+**OpenCode** leser fra `~/.config/opencode/skills/`. Enkleste løsning er å symlinke
+OpenCode-mappen til Copilot-mappen, slik at begge peker på samme sted:
 
 ```bash
-cp ~/dab-copilot-config/tools/etterlevelse-broker/.cplt.toml .
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.copilot/skills/nav-etterlevelse      ~/.config/opencode/skills/nav-etterlevelse
+ln -s ~/.copilot/skills/nav-pvk               ~/.config/opencode/skills/nav-pvk
+ln -s ~/.copilot/skills/nav-behandlingskatalog ~/.config/opencode/skills/nav-behandlingskatalog
+ln -s ~/.copilot/skills/nav-context            ~/.config/opencode/skills/nav-context
+```
+
+### Steg 3: Koble til nav-etterlevelse-mcp
+
+Skillene bruker [nav-etterlevelse-mcp](https://github.com/navikt/nav-etterlevelse-mcp) for
+all kommunikasjon med etterlevelsesløsningen og behandlingskatalogen. Legg til serveren i
+Copilot CLI eller OpenCode og autentiser deg:
+
+```bash
+# OpenCode
+opencode mcp add  # velg remote, URL: https://nav-etterlevelse-mcp.intern.nav.no
+opencode mcp auth nav-etterlevelse-mcp
+
+# Copilot CLI — kjøres inne i en agentsesjon:
+# /mcp add  →  name: nav-etterlevelse-mcp, servertype: HTTP,
+#              remote server: https://nav-etterlevelse-mcp.intern.nav.no
 ```
 
 ### Oppdatering
 
-Skills og broker oppdateres med en vanlig `git pull` i `~/dab-copilot-config`.
+```bash
+cd ~/dab-copilot-config && git pull
+```
+
+Siden skillmappene er symlinker inn i repoet, er oppdateringen umiddelbart tilgjengelig
+i neste agentsesjon — ingen kopiering eller re-linking nødvendig.

@@ -85,7 +85,6 @@ hvilken av delene som er tilfelle — ikke å finne en formulering begge parter 
 - **nav-pvk**: Gjennomfører personvernkonsekvensvurdering (PVK/DPIA). Bruk denne for å
   opprette/oppdatere PVK-dokumenter, risikoscenarioer og tiltak. Etterlevelse-skillen
   LESER PVK-data (steg 3e), men PVK-skillen SKRIVER til PVK-modulen.
-
 ## Domenekontekst
 
 Domenekontekst gir bakgrunnsinformasjon som koden alene ikke forteller — faglige
@@ -99,12 +98,21 @@ Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
 1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
 2. Sjekk om `domain-context.md` finnes i CWD
 
-**Hvis ingen kontekstfiler finnes:**
-→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
-nav-context henter data fra behandlingskatalog og GitHub og oppretter filene i CWD.
-Vent til nav-context er ferdig før du fortsetter med etterlevelsesanalysen.
+**Hvis `domain-context.md` mangler:**
+→ Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
+`domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
+til `./domain-context.md` i CWD — ikke kjør nav-context for domenekonteksten da.
+Hvis ingen passer, invokér nav-context-skillen for å opprette den.
 
-**Hvis kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
+**Hvis `system-context.md` mangler:**
+→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
+System-kontekst er alltid system-spesifikk og kan ikke gjenbrukes.
+
+**Vent til begge filer eksisterer før du fortsetter.**
+Det er ikke tillatt å starte analysen uten at både `domain-context.md` og
+`system-context.md` er på plass.
+
+**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
 Kildene leses i prioritert rekkefølge:
 
@@ -112,28 +120,8 @@ Kildene leses i prioritert rekkefølge:
 2. **`./domain-context.md`** — domenekontekst for fagområdet
 3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
    NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`)
-4. **Ingen kontekstfil funnet etter nav-context** — noter at vurderingen vil være mer generell
 
 ## Arbeidsflyt
-
-### Steg 0: Konfigurer sandkassemiljø (cplt)
-
-Hvis skillen kjøres via [cplt](https://github.com/navikt/cplt), må arbeidsmappen ha en
-`.cplt.toml` som tillater tilgang til interne NAV-ingresser og lokal broker-port.
-
-Sjekk om filen finnes — hvis ikke, opprett den:
-```bash
-test -f .cplt.toml || cat > .cplt.toml << 'EOF'
-[propose.proxy]
-allow_private_domains = ["intern.nav.no"]
-
-[propose.allow]
-localhost = [9876]
-EOF
-```
-
-Filen finnes også ferdig utfylt i
-`tools/etterlevelse-broker/.cplt.toml` i navikt/dab-copilot-config.
 
 ### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
 
@@ -150,42 +138,39 @@ Spør brukeren om:
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
 
 **Etter at du har fått svar — sjekk kontekstfiler (se «Domenekontekst» over).**
-Hvis `system-context.md` mangler i CWD: invokér nav-context-skillen nå, før du fortsetter.
+Hvis `system-context.md` eller `domain-context.md` mangler i CWD: invokér nav-context-skillen nå, og vent til begge filer er opprettet før du fortsetter.
 
-### Steg 2: Ingen pålogging nødvendig for lesing
+### Steg 2: Autentisering via MCP-serveren
 
-Lesekall bruker den naisdevice-beskyttede interne ingressen og krever ingen SSO-cookies:
-- **Les**: `https://etterlevelse-api.intern.nav.no/api/` — ingen auth (krever naisdevice)
-- **Skriv**: `https://etterlevelse-api.intern.nav.no/api/` — SSO-cookies påkrevd (steg 8)
-- **Behandlingskatalog (les)**: `https://behandlingskatalog-backend.intern.nav.no/api/` — ingen auth
+Alle kall til etterlevelsesløsningen og behandlingskatalogen går via **nav-etterlevelse-mcp**.
+Ingen manuell pålogging eller SSO-cookies er nødvendig — MCP-serveren håndterer autentisering
+via Azure AD OAuth 2.1 PKCE og Texas OBO-sidecar automatisk.
 
-`*.ansatt.nav.no`-ingressene er internett-eksponert og beskyttet av forwardauth. Bruk alltid
-`*.intern.nav.no` for API-kall fra skillen — både for les og skriv.
+**Sesjonsutløp:** MCP-tokenet lever i 1 time, men klienten fornyer det automatisk ved hjelp
+av et refresh-token (24 timer) uten brukerinteraksjon. Full re-autentisering via nettleser
+er normalt kun nødvendig én gang per dag.
 
-Fortsett direkte til steg 3 uten å be om innlogging. Cookies hentes rett før opplasting i steg 8.
+Hvis et MCP-tool-kall feiler med autentiseringsfeil («Unknown or expired MCP access token»
+eller «Azure access token has expired»):
+- **Stopp arbeidsflyten** og informer bruker om feilen
+- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` i et nytt terminalvindu.
+  Nettleseren åpner seg for re-autentisering. Sesjonen kan fortsettes der den slapp.
+- **Copilot CLI:** Prøv `/mcp`-kommandoen i chat-vinduet for å re-autentisere.
+- Ikke gjenta det feilende kallet automatisk — vent til bruker bekrefter at sesjonen er fornyet.
+
+Fortsett direkte til steg 3.
 
 ### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
 
 #### 3a: Hent etterlevelsesdokumentasjonen med alle etterlevelser:
-```graphql
-POST https://etterlevelse-api.intern.nav.no/graphql
-Content-Type: application/json
 
-{
-  "query": "{ etterlevelseDokumentasjon(filter: {id: \"DOKUMENT_ID\"}) { content { id title behandlinger { id navn } etterlevelser { id kravNummer kravVersjon etterleves status statusBegrunnelse suksesskriterieBegrunnelser { suksesskriterieId begrunnelse suksesskriterieStatus veiledning veiledningsTekst veiledningsTekst2 } } } } }"
-}
-```
+Bruk MCP-tool `get_etterlevelse_dokumentasjon` med dokumentets UUID. Verktøyet returnerer
+dokumentet med alle nestede etterlevelser og suksesskriteriebegrunnelser.
 
-⛔ **KRITISK: Bruk KUN denne GraphQL-spørringen for å hente etterlevelser — aldri REST-endepunktet `/api/etterlevelse` uten filter.**
+⛔ **KRITISK: Bruk KUN dette verktøyet for å hente etterlevelser — aldri REST-endepunktet
+direkte uten filter.** Etterlevelser er alltid nestet inne i dokumentobjektet.
 
-REST-endepunktet `/api/etterlevelse` (uten `etterlevelseDokumentasjonId`-filter) returnerer
-**alle etterlevelser på tvers av alle dokumenter i systemet** (26 000+). Etterlevelser fra
-fremmede dokumenter vil ha sammenfallende `(kravNummer, kravVersjon)`-par med dokumentet
-du analyserer — noe som gir fullstendig feil gap-analyse og begrunnelsesvurdering.
-
-Etterlevelsene for et spesifikt dokument hentes **alltid** som del av dokumentobjektet via
-GraphQL (feltet `etterlevelser` er nestet inne i `etterlevelseDokumentasjon`-responsen ovenfor).
-Lagre disse etterlevelsene og bruk dem konsekvent gjennom hele analysen.
+Lagre etterlevelsene og bruk dem konsekvent gjennom hele analysen.
 
 #### Verifiser dokumentegenskaper (RELEVANS):
 
@@ -211,24 +196,12 @@ hvis dokumentasjonen har en PVK.
 
 Vurder egenskapene basert på kodegjennomgangen og foreslå endringer til bruker.
 
-#### Hent kravdetaljer (batched):
-```graphql
-{
-  k0: kravById(nummer: 102, versjon: 3) {
-    kravNummer kravVersjon navn hensikt
-    utdypendeBeskrivelse versjonEndringer varselMelding dokumentasjon
-    suksesskriterier { id navn beskrivelse behovForBegrunnelse }
-    relevansFor { code shortName }
-    regelverk { lov { code shortName } }
-    rettskilder
-    begreper { navn beskrivelse }
-    status
-  }
-  k1: kravById(nummer: 107, versjon: 2) { ... }
-}
-```
+#### Hent kravdetaljer:
 
-NB: `beskrivelse` på krav-nivå er nesten alltid `null` — hent den ikke. Bruk `hensikt` i stedet.
+Bruk `get_krav` med format `K{nummer}.{versjon}` (f.eks. `K102.3`) for å hente ett krav med
+alle suksesskriterier, hensikt, utdypendeBeskrivelse, versjonEndringer og rettskilder.
+
+NB: `beskrivelse` på krav-nivå er nesten alltid `null` — bruk `hensikt` i stedet.
 
 ---
 
@@ -308,7 +281,7 @@ Fremgangsmåte:
    - «Det er åpenbart / ikke tolkningstvil» — åpenbare tilfeller skal OPPFYLLES, ikke hoppes over
    - «Dette gjøres i et annet system» — hvert system gjør sin egen vurdering
    - «Det er lite hensiktsmessig» — personvernsrettighetene gjelder uavhengig av hensiktsmessighet
-   - Tom begrunnelse — alltid feil
+   - Tom begrunnelse — alltid feil for IKKE_RELEVANT (uansett `behovForBegrunnelse`)
    - Begrunnelse som svarer på et annet spørsmål enn det SK-et stiller
 5. **Konkluder:** Korrekt IKKE_RELEVANT ✅ / Bør være OPPFYLT ⚠️ / Bør være IKKE_OPPFYLT 🔴
 
@@ -329,10 +302,7 @@ Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 - I stedet vises «Ny versjon {dato}» på det nye kravet i UI-et
 - Etterlevelsen må opprettes/oppdateres for ny versjon manuelt
 
-Sjekk via GraphQL:
-```graphql
-kravById(nummer: 114, versjon: 1) { status beskrivelse }
-```
+Sjekk via `get_krav` (f.eks. `K114.1`) — feltet `status` i responsen.
 Hvis `status: "UTGAATT"`, finn den AKTIVE versjonen av samme kravNummer og jobb med den.
 
 #### Identifiser krav som skal vurderes:
@@ -350,17 +320,13 @@ sammenligne gjeldende kravliste (steg 1 under) mot eksisterende etterlevelser fo
 manglende oppføringer.
 
 **Steg 1 (alltid): Hent gjeldende kravliste:**
-```graphql
-{ krav(filter: {gjeldendeKrav: true, etterlevelseDokumentasjonId: "DOK_ID"}) {
-    content { kravNummer kravVersjon navn status }
-} }
-```
+
+Bruk `list_krav` med `etterlevelseDokumentasjonId` — returnerer kun gjeldende krav for dette dokumentet.
 
 **Steg 2 (alltid): Sammenlign mot eksisterende etterlevelser:**
-Bruk etterlevelsene du hentet fra GraphQL-spørringen i steg 3a (feltet `etterlevelser`
-nestet inne i dokumentobjektet). **Ikke** hent etterlevelser på nytt fra REST-endepunktet
-`/api/etterlevelse` — det returnerer etterlevelser på tvers av alle dokumenter i systemet.
-Bygg et set av `(kravNummer, kravVersjon)`-par fra disse etterlevelsene.
+Bruk etterlevelsene fra `get_etterlevelse_dokumentasjon` (feltet `etterlevelser` nestet i dokumentet).
+**Ikke** hent etterlevelser separat — det returnerer etterlevelser på tvers av alle dokumenter.
+Bygg et set av `(kravNummer, kravVersjon)`-par.
 Finn krav i gjeldende liste som IKKE har en etterlevelse-record. Disse er helt ubesvarte.
 
 **Ved «Ufullstendige krav»-modus (i tillegg til gap-analysen):**
@@ -398,20 +364,12 @@ Sammenlign gjeldende kravliste mot eksisterende etterlevelser for å finne avvik
 #### 3b: Hent data fra Behandlingskatalogen
 
 Behandlingskatalogen inneholder strukturerte data om behandlingen som er svært verdifulle
-for etterlevelsesgjennomgangen. Bruk den interne ingressen — ingen cookies nødvendig:
+for etterlevelsesgjennomgangen. Hent behandlings-ID fra etterlevelsesdokumentasjonen
+(`behandlingIds[]`) og bruk MCP-tool `get_behandling` for å slå opp behandlingsdetaljer.
 
-Hent behandlings-ID fra etterlevelsesdokumentasjonen (`behandlinger[].id`), og slå opp:
-```
-GET https://behandlingskatalog-backend.intern.nav.no/api/process/{behandling-id}
-```
-
-**Hvis behandlingslisten er tom eller mangelfull:** Etterlevelsesdokumentasjonen kan mangle
-kobling til behandlinger i Behandlingskatalogen. Søk da etter relevante behandlinger:
-```
-GET https://behandlingskatalog-backend.intern.nav.no/api/process/search/{søkeord}
-```
-Søk på systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker slik at
-de kan koble dem i etterlevelsesdokumentasjonen.
+**Hvis behandlingslisten er tom eller mangelfull:** Bruk `search_behandlinger` for å søke på
+systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker slik at de kan
+koble dem i etterlevelsesdokumentasjonen.
 
 **Viktig: Vurder også sekundærbehandlinger.** Et system kan ha flere behandlinger med ulike
 formål. Eksempel: Et dialogsystem kan ha én behandling for selve dialogen (primær),
@@ -419,15 +377,14 @@ formål. Eksempel: Et dialogsystem kan ha én behandling for selve dialogen (pri
 Sjekk koden for dataflyter til analytics (DVH, BigQuery, NADA), kontroll-/rapporteringsformål,
 eller andre sekundære bruksområder som kan ha egne behandlinger.
 
-**Behandlingsnummer:** Hver behandling har et nummer Bxxx (f.eks. B580). Bruk feltet `number`
-fra API-responsen. Referer alltid til behandlinger med dette nummeret, ikke UUID-en.
+**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
 
-Typiske søkekriterier:
+Typiske søkekriterier for `search_behandlinger`:
 - Systemnavnet eller formålet (sjekk `purpose`, `name`, `description`)
 - Teamets navn (sjekk `affiliation.products[].teams[]`)
 - Personopplysningstyper som finnes i koden (sjekk `policies[]`)
 
-Responsen inneholder:
+Responsen fra `get_behandling` inneholder:
 
 | Felt | Innhold | Relevant for krav |
 |------|---------|-------------------|
@@ -439,10 +396,7 @@ Responsen inneholder:
 | `dpia` | PVK-behov, referanse til PVK-dokument, om den er gjennomført | K114 PVK |
 | `dataProcessing.processors[]` | Databehandler-IDer | K190 Databehandler |
 
-Hent databehandlerdetaljer:
-```
-GET https://behandlingskatalog-backend.intern.nav.no/api/processor/{processor-id}
-```
+Hent databehandlerdetaljer med MCP-tool `get_processor` (UUID fra `dataProcessing.processors[]`).
 Returnerer: navn, land, om de er utenfor EU, overføringsgrunnlag.
 
 **Bruk denne dataen til å:**
@@ -487,6 +441,17 @@ for tekniske tiltak, og beskriv personvernkonsekvensen i PVK.
 
 #### 3d: Sett innledende prioritert kravliste
 
+`prioritertKravNummer` er et felt på etterlevelsesdokumentasjonen som angir hvilke krav
+teamet bør fokusere på, i prioritert rekkefølge. Feltet vises som en fremhevet liste i
+UI-et og hjelper teamet å finne de viktigste kravene raskt.
+
+**Format:** Array av kravnumre som strenger, sortert etter prioritet — kun nummer, ikke versjon:
+```json
+["253", "191", "190", "230", "128", "196"]
+```
+
+Oppdateres med `write_etterlevelse_dokumentasjon` → feltet `prioritertKravNummer`.
+
 Basert på data fra steg 3a, 3b og 3c, sett en **innledende prioritert kravliste** FØR
 kodegjennomgangen. Vurder systemets natur:
 
@@ -496,25 +461,15 @@ kodegjennomgangen. Vurder systemets natur:
 - **Databehandlere/tredjeparter?** → K190 (databehandleravtaler)
 - **Arkivverdig innhold?** → K128 (arkivrutiner), K230 (avlevering/sletting)
 
-Foreslå listen for bruker og oppdater `prioritertKravNummer` på
-etterlevelsesdokumentasjonen (se API-seksjon under). Listen justeres eventuelt
-etter kodegjennomgangen i steg 6 hvis alvorlige mangler avdekkes.
+Foreslå listen for bruker og oppdater `prioritertKravNummer` på etterlevelsesdokumentasjonen.
+Listen justeres eventuelt etter kodegjennomgangen i steg 6 hvis alvorlige mangler avdekkes.
 
 #### 3e: Hent PVK-data (personvernkonsekvensvurdering)
 
-PVK er integrert i etterlevelsesløsningen. Sjekk om det finnes en PVK for dokumentasjonen:
-```
-GET /api/pvkdokument?pageSize=100
-```
-Filtrer responsen client-side på `etterlevelseDokumentId == {dok-id}`.
+PVK er integrert i etterlevelsesløsningen. For å lese PVK-data må dokumentet låses
+med `lock_document` (dokumentets UUID) — dette gir tilgang til PVK-verktøyene.
 
-Hvis PVK finnes, hent:
-
-**PVK-dokument:**
-```
-GET /api/pvkdokument/{pvk-id}
-```
-Viktige felter:
+Bruk deretter `get_pvk_dokument` for å sjekke om PVK finnes og hente nøkkelfelter:
 - `pvkVurdering`: `SKAL_UTFORE` / `SKAL_IKKE_UTFORE` / `ALLEREDE_UTFORT`
 - `status`: `UNDERARBEID` → `SENDT_TIL_PVO` → `VURDERT_AV_PVO` → `GODKJENT_AV_RISIKOEIER`
 - `ytterligereEgenskaper[]` — DPIA-triggende egenskaper (stor skala, sårbare, art.9 etc.)
@@ -522,22 +477,16 @@ Viktige felter:
 - `harDatabehandlerRepresentantInvolvering` / `dataBehandlerRepresentantInvolveringBeskrivelse`
 - `meldingerTilPvo[]` — innsendinger til personvernombudet med dato og merknad
 
-**Risikoscenarioer:**
-```
-GET /api/risikoscenario?pvkDokumentId={pvk-id}
-```
-Hvert scenario har:
+Hvis PVK finnes, hent risikoscenarioer med `list_risikoscenarioer` og tiltak med `list_tiltak`.
+
+Hvert **risikoscenario** har:
 - `navn`, `beskrivelse` — beskrivelse av risikoen
 - `konsekvensNivaa` / `sannsynlighetsNivaa` — risikonivå (1-5) FØR tiltak
 - `konsekvensNivaaEtterTiltak` / `sannsynlighetsNivaaEtterTiltak` — ETTER tiltak
-- `relevanteKravNummer[]` — **kobler risikoen direkte til etterlevelseskrav!**
+- `relevanteKravNummer[]` — **kobler risikoen direkte til etterlevelseskrav**
 - `tiltakIds[]` — lenke til tiltak
 
-**Tiltak:**
-```
-GET /api/tiltak?pvkDokumentId={pvk-id}
-```
-Hvert tiltak har:
+Hvert **tiltak** har:
 - `navn`, `beskrivelse` — hva tiltaket er
 - `iverksatt` (bool), `iverksattDato` — om tiltaket er gjennomført
 - `ansvarlig`, `ansvarligTeam` — hvem som er ansvarlig
@@ -608,12 +557,29 @@ Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 
 ### Steg 5: Verifiser mot NAIS-plattformen
 
-Hent NAIS-dokumentasjon for å verifisere plattformkrav:
-- https://docs.nais.io/auth/idporten/ (ID-porten)
-- https://docs.nais.io/auth/tokenx/ (TokenX)
-- https://docs.nais.io/persistence/cloudsql/ (Cloud SQL sikkerhet)
-- https://docs.nais.io/observability/logging/ (Logging)
-- https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg (Arcsight/CEF)
+Hent NAIS-dokumentasjon som kontekst:
+
+```
+web_fetch https://docs.nais.io
+```
+
+**Dette er spesielt viktig for etterlevelse:** NAIS-plattformen oppfyller en rekke
+sikkerhetskrav automatisk for alle apper som kjører der. Når du kan bekrefte at et krav
+er oppfylt av plattformen, er det tilstrekkelig å referere til NAIS-funksjonen — teamet
+trenger ikke dokumentere en egenutviklet løsning.
+
+Eksempler på plattformgarantier som løser etterlevelseskrav:
+
+| NAIS-funksjon | Dokumentasjon | Relevant for |
+|---|---|---|
+| Cloud SQL — kryptering i hvile og private IP | `docs.nais.io/persistence/cloudsql` | K190, K245 |
+| ID-porten sidecar — autentisering og sikkerhetsnivå | `docs.nais.io/auth/idporten` | K102, K107 |
+| Azure AD / TokenX — intern autentisering | `docs.nais.io/auth/azuread`, `tokenx` | K245 |
+| Network policies — utgående trafikk begrenset | `docs.nais.io/nais-application/access-policy` | K245 |
+| Nais-logging — strukturert logging til Elastic | `docs.nais.io/observability/logging` | K245 |
+| Arcsight/CEF oppslagslogg | `sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg` | K253 |
+
+Hent spesifikke sider ved behov for å bekrefte detaljer som er relevante for kravene du vurderer.
 
 ### Steg 6: Skriv begrunnelser og generer rapport
 
@@ -688,28 +654,22 @@ Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med tea
 
 **⛔ STOPP — OBLIGATORISK GODKJENNINGSPUNKT.**
 
-Du har NÅ laget en rapport. Du skal IKKE kalle API-er for å opprette eller oppdatere
-etterlevelser. Du skal IKKE gå videre til steg 8 med mindre bruker eksplisitt ber
-om det (f.eks. «last opp», «oppdater API-et», «godkjent, publiser»).
+Du har NÅ laget en rapport. Gå gjennom rapporten med teamet før du starter den
+interaktive gjennomgangen. Fyll inn plassholdere merket `[Teamet må dokumentere: ...]`
+og korriger eventuelle feil. Gi beskjed når teamet er klart.
 
-**Spør bruker om gjennomgangsmetode:**
+**Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
-> Rapporten er klar. Hvordan vil du kvalitetssikre begrunnelsene før opplasting?
->
-> **A) Interaktiv SK-gjennomgang** (anbefalt) — Gå gjennom én SK om gangen i terminalen.
->    For hver SK vises suksesskriteriet og diff av hva som endres. Du godkjenner, hopper
->    over eller redigerer én etter én. Effektivt fordi du ser krav og endring side om side.
->
-> **B) Rapportgjennomgang** — Gå gjennom rapporten i Markdown-filen, evt. med teamet,
->    og gi klarsignal når du er klar.
-
-#### Alternativ A: Interaktiv SK-gjennomgang
+#### Interaktiv SK-gjennomgang
 
 For **hvert krav** med endringer, skriv til konsollet:
 
 ```
 ══════════════════════════════════════════════════════════════
 K{nr}.{v} – {kravnavn}
+──────────────────────────────────────────────────────────────
+Hensikt:
+  {krav.hensikt}
 ══════════════════════════════════════════════════════════════
 ```
 
@@ -719,7 +679,7 @@ For **hvert suksesskriterium** med endring under kravet:
 ─────────────────────────────────────────
 SK{id} – {suksesskriterienavn}
 ─────────────────────────────────────────
-Beskrivelse:
+Kriteriet spør:
   {suksesskriterier[i].beskrivelse}
 
 ENDRING:
@@ -743,51 +703,33 @@ ENDRING:
 
 **Kun godkjente SK-er lastes opp** i steg 8. Hoppede-over SK-er røres ikke.
 
-#### Alternativ B: Rapportgjennomgang
-
-Be bruker om å:
-1. Gjennomgå rapporten sammen med teamet
-2. Korrigere eventuelle feil eller misforståelser
-3. Fylle inn plassholdere merket `[Teamet må dokumentere: ...]`
-4. Bekrefte at begrunnelsene er klare for opplasting
-
-**Ikke gå videre til opplasting før bruker eksplisitt bekrefter at rapporten er
-kvalitetssikret og godkjent av teamet.**
-
 ### Steg 8: Last opp begrunnelser (KUN etter eksplisitt godkjenning fra bruker)
 
 **Forutsetning:** Bruker har gjennomgått rapporten fra steg 6, evt. i samarbeid med
 teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
 «full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
 
-**🔐 Autentisering for skriveoperasjoner — velg ett alternativ:**
+**Opplasting via MCP-serveren:**
 
-#### Alternativ A: Lokal broker (anbefalt)
+1. Lås dokumentet: `lock_document` med etterlevelsesdokumentasjonens UUID
+2. Last opp begrunnelser: `write_etterlevelse` per krav med `etterlevelseDokumentasjonId`,
+   `kravNummer`, `kravVersjon`, `status`, og `suksesskriterieBegrunnelser`
+3. Oppdater dokumentegenskaper ved behov: `write_etterlevelse_dokumentasjon`
+   (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`)
 
-Sjekk om brokeren kjører:
-```bash
-curl -s http://localhost:9876/health
-```
-`{"status":"ok"}` = broker er oppe. Send da alle skriveoperasjoner via brokeren:
+MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
 
-```bash
-# I stedet for direkte PUT til API-et, POST til broker:
-curl -s -X POST http://localhost:9876/write \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "url": "https://etterlevelse-api.intern.nav.no/api/etterlevelse/{id}",
-    "method": "PUT",
-    "body": { ...etterlevelse-objektet... }
-  }'
-```
+## KRITISK: Statusverdier og feltmapping
 
-Brokeren viser diff og ber om godkjenning (G/H/R) i terminalen. Token hentes
-automatisk via device-code ved første skriving.
+**Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
+oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
+enkelt i etterlevelsesløsningen. Bare dersom bruker eksplisitt ber om det brukes `OPPFYLT`.
 
-Start broker: `cd tools/etterlevelse-broker && BROKER_CLIENT_ID=<id> node broker.js`
-(se `tools/etterlevelse-broker/README.md` i navikt/dab-copilot-config)
+Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
+disse statusene uavhengig av modus.
 
-#### Alternativ B: SSO-cookies (fallback hvis broker ikke er tilgjengelig)
+**Feltet `behovForBegrunnelse`** per suksesskriterium bestemmer om begrunnelsetekst er
+forventet. Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse.
 
 Be brukeren om:
 
@@ -807,57 +749,22 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 **Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
 oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
-enkelt i etterlevelsesløsningen. Bare dersom bruker eksplisitt ber om det (f.eks. «sett
-til oppfylt», «merk som ferdig») brukes `OPPFYLT` for besvarte suksesskriterier.
+enkelt i etterlevelsesløsningen. `OPPFYLT` kan ikke settes via MCP-serveren — det settes
+manuelt i etterlevelse.ansatt.nav.no etter at teamet har gjennomgått begrunnelsen.
 
 Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
 disse statusene uavhengig av modus.
 
 ## KRITISK: Feltmapping for opplasting
 
+`write_etterlevelse` tar `suksesskriterieBegrunnelser` som en liste av objekter med tre
+felter: `suksesskriterieId`, `begrunnelse` og `suksesskriterieStatus`.
+
 Etterlevelsesløsningen har et `behovForBegrunnelse`-felt per suksesskriterium i kravdefinisjonen.
-Dette bestemmer HVOR teksten skal plasseres:
+Dette avgjør om begrunnelse er forventet:
 
-### Når `behovForBegrunnelse = true`:
-Bruk `begrunnelse`-feltet direkte:
-```json
-{
-  "suksesskriterieId": 1,
-  "suksesskriterieStatus": "OPPFYLT",
-  "begrunnelse": "Teksten her...",
-  "veiledning": false,
-  "veiledningsTekst": null,
-  "veiledningsTekst2": null
-}
-```
-
-### Når `behovForBegrunnelse = false`:
-UI-et viser IKKE begrunnelse-feltet. Du trenger normalt IKKE skrive veiledning her —
-sett bare riktig `suksesskriterieStatus` og la begrunnelse/veiledning stå tom.
-
-Skriv kun veiledning (`veiledning: true` + `veiledningsTekst`) hvis det er spesielt
-relevante momenter som bør dokumenteres (f.eks. funn fra kodegjennomgang, kjente risikoer,
-eller avvik som teamet bør følge opp). Eksempel:
-```json
-{
-  "suksesskriterieId": 1,
-  "suksesskriterieStatus": "OPPFYLT",
-  "begrunnelse": "",
-  "veiledning": true,
-  "veiledningsTekst": "Viktig funn: ...",
-  "veiledningsTekst2": null
-}
-```
-
-### Feltet `veiledningsTekst2` (praktisk veiledning):
-Brukes for handlingspunkter når kravet IKKE er fullt oppfylt. Eksempel:
-```json
-{
-  "suksesskriterieStatus": "UNDER_ARBEID",
-  "veiledningsTekst": "Fra kodegjennomgangen kan det bekreftes at...",
-  "veiledningsTekst2": "Ta kontakt med Team X for å bekrefte at..."
-}
-```
+- **`behovForBegrunnelse = true`**: Skriv alltid en begrunnelse
+- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet — ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
 
 ### Tekstformatering — alle begrunnelsesfelt støtter markdown
 
@@ -902,37 +809,23 @@ Se `src/auth/middleware.ts` for implementasjonen.
 - `IKKE_RELEVANT` – kravet er ikke relevant for denne løsningen
 
 ### Gyldige verdier for etterlevelse `status`:
-**VIKTIG:** Etterlevelsens `status`-felt har ANDRE verdier enn suksesskriterieStatus:
-- `UNDER_REDIGERING` – etterlevelsen er under arbeid
-- `FERDIG_DOKUMENTERT` – alle suksesskriterier er vurdert
-- `FERDIG` – ferdigstilt
-- `OPPFYLLES_SENERE` – kravet vil oppfylles senere
+- `UNDER_ARBEID` – etterlevelsen er under arbeid
 - `IKKE_RELEVANT` – kravet er ikke relevant
-- `IKKE_RELEVANT_FERDIG_DOKUMENTERT` – ikke relevant, ferdig dokumentert
 
-Bruk `UNDER_REDIGERING` ved opprettelse/oppdatering. IKKE bruk `UNDER_ARBEID` her — det
-er kun gyldig for suksesskriterieStatus.
+⛔ **`OPPFYLT`/`FERDIG`/`FERDIGSTILT` settes manuelt i etterlevelse.ansatt.nav.no** —
+MCP-verktøyet støtter ikke disse statusene direkte.
 
-**VIKTIG: Sett suksesskriterieStatus basert på standard UNDER_ARBEID-modus, med mindre bruker eksplisitt ber om OPPFYLT:**
-- **Standard (UNDER_ARBEID-modus):**
-  - Suksesskriterier agenten har vurdert som oppfylt → sett til `UNDER_ARBEID`
-  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
-  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
-  - Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
-- **Kun hvis bruker eksplisitt ber om OPPFYLT-modus:**
-  - Suksesskriterier agenten har vurdert som oppfylt uten forbehold → `OPPFYLT`
-  - Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
-  - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
-  - Suksesskriterier med `[Teamet må dokumentere: ...]` → ALDRI `OPPFYLT`, bruk `UNDER_ARBEID`
-- Bruk `veiledningsTekst2` for handlingspunkter når status er `UNDER_ARBEID` eller `IKKE_OPPFYLT`
+**Sett suksesskriterieStatus slik:**
+- Suksesskriterier agenten har vurdert som oppfylt → `UNDER_ARBEID`
+- Suksesskriterier med klar mangel → `IKKE_OPPFYLT`
+- Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
+- Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
 
 ⛔ **KRITISK: Etterlevelse-status MÅ gjenspeile suksesskriteriene.**
-- Standard er alltid `UNDER_REDIGERING` ved opplasting — siden SK-ene holdes som `UNDER_ARBEID`
-  for manuell kvittering av teamet.
-- Sett etterlevelse `status` til `FERDIG_DOKUMENTERT` KUN dersom bruker eksplisitt ber om
-  OPPFYLT-modus OG ALLE suksesskriterier har endelig status (OPPFYLT eller IKKE_RELEVANT).
+- Bruk alltid `UNDER_ARBEID` ved opplasting — SK-ene holdes som `UNDER_ARBEID`
+  for manuell kvittering av teamet i etterlevelsesløsningen.
 - Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ etterlevelsens
-  status settes til `UNDER_REDIGERING`, IKKE `FERDIG_DOKUMENTERT`.
+  status settes til `UNDER_ARBEID`, ikke `IKKE_RELEVANT`.
 - Denne regelen gjelder alltid — også ved batch-oppdateringer.
 
 ## API for oppdatering
@@ -1085,17 +978,16 @@ b) **Alternativ: teamsData fra etterlevelse-API.**
 
 c) **Spør bruker** om informasjonen ikke finnes i eksisterende dokumentasjoner.
 
+**Aldri bruk HTML** — feltet bruker `escapeHtml=true` og HTML-tagger vises som rå tekst.
+
+Retningslinjer:
+- Bruk punktlister for tiltak, funn og kodehenvisninger
+- Bruk backticks for filnavn, konfigurasjonsnøkler og tekniske begreper
+- Hold overskrifter til `###` eller unngå dem — begrunnelsesfeltet er ikke et dokument
+- Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
+
 Agenten kan utlede: `irrelevansFor` (fra kodeanalyse), `behandlerPersonopplysninger`,
 `gjenbrukBeskrivelse`, `behandlingIds` (fra Behandlingskatalogen).
-
-### Prioritert kravliste (`prioritertKravNummer`):
-Array med kravnumre som strenger, sortert etter prioritet:
-```json
-{
-  "prioritertKravNummer": ["253", "191", "190", "230", "128", "196"]
-}
-```
-Kun kravnummer (ikke versjon). Rekkefølgen er prioriteringsrekkefølgen.
 
 ## Vanlige krav og hva man ser etter i koden
 
@@ -1118,27 +1010,18 @@ av bruker og teamet før eventuell opplasting til etterlevelsesløsningen (steg 
 
 ## Modellvalg for deloppgaver
 
-Bruk dyrere modeller for tunge analytiske oppgaver og billigere modeller for enkle
-strukturerte deloppgaver. Skillen kjøres normalt av en kraftig modell (f.eks. Claude Opus
-4.7), men subagenter kan bruke rimeligere modeller der det holder.
+Bruk mer kapable modeller for tunge analytiske oppgaver og raskere/billigere modeller
+for enkle strukturerte deloppgaver.
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Full kodegjennomgang med juridisk vurdering (steg 4) | `claude-opus-4.8` | Krever dyp forståelse av kode OG lovkrav |
-| Skrive etterlevelsebegrunnelser (steg 6) | `claude-opus-4.8` | Presisjon og juridisk kontekst er kritisk |
-| Hente og parse API-responser (behandlingskatalog, etterlevelsesløsning) | `claude-haiku-4.5` | Enkel datahenting og JSON-transformasjon |
-| Søke etter spesifikke mønstre i kode (grep-lignende) | `claude-haiku-4.5` | Strukturert søk, ingen tolkning nødvendig |
-| Hente kravdetaljer via GraphQL | `claude-haiku-4.5` | Forutsigbar datastruktur |
-| Sammenligne kravliste mot etterlevelser (gap-analyse) | `claude-haiku-4.5` | Enkel set-differanse-operasjon |
-| Laste opp begrunnelser via PUT-kall (steg 8) | `claude-haiku-4.5` | Mekanisk opplasting etter ferdig rapport |
-| Sammensatt analyse: kode + behandlingskatalog + PVK | `claude-sonnet-4.6` | Moderat kompleksitet, balanse mellom kostnad og kvalitet |
-
-**Praktisk bruk med task-verktøyet:**
-```
-task(..., model: "claude-haiku-4.5")   # enkle API-kall og søk
-task(..., model: "claude-sonnet-4.6")  # mellomtunge analyser
-task(..., model: "claude-opus-4.8")    # tunge juridiske vurderinger
-```
+| Full kodegjennomgang med juridisk vurdering (steg 4) | **Høy** | Krever dyp forståelse av kode OG lovkrav |
+| Skrive etterlevelsebegrunnelser (steg 6) | **Høy** | Presisjon og juridisk kontekst er kritisk |
+| Sammensatt analyse: kode + behandlingskatalog + PVK | **Middels** | Moderat kompleksitet, balanse mellom kostnad og kvalitet |
+| Hente data via MCP-tools (etterlevelse, krav, behandling) | **Lav** | Enkel datahenting og JSON-parsing |
+| Søke etter spesifikke mønstre i kode | **Lav** | Strukturert søk, ingen tolkning nødvendig |
+| Sammenligne kravliste mot etterlevelser (gap-analyse) | **Lav** | Enkel set-differanse-operasjon |
+| Laste opp begrunnelser via MCP write_etterlevelse (steg 8) | **Lav** | Mekanisk opplasting etter ferdig rapport |
 
 ## Viktige huskeregler
 
@@ -1167,7 +1050,6 @@ task(..., model: "claude-opus-4.8")    # tunge juridiske vurderinger
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
 - Bevar ALLTID eksisterende begrunnelser ved oppdatering
 - Bruk interaktiv SK-gjennomgang (steg 7A) for effektiv kvalitetssikring — teamet ser SK-beskrivelse og diff side om side
-- Sesjoner utløper – vær forberedt på å be om nye cookies
 - Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
 - ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
 

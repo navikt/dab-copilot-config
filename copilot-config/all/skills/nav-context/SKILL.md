@@ -76,58 +76,14 @@ Spør om:
 
 ### Steg 3: Hent data fra Behandlingskatalog
 
-Behandlingskatalog krever autentisering med `forwardauth`-cookie fra ansatt.nav.no.
+Bruk MCP-tools — ingen manuell autentisering nødvendig:
 
-**Sjekk først om cookien allerede er tilgjengelig i samtalen** — hvis nav-etterlevelse eller
-nav-pvk ble kjørt i samme sesjon har brukeren sannsynligvis allerede oppgitt den. Hvis ikke,
-be bruker om den:
-> Åpne behandlingskatalog.ansatt.nav.no → DevTools → Application → Cookies → kopier `forwardauth`
+- `search_behandlinger` — søk på B-nummer eller systemnavn
+- `get_behandling` — hent full behandlingsinfo (UUID eller B-nummer)
+- `get_processor` — hent databehandlerdetaljer
 
-```bash
-cat > /tmp/bk_cookies.txt << 'COOKIEOF'
-forwardauth=<lim inn verdi her>
-COOKIEOF
-```
-
-**⚠️ Viktig: `searchText`-parameteren i `/api/process` filtrerer IKKE resultater** — den
-returnerer alle behandlinger ufiltrert. Bruk paginering og filtrer lokalt:
-
-```bash
-# Finn behandling ved å søke gjennom alle sider
-BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
-
-python3 << 'PYEOF'
-import subprocess, json
-
-cookies_val = open('/tmp/bk_cookies.txt').read().strip()
-page = 0
-while True:
-    r = subprocess.run([
-        "curl", "-sL",
-        f"https://behandlingskatalog.ansatt.nav.no/api/process?pageSize=50&pageNumber={page}",
-        "-H", f"Cookie: {cookies_val}",
-        "-H", "Accept: application/json"
-    ], capture_output=True, text=True)
-    data = json.loads(r.stdout)
-    total_pages = data.get('pages', 1)
-    for p in data.get('content', []):
-        name = (p.get('name') or '').lower()
-        # Tilpass søkestrengen etter det du leter etter:
-        if 'oppfølging' in name or 'dialog' in name or 'aktivitet' in name:
-            print(f"{p['number']} | {p['id']} | {p['name']}")
-    page += 1
-    if page >= total_pages:
-        break
-PYEOF
-```
-
-Hent deretter full behandlingsinfo med UUID:
-
-```bash
-BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
-curl -sL "https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-uuid}" \
-  -H "Cookie: $BK_COOKIES" -H "Accept: application/json" | python3 -m json.tool
-```
+Hvis behandlings-ID er oppgitt (f.eks. `B123`), hent direkte med `get_behandling`.
+Ellers søk med `search_behandlinger` på systemnavn eller formål og velg riktig treff.
 
 **Nøkkelfelter å hente ut:**
 - `name` — behandlingens navn
@@ -135,94 +91,39 @@ curl -sL "https://behandlingskatalog.ansatt.nav.no/api/process/{behandling-uuid}
 - `legalBases[]` — rettslig grunnlag (art. 6, art. 9 + nasjonal hjemmel)
 - `policies[]` — personkategorier og personopplysningstyper (med sensitivitet)
 - `retention.retentionMonths` — lagringstid
-- `dataProcessing.processors[]` — databehandlere
+- `dataProcessing.processors[]` — databehandlere (hent detaljer med `get_processor`)
 - `automaticProcessing`, `profiling` — automatisert behandling/profilering
 - `dpia.needForDpia`, `dpia.refToDpia` — DPIA-vurdering
 
-```bash
-# For databehandlerdetaljer (processor-ID-er fås fra behandlingens dataProcessing.processors[]):
-BK_COOKIES=$(cat /tmp/bk_cookies.txt | tr -d '\n')
-curl -sL "https://behandlingskatalog.ansatt.nav.no/api/processor/{processor-id}" \
-  -H "Cookie: $BK_COOKIES" -H "Accept: application/json" | python3 -m json.tool
-```
-
 ### Steg 4: Faglig kontekst fra Navet (valgfritt, anbefalt)
 
-Navet er NAVs interne SharePoint-baserte intranett. Relevante fagområdespesifikke sider
-gir kunnskap om lover, retningslinjer og hva veiledere har lov/ikke lov til å registrere.
+Navet er NAVs interne SharePoint-baserte intranett med fagområdespesifikke sider om
+lover, retningslinjer og hva veiledere har lov/ikke lov til å registrere. Denne
+informasjonen er verdifull for domenekonteksten, men kan ikke hentes automatisk.
+
+**⛔ Ikke bruk SSO-cookies for å hente Navet-innhold.** SharePoint-tokens (`rtFa`,
+`FedAuth`) gir tilgang til all brukerens SharePoint-data og skal ikke sendes til
+eksterne modeller.
 
 **Kjente fagområder og Navet-URL-er:**
 
 | Fagområde | Navet-URL |
 |-----------|-----------|
 | Arbeidsrettet oppfølging og veiledning | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsrettet-brukeroppfolging` |
+| Arbeidsavklaringspenger (AAP) | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsavklaringspenger` |
+| Dagpenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-dagpenger` |
 | Sykefraværsoppfølging og sykepenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-sykefravarsoppfolging-og-sykepenger` |
 | Sosiale tjenester | `https://navno.sharepoint.com/sites/fag-og-ytelser-sosiale-tjenester` |
 | Tiltak og virkemidler | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-tiltak-og-virkemidler` |
+| Alderspensjon | `https://navno.sharepoint.com/sites/fag-og-ytelser-pensjon-alderspensjon` |
 | Markedsarbeid | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-markedsarbeid` |
 
-Spør bruker:
-1. Hvilke(t) fagområde(r) tilhører systemet? (bruker kan oppgi URL direkte hvis listen er ufullstendig)
-2. Kan du oppgi SharePoint SSO-cookies? (åpne navno.sharepoint.com → DevTools → Application → Cookies → kopier `rtFa` og `FedAuth`)
-
-#### Navet-henting via SharePoint REST API
-
-```bash
-NAVET_BASE="https://navno.sharepoint.com/sites/{fagomrade}"
-COOKIES="rtFa=...; FedAuth=..."
-
-# 1. Bekreft tilgang
-curl -sL "$NAVET_BASE/_api/web?\$select=Title" -H "Cookie: $COOKIES" -H "Accept: application/json;odata=nometadata" | python3 -c "import json,sys; d=json.load(sys.stdin); print('Site:', d.get('Title'))"
-
-# 2. Finn relevante sider (Personvern, Rutiner, Lover og regler)
-curl -sL "$NAVET_BASE/_api/web/lists?\$select=Title,Id,ItemCount&\$top=30" \
-  -H "Cookie: $COOKIES" -H "Accept: application/json;odata=nometadata" | python3 -c "
-import json,sys
-data = json.load(sys.stdin)
-for l in sorted(data.get('value',[]), key=lambda x: -x.get('ItemCount',0)):
-    if l.get('ItemCount',0) > 0:
-        print(f'{l[\"Id\"]} | [{l[\"ItemCount\"]:4}] {l[\"Title\"]}')
-"
-
-# 3. Hent Site Pages - søk etter relevante titler
-PAGES_LIST_ID="<ID for Site Pages-listen>"
-curl -sL "$NAVET_BASE/_api/web/lists(guid'$PAGES_LIST_ID')/items?\$top=200" \
-  -H "Cookie: $COOKIES" -H "Accept: application/json;odata=nometadata" | python3 -c "
-import json,sys
-data = json.load(sys.stdin)
-relevant = ['personvern', 'rutiner', 'retningslinje', 'lover', 'regler', 'oppfolging', 'oppfølging']
-for r in data.get('value',[]):
-    title = r.get('Title','') or ''
-    if any(k in title.lower() for k in relevant):
-        print(f'ID={r[\"Id\"]} Modified={r.get(\"Modified\",\"\")[:10]} | {title}')
-"
-
-# 4. Hent innhold fra en bestemt side (ID fra listen over)
-PAGE_ID="<side-ID>"
-curl -sL "$NAVET_BASE/_api/web/lists(guid'$PAGES_LIST_ID')/items($PAGE_ID)" \
-  -H "Cookie: $COOKIES" -H "Accept: application/json;odata=nometadata" > /tmp/navet_page.json
-
-python3 << 'PYEOF'
-import json, html, re
-with open('/tmp/navet_page.json') as f:
-    data = json.load(f)
-canvas = html.unescape(data.get('CanvasContent1', ''))
-# Fjern HTML-tagger, behold tekst
-for tag in ['<br>', '<br/>', '<br />']:
-    canvas = canvas.replace(tag, '\n')
-canvas = re.sub(r'<(p|div|li)[^>]*>', '\n', canvas, flags=re.IGNORECASE)
-canvas = re.sub(r'<[^>]+>', '', canvas)
-canvas = re.sub(r'\n{3,}', '\n\n', canvas)
-print(canvas[:5000])
-PYEOF
-```
-
-**Prioriterte sider å hente:**
+Spør bruker om å åpne den relevante Navet-siden og lime inn eller oppsummere innhold fra:
 - Sider med «Personvern» i tittelen → rettslig grunnlag og formålsbegrensninger
 - Sider med «Rutiner» eller «Retningslinjer» → operative restriksjoner
 - Sider med «Lover og regler» → primær hjemmel
 
-Oppsummer funnene kondensert — ikke dump rå sideinnhold i context.md.
+Oppsummer funnene kondensert i domenekonteksten — ikke inkluder rå sideinnhold.
 
 ### Steg 5: Inspiser kildekode (valgfritt)
 
@@ -417,12 +318,12 @@ alle behandlinger av personopplysninger i NAV skal være registrert der.
 
 ## Modellvalg for deloppgaver
 
-nav-context er primært en datahentings- og skrivoppgave uten tung juridisk analyse.
-Bruk billige/raske modeller for nesten alt.
+nav-context er primært en datahentings- og skriveoppgave uten tung juridisk analyse.
+Bruk lave/middels kapasitetsnivåer for nesten alt.
 
-| Oppgave | Anbefalt modell | Begrunnelse |
+| Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
-| Hente data fra Behandlingskatalog (steg 3) | `claude-haiku-4.5` | Strukturert datahenting |
-| Hente faglig kontekst fra Navet (steg 4) | `claude-haiku-4.5` | Web-skraping og strukturering |
-| Kodegjennomgang for personvernrelevante funn (steg 5) | `claude-haiku-4.5` | Explore-agenter bruker allerede Haiku som standard |
-| Skrive domain-context.md og system-context.md (steg 6) | `claude-sonnet-4.6` | Fri tekst som skal være presis og lesbar for jurister og teknikere |
+| Hente data fra Behandlingskatalog via MCP-tools (steg 3) | **Lav** | Strukturert datahenting |
+| Strukturere Navet-innhold fra brukerens oppsummering (steg 4) | **Lav** | Strukturering av oppgitt tekst |
+| Kodegjennomgang for personvernrelevante funn (steg 5) | **Lav** | Explore-agenter bruker allerede lavkapasitetsmodell som standard |
+| Skrive domain-context.md og system-context.md (steg 6) | **Middels** | Fri tekst som skal være presis og lesbar for jurister og teknikere |
