@@ -98,12 +98,13 @@ Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
 1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
 2. Sjekk om `domain-context.md` finnes i CWD
 
-**Hvis ingen kontekstfiler finnes:**
+**Hvis én eller begge kontekstfiler mangler:**
 → **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
 nav-context henter data fra behandlingskatalog og GitHub og oppretter filene i CWD.
-Vent til nav-context er ferdig før du fortsetter med etterlevelsesanalysen.
+**Vent til nav-context er ferdig før du fortsetter med etterlevelsesanalysen.**
+Det er ikke tillatt å starte analysen uten at begge filer eksisterer.
 
-**Hvis kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
+**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
 Kildene leses i prioritert rekkefølge:
 
@@ -111,7 +112,6 @@ Kildene leses i prioritert rekkefølge:
 2. **`./domain-context.md`** — domenekontekst for fagområdet
 3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
    NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`)
-4. **Ingen kontekstfil funnet etter nav-context** — noter at vurderingen vil være mer generell
 
 ## Arbeidsflyt
 
@@ -130,7 +130,7 @@ Spør brukeren om:
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
 
 **Etter at du har fått svar — sjekk kontekstfiler (se «Domenekontekst» over).**
-Hvis `system-context.md` mangler i CWD: invokér nav-context-skillen nå, før du fortsetter.
+Hvis `system-context.md` eller `domain-context.md` mangler i CWD: invokér nav-context-skillen nå, og vent til begge filer er opprettet før du fortsetter.
 
 ### Steg 2: Autentisering via MCP-serveren
 

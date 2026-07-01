@@ -87,7 +87,19 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 - Hva som er/ikke er tillatt å lagre (formålsbegrensninger)
 - Tilgangsstyring og databehandlerforhold
 
-**Les domenekontekst tidlig i arbeidsflyten**, gjerne før steg 1 (Kartlegg eksisterende dokumentasjon).
+**Les domenekontekst tidlig i arbeidsflyten**, som første handling før steg 1.
+
+### ⛔ OBLIGATORISK: Sjekk kontekstfiler FØR arbeidsflyten starter
+
+1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
+2. Sjekk om `domain-context.md` finnes i CWD
+
+**Hvis én eller begge kontekstfiler mangler:**
+→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
+**Vent til nav-context er ferdig og begge filer eksisterer før du fortsetter.**
+Det er ikke tillatt å starte PVK-analysen uten at begge filer eksisterer.
+
+**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
 Kildene leses i prioritert rekkefølge:
 
@@ -96,8 +108,6 @@ Kildene leses i prioritert rekkefølge:
 3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
    NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`). Bruk den som
    passer fagområdet systemet tilhører.
-4. **Ingen kontekstfil funnet** — informer brukeren og foreslå å kjøre **nav-context**-skillen.
-   Fortsett uten kontekstfil, men noter at vurderingen vil være mer generell.
 
 ## Arbeidsflyt
 
