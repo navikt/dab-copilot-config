@@ -360,7 +360,9 @@ systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker s
 koble dem i etterlevelsesdokumentasjonen.
 
 **Viktig: Vurder også sekundærbehandlinger.** Et system kan ha flere behandlinger med ulike
-formål. Sjekk koden for dataflyter til analytics (DVH, BigQuery, NADA), kontroll-/rapporteringsformål,
+formål. Eksempel: Et dialogsystem kan ha én behandling for selve dialogen (primær),
+én for analyse/innsikt (sekundær), og én for kontroll av aktivitetsplikt (sekundær).
+Sjekk koden for dataflyter til analytics (DVH, BigQuery, NADA), kontroll-/rapporteringsformål,
 eller andre sekundære bruksområder som kan ha egne behandlinger.
 
 **Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
