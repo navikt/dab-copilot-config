@@ -76,6 +76,20 @@ opencode mcp auth nav-etterlevelse-mcp
 #              remote server: https://nav-etterlevelse-mcp.intern.nav.no
 ```
 
+### OpenCode i cplt-sandbox
+
+OpenCode-konfigurasjonen i `~/.config/opencode/` er tilgjengelig i cplt-sandboxen,
+men symlinker som peker til kataloger utenfor allowlisten følges ikke. Skills-mappene
+er symlinker til `~/dab-copilot-config/...` som ikke er tillatt som standard.
+
+Legg til en global `allow_read`-regel i cplt-konfigurasjonen:
+
+```bash
+cplt config set sandbox.allow_read ~/dab-copilot-config/copilot-config/all/skills
+```
+
+Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
+
 ### Oppdatering
 
 ```bash
