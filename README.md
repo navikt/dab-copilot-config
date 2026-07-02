@@ -84,16 +84,3 @@ cd ~/dab-copilot-config && git pull
 
 Siden skillmappene er symlinker inn i repoet, er oppdateringen umiddelbart tilgjengelig
 i neste agentsesjon — ingen kopiering eller re-linking nødvendig.
-
-### OpenCode i cplt-sandbox
-
-Når OpenCode kjøres inne i en cplt-sandbox har den ikke tilgang til
-`~/.config/opencode/skills`. Kopier `opencode.json` fra dette repoet til arbeidsmappen
-din for å peke OpenCode til skillene eksplisitt:
-
-```bash
-cp ~/dab-copilot-config/opencode.json ~/etterlevelse-{systemnavn}/
-```
-
-Filen bruker `~/dab-copilot-config/...` som sti — endre denne hvis du klonet repoet
-et annet sted.
