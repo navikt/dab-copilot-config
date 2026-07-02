@@ -623,6 +623,20 @@ f.eks. bør en kodegjennomgang av sikkerhet i et backend-repo gi funn fra mer en
 
 Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 
+**⚠️ Lagre analyseresultater til filer FØR syntesen.**
+Kontekstvinduet er begrenset — funn fra tidlige delsteg kan fade ut når rapporten skrives
+(«lost in the middle»). Lagre hvert delsteg til en separat fil i arbeidsmappen:
+
+```
+analyse-kode-{repo}.md       — funn fra kodegjennomgang per repo
+analyse-nais.md              — NAIS-plattformgarantier og -funn
+analyse-behandlingskatalog.md — data fra behandlingskatalogen
+analyse-pvk.md               — PVK-status og risikoscenarioer
+```
+
+Under rapportgenerering (steg 6): les filene eksplisitt fremfor å stole på at funnene
+er tilgjengelige i konteksten.
+
 **Sikkerhet og tilgangskontroll:**
 - Autentisering (ID-porten, Azure AD, TokenX)
 - Autorisasjon (poao-tilgang, roller, tilgangstyper)
@@ -685,6 +699,22 @@ at rapporten er gjennomgått og godkjent av teamet. Gå DERETTER til steg 8 for
 opplasting — og KUN etter at bruker har gitt eksplisitt klarsignal (f.eks. «last opp»,
 «oppdater etterlevelsesløsningen», «godkjent»). Denne regelen gjelder uansett om
 bruker sier «full gjennomgang» eller annet — «gjennomgang» betyr IKKE «last opp».
+
+**For gjennomganger med 20+ krav:** Del rapporten i bolker per tema (sikkerhet, personvern,
+tilgjengelighet osv.) i stedet for å generere ~700 linjer i ett kall — reduserer sjansen
+for å miste detaljer under generering.
+
+**Etter at rapporten er skrevet — obligatorisk verifiseringsrunde:**
+
+Les gjennom hver analyse-fil fra steg 4 (`analyse-kode-*.md`, `analyse-nais.md` osv.) og
+sjekk at alle funn er reflektert i rapporten. Vær spesielt oppmerksom på:
+
+- Funn som berører **flere krav** (f.eks. et sikkerhetsproblem som er relevant for
+  både K267 og K154) — disse har en tendens til å falle mellom stolene
+- Funn fra **tidlig i analysen** — disse er mest utsatt for «lost in the middle»
+- Output fra **parallelle agenter** som ble kjørt tidlig i sesjonen
+
+Legg til eventuelle manglende funn i rapporten før du viser den til bruker.
 
 Generer en komplett rapport (`rapport-E{nr}-{teamnavn}.md`, f.eks.
 `rapport-E240-team-dab.md`) med:
