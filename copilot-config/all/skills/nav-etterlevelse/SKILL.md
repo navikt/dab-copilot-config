@@ -824,23 +824,27 @@ ENDRING:
 - **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret.
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
   vises den oppdaterte diff-en på nytt med G/H-valg.
-- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over».
-- Etter alle krav: vis total oppsummering og spør om bekreftelse før opplasting starter.
+- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over»,
+  **last deretter opp kravet umiddelbart** med `write_etterlevelse` (se under).
+- Etter alle krav: vis total oppsummering.
 
-**Kun godkjente SK-er lastes opp** i steg 8. Hoppede-over SK-er røres ikke.
+**Last opp hvert krav umiddelbart etter siste SK er gjennomgått** — ikke vent til alle
+krav er ferdig. Dette sikrer at fremgang lagres løpende og at bruker ser resultatet i
+UI-et med en gang. Hoppede-over SK-er røres ikke.
 
-### Steg 8: Last opp begrunnelser (KUN etter eksplisitt godkjenning fra bruker)
+### Steg 8: Last opp per krav under gjennomgangen
 
-**Forutsetning:** Bruker har gjennomgått rapporten fra steg 6, evt. i samarbeid med
-teamet, og har gitt eksplisitt klarsignal for opplasting. Hvis bruker bare har sagt
-«full gjennomgang», «vurder kravene» eller lignende — STOPP og vis rapporten først.
+Opplasting skjer løpende i steg 7 — ikke som en separat sluttbatch.
 
-**Opplasting via MCP-serveren:**
+**Opplasting etter hvert krav:**
 
-1. Lås dokumentet: `lock_document` med etterlevelsesdokumentasjonens UUID
-2. Last opp begrunnelser: `write_etterlevelse` per krav med `etterlevelseDokumentasjonId`,
-   `kravNummer`, `kravVersjon`, `status`, og `suksesskriterieBegrunnelser`
-3. Oppdater dokumentegenskaper ved behov: `write_etterlevelse_dokumentasjon`
+1. Lås dokumentet første gang: `lock_document` med etterlevelsesdokumentasjonens UUID
+   (kun nødvendig én gang — låsen gjelder hele sesjonen)
+2. Etter siste SK for et krav er godkjent/hoppet over: kall `write_etterlevelse` med
+   `etterlevelseDokumentasjonId`, `kravNummer`, `kravVersjon`, `status`,
+   og `suksesskriterieBegrunnelser` for de godkjente SK-ene
+3. Fortsett til neste krav i gjennomgangen
+4. Oppdater dokumentegenskaper til slutt ved behov: `write_etterlevelse_dokumentasjon`
    (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`)
 
 MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
