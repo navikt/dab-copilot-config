@@ -694,7 +694,7 @@ Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 | `write_behandlingens_art_og_omfang` | Oppdater art og omfang (steg 3) |
 | `list_risikoscenarioer` | List risikoscenarioer |
 | `write_risikoscenario` | Opprett/oppdater risikoscenario |
-| `delete_risikoscenario` | Slett (cascade-sletter tiltak) |
+| `delete_risikoscenario` | Slett (feiler hvis tiltak gjenstår — slett tiltak først) |
 | `link_krav_to_risikoscenario` | Koble krav til scenarioer |
 | `unlink_krav_from_risikoscenario` | Fjern kravkobling |
 | `list_tiltak` | List tiltak |
