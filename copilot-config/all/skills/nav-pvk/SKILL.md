@@ -104,9 +104,28 @@ Hvis ingen passer, invokér nav-context-skillen for å opprette den.
 → **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
 System-kontekst er alltid system-spesifikk og kan ikke gjenbrukes.
 
-**Vent til begge filer eksisterer før du fortsetter.**
+**Vent til begge filer eksisterer.**
 Det er ikke tillatt å starte PVK-analysen uten at både `domain-context.md` og
 `system-context.md` er på plass.
+
+**⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
+
+Når nav-context er ferdig, vis en kort oppsummering av hva som ble generert og be teamet
+kvalitetssikre filene før analysen starter:
+
+> Kontekstfilene er opprettet:
+> - `domain-context.md` — domenekontekst for fagområdet
+> - `system-context.md` — systemspesifikk kontekst
+>
+> Vennligst gå gjennom filene og:
+> 1. Verifiser at domene- og systembeskrivelsen er korrekt
+> 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
+> 3. Suppler med kunnskap som ikke fremgår av kode eller behandlingskatalog
+>    (f.eks. særlige faglige restriksjoner, planlagte endringer, kjente risikoer)
+>
+> Si «klar» eller «fortsett» når kontekstfilene er godkjent.
+
+**Ikke gå videre til Forberedelse B før bruker bekrefter at kontekstfilene er gjennomgått.**
 
 **Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 

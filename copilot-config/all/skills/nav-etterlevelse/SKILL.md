@@ -161,7 +161,26 @@ Spør brukeren om:
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
 
 **Etter at du har fått svar — sjekk kontekstfiler (se «Domenekontekst» over).**
-Hvis `system-context.md` eller `domain-context.md` mangler i CWD: invokér nav-context-skillen nå, og vent til begge filer er opprettet før du fortsetter.
+Hvis `system-context.md` eller `domain-context.md` mangler i CWD: invokér nav-context-skillen nå, og vent til begge filer er opprettet.
+
+**⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
+
+Når nav-context er ferdig, vis en kort oppsummering av hva som ble generert og be teamet
+kvalitetssikre filene før analysen starter:
+
+> Kontekstfilene er opprettet:
+> - `domain-context.md` — domenekontekst for fagområdet
+> - `system-context.md` — systemspesifikk kontekst
+>
+> Vennligst gå gjennom filene og:
+> 1. Verifiser at domene- og systembeskrivelsen er korrekt
+> 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
+> 3. Suppler med kunnskap som ikke fremgår av kode eller behandlingskatalog
+>    (f.eks. særlige faglige restriksjoner, planlagte endringer, kjente risikoer)
+>
+> Si «klar» eller «fortsett» når kontekstfilene er godkjent.
+
+**Ikke gå videre til steg 2 før bruker bekrefter at kontekstfilene er gjennomgått.**
 
 ### Steg 2: Autentisering via MCP-serveren
 
