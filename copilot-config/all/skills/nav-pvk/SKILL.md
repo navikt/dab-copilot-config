@@ -97,35 +97,41 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 **Hvis `domain-context.md` mangler:**
 → Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
 `domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
-til `./domain-context.md` i CWD — ikke kjør nav-context for domenekonteksten da.
-Hvis ingen passer, invokér nav-context-skillen for å opprette den.
+til `./domain-context.md` i CWD.
+
+→ Hvis ingen bundlet fil passer: **ikke generer domain-context automatisk.**
+Agenten mangler som regel nødvendig domenekunnskap (fagretningslinjer, lovgrunnlag,
+Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
+
+> Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
+>
+> **A)** Åpne den relevante Navet-siden og lim inn eller oppsummer innhold fra sider om
+>    «Personvern», «Rutiner» og «Lover og regler» (Navet-URL-er finnes i nav-context-skillen).
+>
+> **B)** Fortell meg: hvilket fagområde gjelder dette, og hva er de viktigste faglige
+>    restriksjonene? Jeg lager et utkast, men du må kvalitetssikre det.
+>
+> **C)** Oppgi behandlings-ID (B-nummer) — jeg bruker behandlingskatalogen som grunnlag,
+>    men Navet-kunnskap må du supplere selv etterpå.
+
+Vent på brukerens bidrag, og invokér deretter nav-context med den innsamlede informasjonen.
 
 **Hvis `system-context.md` mangler:**
-→ **Invokér nav-context-skillen automatisk** — ikke spør brukeren, bare kjør den.
-System-kontekst er alltid system-spesifikk og kan ikke gjenbrukes.
-
-**Vent til begge filer eksisterer.**
-Det er ikke tillatt å starte PVK-analysen uten at både `domain-context.md` og
-`system-context.md` er på plass.
+→ Invokér nav-context-skillen. System-kontekst kan delvis genereres fra
+behandlingskatalog og kode, men krever brukerens gjennomgang etterpå.
 
 **⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
 
-Når nav-context er ferdig, vis en kort oppsummering av hva som ble generert og be teamet
-kvalitetssikre filene før analysen starter:
+Vis hva som ble generert og be teamet kvalitetssikre før analysen starter:
 
-> Kontekstfilene er opprettet:
-> - `domain-context.md` — domenekontekst for fagområdet
-> - `system-context.md` — systemspesifikk kontekst
->
-> Vennligst gå gjennom filene og:
-> 1. Verifiser at domene- og systembeskrivelsen er korrekt
+> Kontekstfilene er klare. Gå gjennom dem og:
+> 1. Verifiser at beskrivelsene er korrekte
 > 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
-> 3. Suppler med kunnskap som ikke fremgår av kode eller behandlingskatalog
->    (f.eks. særlige faglige restriksjoner, planlagte endringer, kjente risikoer)
+> 3. Suppler med fagkunnskap som ikke fremgår av kode eller behandlingskatalog
 >
-> Si «klar» eller «fortsett» når kontekstfilene er godkjent.
+> Si «klar» eller «fortsett» når filene er godkjent.
 
-**Ikke gå videre til Forberedelse B før bruker bekrefter at kontekstfilene er gjennomgått.**
+**Ikke gå videre til Forberedelse B før bruker bekrefter.**
 
 **Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
 
