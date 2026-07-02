@@ -85,7 +85,7 @@ er symlinker til `~/dab-copilot-config/...` som ikke er tillatt som standard.
 Legg til en global `allow_read`-regel i cplt-konfigurasjonen:
 
 ```bash
-cplt config set sandbox.allow_read ~/dab-copilot-config/copilot-config/all/skills
+cplt config set allow.read ~/dab-copilot-config/copilot-config/all/skills
 ```
 
 Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
