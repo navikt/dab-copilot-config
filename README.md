@@ -30,7 +30,7 @@ Sett `team_config.repo` til `navikt/dab-copilot-config` og `team_config.path` ti
 ### Steg 1: Klon repoet
 
 ```bash
-git clone https://github.com/navikt/dab-copilot-config ~/dab-copilot-config
+git clone https://github.com/navikt/dab-copilot-config <path-to-dab-copilot-config>
 ```
 
 ### Steg 2: Symlink skills inn i skill-konfigurasjonsmappene
@@ -43,10 +43,10 @@ automatisk uten å gjøre noe mer.
 
 ```bash
 mkdir -p ~/.copilot/skills
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-etterlevelse      ~/.copilot/skills/nav-etterlevelse
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-pvk               ~/.copilot/skills/nav-pvk
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-behandlingskatalog ~/.copilot/skills/nav-behandlingskatalog
-ln -s ~/dab-copilot-config/copilot-config/all/skills/nav-context            ~/.copilot/skills/nav-context
+ln -s <path-to-dab-copilot-config>/copilot-config/all/skills/nav-etterlevelse      ~/.copilot/skills/nav-etterlevelse
+ln -s <path-to-dab-copilot-config>/copilot-config/all/skills/nav-pvk               ~/.copilot/skills/nav-pvk
+ln -s <path-to-dab-copilot-config>/copilot-config/all/skills/nav-behandlingskatalog ~/.copilot/skills/nav-behandlingskatalog
+ln -s <path-to-dab-copilot-config>/copilot-config/all/skills/nav-context            ~/.copilot/skills/nav-context
 ```
 
 **OpenCode** leser fra `~/.config/opencode/skills/`. Enkleste løsning er å symlinke
@@ -82,10 +82,11 @@ OpenCode-konfigurasjonen i `~/.config/opencode/` er tilgjengelig i cplt-sandboxe
 men symlinker som peker til kataloger utenfor allowlisten følges ikke. Skills-mappene
 er symlinker til `~/dab-copilot-config/...` som ikke er tillatt som standard.
 
-Legg til en global `allow_read`-regel i cplt-konfigurasjonen:
+Legg til en global `allow_read`-regel i cplt-konfigurasjonen, der
+`<path-to-dab-copilot-config>` er stien der du klonet dette repoet:
 
 ```bash
-cplt config set allow.read ~/dab-copilot-config/copilot-config/all/skills
+cplt config set allow.read <path-to-dab-copilot-config>/copilot-config/all/skills
 ```
 
 Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
@@ -93,7 +94,7 @@ Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
 ### Oppdatering
 
 ```bash
-cd ~/dab-copilot-config && git pull
+cd <path-to-dab-copilot-config> && git pull
 ```
 
 Siden skillmappene er symlinker inn i repoet, er oppdateringen umiddelbart tilgjengelig
