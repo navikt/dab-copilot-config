@@ -609,7 +609,7 @@ Klassifiser feil etter konsekvens:
 | Situasjon | Handling |
 |---|---|
 | Kodegjennomgang av ett repo feilet (agent fant ikke repo, nettverksfeil, ingen tilgang) | **Stopp.** Informer bruker om hvilke repo som mangler. Ikke skriv begrunnelser for krav som avhenger av det manglende repoet. |
-| API-kall til etterlevelsesløsningen eller behandlingskatalogen feilet | **Stopp.** Informer om feilen. Be om nye cookies hvis 302/401, eller vent og prøv igjen ved nettverksfeil. |
+| API-kall til etterlevelsesløsningen eller behandlingskatalogen feilet | **Stopp.** Informer om feilen. Be bruker re-autentisere mot MCP-serveren ved autentiseringsfeil, eller vent og prøv igjen ved nettverksfeil. |
 | Delsteg returnerte tomme eller mistenkelig mangelfulle resultater | **Verifiser** før du går videre. Eksempel: en agent som bare fant auditlogging i én kontroller der det forventes mange — sjekk om agenten faktisk leste alle filer. |
 | Ikke-kritisk informasjon mangler (f.eks. ROS-ID, lagringstid ikke funnet i koden) | Fortsett, men **merk tydelig** i rapporten: `[Teamet må bekrefte: ...]` |
 
@@ -827,22 +827,6 @@ disse statusene uavhengig av modus.
 **Feltet `behovForBegrunnelse`** per suksesskriterium bestemmer om begrunnelsetekst er
 forventet. Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse.
 
-Be brukeren om:
-
-1. Åpne https://etterlevelse.intern.nav.no/ i nettleseren og logg inn
-2. Åpne DevTools → Application → Cookies for `etterlevelse.intern.nav.no`
-3. Kopier verdiene for:
-   - `etterlevsession` (påkrevd for skriving)
-   - `sso-nav.no` (kan trenges for skriving)
-
-Test at sesjonen er gyldig:
-```bash
-curl -s -o /dev/null -w "%{http_code}" \
-  'https://etterlevelse-api.intern.nav.no/api/etterlevelsedokumentasjon/{DOKUMENT_ID}' \
-  -H 'Cookie: etterlevsession=...; sso-nav.no=...'
-```
-200 = OK, 302/401 = sesjonen har utløpt (be om nye cookies).
-
 **Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
 oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
 enkelt i etterlevelsesløsningen. `OPPFYLT` kan ikke settes via MCP-serveren — det settes
@@ -923,38 +907,6 @@ MCP-verktøyet støtter ikke disse statusene direkte.
 - Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ etterlevelsens
   status settes til `UNDER_ARBEID`, ikke `IKKE_RELEVANT`.
 - Denne regelen gjelder alltid — også ved batch-oppdateringer.
-
-## API for oppdatering
-
-### Les (GET):
-```
-GET /api/etterlevelse/{etterlevelse-id}
-```
-Returnerer hele etterlevelse-objektet med alle felter.
-
-### Oppdater (PUT):
-```
-PUT /api/etterlevelse/{etterlevelse-id}
-Content-Type: application/json
-Cookie: etterlevsession=...; sso-nav.no=...
-
-{hele objektet fra GET, med oppdaterte felter}
-```
-
-**VIKTIG: Optimistisk låsing.** API-et bruker `version`-feltet for concurrency control.
-Du MÅ gjøre en fersk GET rett før PUT for å få riktig versjon. Ellers får du 403 Forbidden.
-
-### Oppdateringsprosedyre (per etterlevelse):
-1. `GET /api/etterlevelse/{id}` – hent fersk data
-2. Modifiser `suksesskriterieBegrunnelser`-arrayen i minnet
-3. **BEVAR eksisterende begrunnelser** som ikke skal endres
-4. `PUT /api/etterlevelse/{id}` med hele det oppdaterte objektet
-5. Verifiser at responsen inneholder oppdatert `version`
-
-### Feilhåndtering:
-- **403 Forbidden**: Utløpt sesjon ELLER stale version. Prøv fersk GET + PUT.
-- **400 Bad Request**: Manglende `id` i body, eller mismatch mellom URL og body ID.
-- **302 Redirect**: Sesjonen har utløpt. Be bruker om nye cookies.
 
 ## API for etterlevelsesdokumentasjon (prioritert kravliste m.m.)
 
