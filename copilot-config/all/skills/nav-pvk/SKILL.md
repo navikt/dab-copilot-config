@@ -521,13 +521,12 @@ Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`
 | `nivaaBegrunnelseEtterTiltak` | string | Begrunnelse for risikonivå etter tiltak |
 | `generelScenario` | bool | `true` = øvrig scenario uten kravkobling |
 | `ingenTiltak` | bool | `true` = scenarioet håndteres uten tiltak |
-- **Slett:** `delete_risikoscenario` — følg alltid denne flyten:
+- **Slett:** `delete_risikoscenario` — feiler med feilmelding hvis scenarioet har tilknyttede tiltak.
+  Anbefalt flyt:
   1. Kall `list_tiltak` og identifiser tiltak knyttet til scenarioet
   2. Vis tiltak som vil slettes og be om eksplisitt bekreftelse fra bruker
-  3. Slett hvert tiltak eksplisitt med `delete_tiltak`
+  3. Slett hvert tiltak med `delete_tiltak`
   4. Slett deretter scenarioet med `delete_risikoscenario`
-
-  **⛔ Ikke hopp over steg 2 — aldri slett uten at bruker har bekreftet.**
 - **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
 - **Fjern kravkobling:** `unlink_krav_from_risikoscenario`
 
