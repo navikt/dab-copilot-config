@@ -342,10 +342,30 @@ teknisk bakgrunn. Figurer må derfor:
 - Bruke farger for å skille kategorier (brukerflater, lagring, tilknyttede systemer)
 - Inkludere forklaring/legend
 
-For å generere PNG-bilder kan du bruke:
-- Python med `matplotlib`, `graphviz`, eller `PIL/Pillow` for å tegne diagrammer
-- Mermaid CLI (`mmdc`) hvis tilgjengelig, eller konvertering via nettjeneste
-- Enkel ASCII-art i beskrivelsen (rendres som rik tekst i dette feltet)
+**Diagrammer i `beskrivelse` (anbefalt for programmatisk generert innhold):**
+Mermaid-diagrammer og ASCII-art i `beskrivelse`-feltet er den foretrukne tilnærmingen
+for agentgenererte diagrammer. Feltet rendres som markdown og støtter rik tekst —
+ingen filopplasting nødvendig:
+
+```markdown
+## Dataflyt
+
+```mermaid
+graph LR
+  Bruker -->|logger inn| System
+  System -->|lagrer| Database
+  Database -->|slettes etter 5 år| Arkiv
+```
+```
+
+**Filopplasting via MCP:** MCP-serveren aksepterer filer som base64-kodet innhold.
+Base64 for store bilder (>50KB) kan overstige hva agenten kan generere i ett tool-kall
+og vil da avbrytes. Begrensninger:
+- **Agentgenererte bilder:** Generer PNG maks 800×600 px med Python/matplotlib.
+  Verifiser at filen er under 50KB (ca. 65K base64-tegn) før opplasting.
+- **Brukerens egne bilder/screenshots:** Last opp manuelt i UI-et på
+  `etterlevelse.intern.nav.no` → PVK → Behandlingens livsløp. MCP kan ikke
+  lese filer fra brukerens lokale maskin.
 
 **Prioritering av 4 filplasser:**
 1. Livsløps-/tilstandsdiagram (hvordan data oppstår, lever og dør)
