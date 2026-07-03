@@ -721,6 +721,35 @@ sjekk at alle funn er reflektert i rapporten. Vær spesielt oppmerksom på:
 
 Legg til eventuelle manglende funn i rapporten før du viser den til bruker.
 
+#### Oppfølgingsfil
+
+Opprett `oppfølging-E{nr}.md` i arbeidsmappen **før kodegjennomgangen starter** og fyll
+den inn fortløpende etterhvert som funn gjøres og krav gjennomgås. Ikke vent til slutten.
+
+Filen overlever sesjonsslutt og re-autentisering og kan brukes av teamet til å kvittere
+ut punkter etter gjennomgangen.
+
+**Format:**
+
+```markdown
+# Oppfølgingspunkter — E{nr} {systemnavn}
+
+| # | Krav | Prioritet | Handling | Status |
+|---|------|-----------|----------|--------|
+| 1 | K267 | 🔴 Høy | Dokumenter rutiner for CVSS > 9 | ⬜ |
+| 2 | K245 | 🔴 Høy | Gjennomfør verdivurdering via NAV-mal | ⬜ |
+| 3 | K191 | 🟡 Medium | Bekreft lagringstid mot behandlingskatalog | ⬜ |
+```
+
+Prioritet: 🔴 Høy (sikkerhet/personvern), 🟡 Medium, 🟢 Lav
+Status: ⬜ Ikke startet, 🔄 Under arbeid, ✅ Ferdig
+
+**Legg til punkter fra:**
+- `[Teamet må dokumentere: ...]`-plassholdere i begrunnelsene
+- Funn fra kodegjennomgang som krever tiltak
+- Gap mellom krav og faktisk implementasjon
+- Organisatoriske avklaringer som mangler
+
 Generer en komplett rapport (`rapport-E{nr}-{teamnavn}.md`, f.eks.
 `rapport-E240-team-dab.md`) med:
 
