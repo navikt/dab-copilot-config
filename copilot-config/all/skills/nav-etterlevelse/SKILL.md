@@ -266,7 +266,8 @@ Vurder egenskapene basert på kodegjennomgangen og foreslå endringer til bruker
 #### Hent kravdetaljer:
 
 Bruk `get_krav` med format `K{nummer}.{versjon}` (f.eks. `K102.3`) for å hente ett krav med
-alle suksesskriterier, hensikt, utdypendeBeskrivelse, versjonEndringer og rettskilder.
+alle suksesskriterier, hensikt, utdypendeBeskrivelse, versjonEndringer, rettskilder,
+dokumentasjon («Mer om kravet») og begreper.
 
 NB: `beskrivelse` på krav-nivå er nesten alltid `null` — bruk `hensikt` i stedet.
 
@@ -298,7 +299,11 @@ En begrunnelse som svarer på feil spørsmål er verre enn ingen begrunnelse.
 6. Les `regelverk` og `rettskilder` — lovgrunnlaget (f.eks. Personvernforordningen art. 5, WCAG-forskriften).
    Når begrunnelsen refererer til lovkrav, bruk `regelverk[].lov.shortName` og eventuelt
    `rettskilder`-lenker som juridisk forankring.
-7. Les `begreper` — definisjoner av nøkkelbegreper brukt i kravet. Hvis kravet bruker termer
+7. Les `dokumentasjon` — tilsvarer «Mer om kravet»-panelet i UI-et. Inneholder supplerende
+   faglig kontekst i markdown-format: eksterne lenker (Lovdata, Datatilsynet, politiet, osv.),
+   veiledninger og annen dokumentasjon som kan avklare hva kravet faktisk omhandler.
+   **Les dette feltet når hensikt og SK-beskrivelse ikke er tilstrekkelig tydelig.**
+8. Les `begreper` — definisjoner av nøkkelbegreper brukt i kravet. Hvis kravet bruker termer
    som «kassere», «formålsbegrensning» eller «den registrerte», finn definisjonene her og bruk
    dem korrekt i begrunnelsen.
 
