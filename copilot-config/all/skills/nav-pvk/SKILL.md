@@ -587,54 +587,15 @@ S.nivå   1    2    3    4    5
 
 ### Tilbakemelding til PVO (meldingerTilPvo)
 
-Når en PVK sendes til PVO, eller returneres til PVO etter PVOs vurdering
-(`VURDERT_AV_PVO` → `SENDT_TIL_PVO_FOR_REVURDERING`), legges en melding på PVK-dokumentet
-i `meldingerTilPvo`-arrayen. Hver melding har **to separate tekstfelter** som UI-et viser
-som hver sin tekstboks:
-
-| Felt | UI-label | Innhold |
-|---|---|---|
-| `merknadTilPvo` | «Forklar hvorfor dere ønsker å sende inn til ny vurdering» | Bakgrunn, oppfølgingsspørsmål til PVO, avklaringer |
-| `endringsNotat` | «Oppsummer hvilke endringer som er gjort siden siste tilbakemelding fra PVO» | Konkret diff/changelog over endrede scenarioer, tiltak og kravbesvarelser |
+Bruk `write_pvk_melding_til_pvo` for å skrive utkast til melding til PVO:
+- `merknadTilPvo` — bakgrunn, begrunnelse og spørsmål til PVO
+- `endringsNotat` — oppsummering av endringer siden forrige innsending (kun ved revurdering)
 
 **Ikke putt alt i `merknadTilPvo` — splitt riktig.** PVO leser feltene i hvert sitt
 visningspanel.
 
-**Melding-objekt:**
-```json
-{
-  "innsendingId": 2,
-  "merknadTilPvo": "...",
-  "endringsNotat": "...",
-  "sendtTilPvoDato": "",          // tom = utkast
-  "sendtTilPvoAv": "",            // tom = utkast
-  "etterlevelseDokumentVersjon": 1
-}
-```
-
-**innsendingId-konvensjon:**
-- Første melding har `innsendingId: 1`
-- Hver ny melding får `pvkDokument.antallInnsendingTilPvo + 1`
-- `antallInnsendingTilPvo` økes **kun** når meldingen faktisk sendes (sendt-feltene fylles)
-- Et utkast (tomme sendt-felter) påvirker ikke `antallInnsendingTilPvo`
-
-**Utkast vs sendt:**
-- **Utkast (lagre, ikke send):** sett `sendtTilPvoDato = ""` og `sendtTilPvoAv = ""`. PVK-status forblir uendret.
-- **Sendt:** sett `sendtTilPvoDato = "2026-05-21T10:00:00"` og `sendtTilPvoAv = "EXXXXXX - Navn"`.
-  PVK-status oppdateres separat (f.eks. til `SENDT_TIL_PVO_FOR_REVURDERING`).
-
-**Lagre melding:** Det finnes ikke et dedikert melding-endpoint. Du lagrer ved å gjøre
-en PUT på hele PvkDokument:
-```
-PUT /api/pvkdokument/{pvk-id}
-```
-med den oppdaterte `meldingerTilPvo`-arrayen (eksisterende meldinger + ny entry).
-
-**KRITISK DTO-transform før PUT (gir 400 ellers):**
-1. **`ytterligereEgenskaper`** returneres som `[{code, ...}]` fra GET, men MÅ sendes som
-   `["KODE1", "KODE2"]` (array av strenger). Map: `e.code if isinstance(e, dict) else e`
-2. **Fjern** `changeStamp`, `version`, `currentEtterlevelseDokumentVersjon` fra body
-3. Behold alle andre felter (inkl. `meldingerTilPvo` med ny entry tilføyd)
+Verktøyet lagrer alltid som **utkast** (`sendtTilPvoDato = ""`). Teamet trykker
+«Send inn» i UI-et når de er klare. Agenten setter aldri sendt-feltene.
 
 Feilen `"JSON parse error: Cannot deserialize value of type 'java.lang.String' from Object value (token 'JsonToken.START_OBJECT')"` betyr nesten alltid at `ytterligereEgenskaper` ble sendt som objekter.
 
@@ -691,6 +652,7 @@ Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 | `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
 | `write_pvk_involvering` | Oppdater involveringsfelter |
 | `write_pvk_risikoeier` | Skriv merknad til risikoeier (lederrettet, markdown) |
+| `write_pvk_melding_til_pvo` | Skriv utkast til melding til PVO (merknad + endringsnotat) |
 | `get_behandlingens_livsloep` | Hent livsløpsbeskrivelse |
 | `write_behandlingens_livsloep` | Opprett/oppdater livsløp (støtter filvedlegg som base64) |
 | `delete_behandlingens_livsloep` | Slett livsløp |
