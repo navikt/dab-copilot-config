@@ -102,35 +102,53 @@ Ellers søk med `search_behandlinger` på systemnavn eller formål og velg rikti
 - `automaticProcessing`, `profiling` — automatisert behandling/profilering
 - `dpia.needForDpia`, `dpia.refToDpia` — DPIA-vurdering
 
-### Steg 4: Faglig kontekst fra Navet (valgfritt, anbefalt)
+### Steg 4: Faglig kontekst fra Navet
 
-Navet er NAVs interne SharePoint-baserte intranett med fagområdespesifikke sider om
-lover, retningslinjer og hva veiledere har lov/ikke lov til å registrere. Denne
-informasjonen er verdifull for domenekonteksten, men kan ikke hentes automatisk.
+Navet er NAVs interne SharePoint med fagområdespesifikke sider om lover, retningslinjer
+og hva veiledere har lov/ikke lov til å registrere. Hentes via MCP-tools
+`list_navet_pages` og `get_navet_page` — ingen manuell pålogging nødvendig.
 
-**⛔ Ikke bruk SSO-cookies for å hente Navet-innhold.** SharePoint-tokens (`rtFa`,
-`FedAuth`) gir tilgang til all brukerens SharePoint-data og skal ikke sendes til
-eksterne modeller.
+**Fremgangsmåte:**
 
-**Kjente fagområder og Navet-URL-er:**
+1. **List alle sidetitler** for fagområdet — uten filter for å få full oversikt:
+   ```
+   list_navet_pages(fagomrade: "{fagomrade}")
+   ```
 
-| Fagområde | Navet-URL |
-|-----------|-----------|
-| Arbeidsrettet oppfølging og veiledning | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsrettet-brukeroppfolging` |
-| Arbeidsavklaringspenger (AAP) | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-arbeidsavklaringspenger` |
-| Dagpenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-dagpenger` |
-| Sykefraværsoppfølging og sykepenger | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-sykefravarsoppfolging-og-sykepenger` |
-| Sosiale tjenester | `https://navno.sharepoint.com/sites/fag-og-ytelser-sosiale-tjenester` |
-| Tiltak og virkemidler | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-tiltak-og-virkemidler` |
-| Alderspensjon | `https://navno.sharepoint.com/sites/fag-og-ytelser-pensjon-alderspensjon` |
-| Markedsarbeid | `https://navno.sharepoint.com/sites/fag-og-ytelser-arbeid-markedsarbeid` |
+2. **Velg relevante sider** ved å lese titlene. Se etter sider som typisk inneholder
+   domenekontekst — du vet best hva som er relevant for det konkrete fagområdet:
+   - Sider om personvern, hva du kan/ikke kan registrere
+   - Sider om lover, rettsgrunnlag, hjemler
+   - Sider om rutiner, retningslinjer, faglige standarder
+   - Sider om veiledning, behandling av saker
+   - Sider med spesifikke restriksjoner (f.eks. «er ikke tillatt», «skal ikke»)
 
-Spør bruker om å åpne den relevante Navet-siden og lime inn eller oppsummere innhold fra:
-- Sider med «Personvern» i tittelen → rettslig grunnlag og formålsbegrensninger
-- Sider med «Rutiner» eller «Retningslinjer» → operative restriksjoner
-- Sider med «Lover og regler» → primær hjemmel
+   Velg 5–10 sider som ser mest relevante ut. Du trenger ikke forhåndsdefinerte
+   søkeord — bruk din forståelse av domenet til å vurdere titlene.
 
-Oppsummer funnene kondensert i domenekonteksten — ikke inkluder rå sideinnhold.
+3. **Hent innholdet** fra de utvalgte sidene:
+   ```
+   get_navet_page(fagomrade: "{fagomrade}", pageId: "{id}")
+   ```
+
+4. **Oppsummer kondensert** i domenekonteksten — ikke inkluder rå sideinnhold.
+
+**Tilgjengelige fagområder:**
+
+| Fagområde-kode | Navet-site |
+|---|---|
+| `arbeidsrettet-brukeroppfolging` | fag-og-ytelser-arbeid-arbeidsrettet-brukeroppfolging |
+| `arbeidsavklaringspenger` | fag-og-ytelser-arbeid-arbeidsavklaringspenger |
+| `dagpenger` | fag-og-ytelser-arbeid-dagpenger |
+| `sykefravarsoppfolging-og-sykepenger` | fag-og-ytelser-arbeid-sykefravarsoppfolging-og-sykepenger |
+| `sosiale-tjenester` | fag-og-ytelser-sosiale-tjenester |
+| `tiltak-og-virkemidler` | fag-og-ytelser-arbeid-tiltak-og-virkemidler |
+| `pensjon-alderspensjon` | fag-og-ytelser-pensjon-alderspensjon |
+| `markedsarbeid` | fag-og-ytelser-arbeid-markedsarbeid |
+| `utbetalinger` | fag-og-ytelser-utbetalinger |
+| `stonadsokonomi` | fag-og-ytelser-stonadsokonomi |
+
+Hvis fagområdet ikke er i listen, be bruker om å kontakte #tech-azure for tilgang.
 
 ### Steg 5: Inspiser kildekode (valgfritt)
 
