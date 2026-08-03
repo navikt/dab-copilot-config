@@ -110,28 +110,41 @@ og hva veiledere har lov/ikke lov til å registrere. Hentes via MCP-tools
 
 **Fremgangsmåte:**
 
-1. **List alle sidetitler** for fagområdet — uten filter for å få full oversikt:
+1. **List alle sidetitler** for fagområdet:
    ```
    list_navet_pages(fagomrade: "{fagomrade}")
    ```
 
-2. **Velg relevante sider** ved å lese titlene. Se etter sider som typisk inneholder
-   domenekontekst — du vet best hva som er relevant for det konkrete fagområdet:
-   - Sider om personvern, hva du kan/ikke kan registrere
-   - Sider om lover, rettsgrunnlag, hjemler
-   - Sider om rutiner, retningslinjer, faglige standarder
-   - Sider om veiledning, behandling av saker
-   - Sider med spesifikke restriksjoner (f.eks. «er ikke tillatt», «skal ikke»)
+2. **Velg relevante sider** — bruk konteksten du allerede har fra steg 3 til å
+   identifisere hva du bør se etter. Fra behandlingskatalogen vet du:
+   - Hvilke lovhjemler som er brukt → søk etter sider om disse spesifikke lovene
+   - Hvilke personopplysningstyper systemet behandler → søk etter sider om
+     hva som er tillatt å registrere for akkurat disse typene
+   - Om det er automatisert behandling/profilering → søk etter sider om dette
 
-   Velg 5–10 sider som ser mest relevante ut. Du trenger ikke forhåndsdefinerte
-   søkeord — bruk din forståelse av domenet til å vurdere titlene.
+   Generelt nyttige sider å se etter (uavhengig av domene):
+   - Personvern og hva du kan/ikke kan skrive — operative GDPR-krav
+   - Spesifikke restriksjoner («er ikke tillatt», «skal ikke», «kan ikke benyttes»)
+   - Lover og regler / forvaltningskompetanse — konkrete lovhjemler
+   - Journalføring og dokumentasjonskrav
+   - Tilgang og registrering — bruker-autentisering, kategorier av brukere
+   - Faglige standarder og retningslinjer for oppfølging
+
+   Velg 8–12 sider. Portalsider («NAV-loven § 14a», «Personvern») gir ofte bare
+   lenkelister — foretrekk artikler med substantivt innhold.
 
 3. **Hent innholdet** fra de utvalgte sidene:
    ```
    get_navet_page(fagomrade: "{fagomrade}", pageId: "{id}")
    ```
 
-4. **Oppsummer kondensert** i domenekonteksten — ikke inkluder rå sideinnhold.
+4. **Supplement med standardkunnskap** — noen elementer finnes ikke i Navet fordi
+   Navet inneholder operative retningslinjer, ikke juridisk rammeverk:
+   - GDPR-artikler (art. 6, art. 9) — suppler fra din juridiske kunnskap
+   - Kode 6/7 kontorsperre — suppler fra systemkunnskap hvis relevant
+   - Merk slike punkter med `[Verifiser mot rundskriv]` i domain-context
+
+5. **Oppsummer kondensert** — ikke inkluder rå sideinnhold.
 
 **Tilgjengelige fagområder:**
 
