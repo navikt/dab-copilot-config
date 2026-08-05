@@ -176,6 +176,11 @@ Vent på brukerens svar før du fortsetter.
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
 2. **Etterlevelsesdokumentasjon-ID** (UUID fra URL-en i etterlevelsesløsningen, f.eks. `a5cc7dfe-2fb9-4ff2-8eda-52d7079cda4c`)
+   - Hvis bruker **ikke har en ID** (nytt dokument skal opprettes): kall `get_my_teams` og
+     presenter listen til brukeren. **Spør eksplisitt hvilket team som skal stå som eier** —
+     legg aldri til alle team automatisk, og bruk aldri team-UUIDs fra behandlingskatalogen.
+     Bruk det valgte team-UUIDet når du oppretter
+     dokumentet med `create_etterlevelse_dokumentasjon`.
 3. **Gjennomgangstype**:
    - **Ufullstendige krav** (standard) — vurder kun krav med tomme/mangelfulle begrunnelser
    - **Nye og oppdaterte krav** — identifiser krav som mangler etterlevelse (nye krav lagt til
@@ -1003,7 +1008,7 @@ Minimalt POST-body:
   "resources": [],
   "nomAvdelingId": "<NOM-id for avdeling, f.eks. dy639w>",
   "avdelingNavn": "<Avdelingsnavn, f.eks. Arbeidsavdelingen>",
-  "risikoeiere": ["<NAVident for seksjonsleder/risikoeier>"],
+  "risikoeiere": [],
   "irrelevansFor": ["VEDTAKSBEHANDLING", "OKONOMISYSTEM"],
   "seksjoner": [{"nomSeksjonId": "xxx", "nomSeksjonName": "Seksjonsnavn"}],
   "varslingsadresser": [{"adresse": "SLACK_CHANNEL_ID", "type": "SLACK"}],
@@ -1071,6 +1076,18 @@ Returnerer `{content: [{id, name, numMembers}]}`. Bruk `id` som `adresse`.
 2. **`nomAvdelingId` + `avdelingNavn`** — Avdeling i NAV-organisasjonen.
 3. **`seksjoner`** — Seksjon(er) som eier løsningen.
 4. **`risikoeiere`** — NAVident til risikoeier (normalt seksjonsleder).
+
+⛔ **VIKTIG — bruk ALDRI behandlingskatalog som kilde for `teams` eller `risikoeiere`:**
+- **`teams`**: Hent **alltid** fra teamkatalog via `get_my_teams`. Behandlingskatalogen kan
+  inneholde team-UUIDs fra et annet miljø (f.eks. prod-UUIDs i dev), noe som låser
+  dokumentet til team brukeren ikke er medlem av i gjeldende miljø. Hvis `get_my_teams`
+  returnerer `[]`, spør brukeren eksplisitt hvilket team som skal eie dokumentet — sett
+  ikke teams fra behandlingen.
+- **`risikoeiere`**: Hent **ikke** automatisk fra behandlingen, og send **ikke** feltet
+  i `write_etterlevelse_dokumentasjon` med mindre brukeren eksplisitt har oppgitt en
+  risikoeier. Siden `write_etterlevelse_dokumentasjon` er en partial update (GET+merge),
+  vil et utelatt felt bevare det brukeren har fylt inn i UI-et. Å sende `[]` vil derimot
+  nullstille eksisterende verdi.
 
 **Fremgangsmåte for å finne avdeling, seksjon og risikoeier:**
 
