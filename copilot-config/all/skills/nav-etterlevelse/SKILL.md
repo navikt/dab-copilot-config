@@ -1073,9 +1073,16 @@ Returnerer `{content: [{id, name, numMembers}]}`. Bruk `id` som `adresse`.
    målgruppe, applikasjoner og arbeid som omfattes. Eksempel: "Start oppfolgingsperiode er 
    funksjonen som registrerer at en bruker starter arbeidsrettet oppfolging hos NAV..."
 
-2. **`nomAvdelingId` + `avdelingNavn`** — Avdeling i NAV-organisasjonen.
-3. **`seksjoner`** — Seksjon(er) som eier løsningen.
-4. **`risikoeiere`** — NAVident til risikoeier (normalt seksjonsleder).
+2. **`teams` eller `resources`** (OBLIGATORISK) — UI-valideringen krever minst 1 team **eller**
+   1 person. Bruk `get_my_teams` og spør brukeren hvilket team som er eier. Hvis
+   `get_my_teams` returnerer `[]`, spør brukeren om de vil legge til sin egen NAV-ident
+   i `resources` som midlertidig eier inntil riktig team er registrert i teamkatalogen.
+   Opprett **aldri** et dokument med både `teams: []` og `resources: []`.
+
+3. **`nomAvdelingId` + `avdelingNavn`** (OBLIGATORISK) — Avdeling i NAV-organisasjonen.
+   UI-valideringen krever at dette er satt. Se fremgangsmåte nedenfor.
+4. **`seksjoner`** — Seksjon(er) som eier løsningen.
+5. **`risikoeiere`** — NAVident til risikoeier (normalt seksjonsleder).
 
 ⛔ **VIKTIG — bruk ALDRI behandlingskatalog som kilde for `teams` eller `risikoeiere`:**
 - **`teams`**: Hent **alltid** fra teamkatalog via `get_my_teams`. Behandlingskatalogen kan
