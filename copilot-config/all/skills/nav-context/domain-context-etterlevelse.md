@@ -106,76 +106,19 @@ Dette skiller seg vesentlig fra ytelsessystemer som behandler brukeres personopp
 
 ## 5. PVK / DPIA
 
-En **personvernkonsekvensvurdering (PVK/DPIA)** er påkrevd etter GDPR art. 35 dersom behandlingen medfører høy risiko for de registrerte. Etterlevelsesløsningen inkluderer et PVK-modul der team kan:
+En **personvernkonsekvensvurdering (PVK/DPIA)** er påkrevd etter GDPR art. 35 dersom behandlingen sannsynligvis medfører høy risiko for de registrerte. Etterlevelsesløsningen har et eget PVK-modul for å dokumentere dette.
 
-- Vurdere behovet for PVK (SKAL_UTFORE / SKAL_IKKE_UTFORE / ALLEREDE_UTFORT)
-- Dokumentere behandlingens art og omfang
-- Beskrive behandlingens livsløp
-- Registrere risikoscenarioer med sannsynlighet og konsekvens
-- Registrere tiltak per risikoscenario
-- Sende melding til PVO for vurdering
-- Sende til risikoeier for godkjenning
+**Typiske triggere for høy risiko** (jf. Datatilsynets veileder):
+- Systematisk profilering eller automatiserte beslutninger med rettsvirkning
+- Behandling av særlige kategorier (art. 9) eller straffedommer i stor skala
+- Systematisk overvåking av offentlig tilgjengelige områder i stor skala
+- Ny teknologi kombinert med andre risikofaktorer
+- Sårbare registrerte (barn, pasienter, ansatte)
 
-### Når er PVK påkrevd?
+**For interne støtteverktøy** som kun behandler ansatteidentitetsdata til tilgangskontroll er PVK normalt ikke nødvendig — lav risiko, ikke særlige kategorier, ikke stor skala av innbyggerdata.
 
-To steg (jf. Datatilsynets veileder):
-
-1. **Sjekk Datatilsynets blacklist** — behandlingsaktiviteter som *alltid* krever PVK:
-   - Personopplysninger samlet inn via tredjepart + minst ett annet kriterium
-   - Biometriske opplysninger for identifikasjon + minst ett annet kriterium
-   - Genetiske opplysninger + minst ett annet kriterium
-   - Innovativ teknologi + minst ett annet kriterium
-   - Systematisk monitorering av ansatte (inkl. internettaktivitet, kameraovervåking)
-   - Personopplysninger for vitenskapelige/historiske formål uten samtykke + annet kriterium
-   - Lokasjonsdata + minst ett annet kriterium
-   - Vurdering av læring, mestring og trivsel i skoler/barnehager
-   - Systematisk kameraovervåking av offentlige områder i stor skala
-   - Kameraovervåking i skoler/barnehager i åpningstider
-   - Særlige kategorier i stor skala for algoritmetrening
-   - Systematisk monitorering av effektivitet, ferdigheter, helse, utvikling
-   - Profilering av jobbprestasjoner, økonomi, helse, preferanser til kommersiell bruk
-   - «Tingenes internett» / velferdsteknologi i stor skala
-
-2. **Hvis ikke på blacklist**: Vurder om behandlingen sannsynligvis vil medføre høy risiko
-   (jf. GDPR art. 35 nr. 3: automatiserte beslutninger, særlige kategorier i stor skala, systematisk
-   overvåking av offentlige steder i stor skala).
-
-### Når er PVK *ikke* nødvendig?
-
-- Behandlingen medfører sannsynligvis ikke høy risiko
-- Svært lik behandling det allerede er gjennomført PVK for
-- Behandlingen er hjemlet i lov eller forskrift som allerede inneholder en personvernvurdering
-  (GDPR art. 35 nr. 10 — gjelder art. 6(1)(c) og (e), men unntaket er smalt)
-- For systemer som kun behandler ansatteidentitetsdata til tilgangskontrollformål er PVK
-  normalt ikke nødvendig (lav risiko, ikke særlige kategorier, ikke stor skala av innbyggerdata)
-
-### Krav til innhold i en PVK (GDPR art. 35 nr. 7)
-
-- Systematisk beskrivelse av behandlingen og dens formål
-- Vurdering av nødvendighet og proporsjonalitet
-- Vurdering av risiko for de registrertes rettigheter og friheter
-- Planlagte tiltak for å håndtere risiko og påvise samsvar med GDPR
-
-### Prosess og roller
-
-- **Behandlingsansvarlig** (NAV) har ansvaret og skal involvere PVO
-- **PVO** skal rådgis og skal kontrollere gjennomføringen (art. 39(1)(c))
-- **Databehandler** skal bistå med nødvendig informasjon (art. 28(3)(f))
-- **De registrerte eller deres representanter** bør høres der relevant (art. 35(9))
-- PVK skal gjennomføres **før** behandlingen starter
-- PVK er en kontinuerlig prosess — oppdater ved endringer i risikobilde, teknologi eller formål
-
-### Forhåndsdrøftelse med Datatilsynet (art. 36)
-
-Dersom PVK viser at restrisikoen er høy selv etter tiltak, skal Datatilsynet konsulteres
-**før** behandlingen starter. Manglende overholdelse kan gi bøter på opptil 10 MEUR eller 2 % av global årsomsetning.
-
-### Autoritative kilder
-
-- **Datatilsynets PVK-veileder** (7 deler, inkl. sjekkliste): https://www.datatilsynet.no/rettigheter-og-plikter/virksomhetenes-plikter/vurdering-av-personvernkonsekvenser/
-- **Sjekkliste (PDF)**: https://www.datatilsynet.no/contentassets/8b767689abb14926af27820c9c2fb89e/sjekkliste-for-dpiafaser.pdf
-- **Datatilsynets blacklist (PDF)**: https://www.datatilsynet.no/globalassets/global/dokumenter-pdfer-skjema-ol/regelverk/veiledere/dpia-veileder/dpialist280119.pdf
-- **EDPB Guidelines on DPIA (WP248 rev.01)**: https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-wp248-rev01_en
+Fullstendig vurderingsveiledning (blacklist, unntaksregler, art. 35 nr. 7-krav, prosess og roller) ligger i **nav-pvk-skillen** og i Datatilsynets veileder:
+https://www.datatilsynet.no/rettigheter-og-plikter/virksomhetenes-plikter/vurdering-av-personvernkonsekvenser/
 
 ---
 

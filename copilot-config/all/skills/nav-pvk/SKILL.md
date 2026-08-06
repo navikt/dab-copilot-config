@@ -284,6 +284,72 @@ Azure AD, TokenX, Network policies, Kafka (Aiven).
 
 ---
 
+## Når er PVK påkrevd?
+
+Før PVK-veiviseren starter bør agenten hjelpe teamet å vurdere om PVK faktisk er nødvendig.
+Bruk `write_pvk_egenskaper` med riktig `pvkVurdering` basert på vurderingen under.
+
+### To-steg-vurdering (GDPR art. 35 / Datatilsynets veileder)
+
+**Steg 1 — Sjekk Datatilsynets blacklist** (disse krever *alltid* PVK):
+
+| Behandlingstype | Eksempel |
+|---|---|
+| Personopplysninger fra tredjepart + minst ett annet kriterium | Sammenstilling for å avgjøre tilgang til tjeneste |
+| Biometriske opplysninger for identifikasjon + annet kriterium | Fingeravtrykk/ansiktsgjenkjenning i stor skala |
+| Genetiske opplysninger + annet kriterium | Gensekvensering i stor skala |
+| Innovativ teknologi + annet kriterium | Helseimplantater, ny velferdsteknologi |
+| Systematisk monitorering av ansatte | Overvåking av internett, e-post, kamera |
+| Personopplysninger for forskning uten samtykke + annet kriterium | Helseopplysninger i forskning |
+| Lokasjonsdata + annet kriterium | Trafikkdata fra teleoperatør |
+| Evaluering av læring/trivsel i skoler og barnehager | Alle utdanningsnivåer |
+| Systematisk kameraovervåking av offentlige steder i stor skala | — |
+| Kameraovervåking i skoler/barnehager i åpningstider | — |
+| Særlige kategorier i stor skala for algoritmetrening | — |
+| Systematisk monitorering av effektivitet, ferdigheter, mental helse | — |
+| Profilering til kommersiell bruk (jobbprestasjon, økonomi, helse m.m.) | — |
+| IoT / velferdsteknologi i stor skala | — |
+
+**Steg 2 — Hvis ikke på blacklist**: Vurder om behandlingen sannsynligvis vil medføre høy risiko
+(art. 35 nr. 3): automatiserte beslutninger med rettsvirkning, særlige kategorier i stor skala,
+systematisk overvåking av offentlige steder i stor skala.
+
+### Når er PVK *ikke* nødvendig?
+
+- Behandlingen medfører sannsynligvis ikke høy risiko
+- Svært lik behandling det allerede er gjennomført PVK for (resultatet kan gjenbrukes)
+- Hjemlet i lov/forskrift som allerede inneholder personvernvurdering (art. 35 nr. 10 — smalt unntak, gjelder art. 6(1)(c)/(e))
+- Interne støtteverktøy som kun behandler ansatteidentitetsdata til tilgangskontroll → normalt ikke nødvendig
+
+### Hva skal en PVK inneholde (art. 35 nr. 7)?
+
+1. Systematisk beskrivelse av behandlingen og dens formål
+2. Vurdering av nødvendighet og proporsjonalitet
+3. Vurdering av risiko for de registrertes rettigheter og friheter
+4. Planlagte tiltak for å håndtere risiko og påvise samsvar med GDPR
+
+### Prosess og roller
+
+- **Behandlingsansvarlig** (NAV) har ansvaret — skal involvere PVO
+- **PVO** rådgis og kontrollerer gjennomføringen (art. 39(1)(c))
+- **Databehandler** bistår med informasjon (art. 28(3)(f))
+- **De registrerte / representanter** bør høres der relevant (art. 35(9))
+- PVK gjennomføres **før** behandlingen starter — kontinuerlig prosess, oppdater ved endringer
+
+### Forhåndsdrøftelse med Datatilsynet (art. 36)
+
+Dersom restrisikoen er høy selv etter tiltak, skal Datatilsynet konsulteres **før** behandlingen
+starter. Manglende overholdelse: bøter inntil 10 MEUR eller 2 % av global årsomsetning.
+
+### Kilder
+
+- Datatilsynets PVK-veileder (7 deler): https://www.datatilsynet.no/rettigheter-og-plikter/virksomhetenes-plikter/vurdering-av-personvernkonsekvenser/
+- Sjekkliste (PDF): https://www.datatilsynet.no/contentassets/8b767689abb14926af27820c9c2fb89e/sjekkliste-for-dpiafaser.pdf
+- Datatilsynets blacklist (PDF): https://www.datatilsynet.no/globalassets/global/dokumenter-pdfer-skjema-ol/regelverk/veiledere/dpia-veileder/dpialist280119.pdf
+- EDPB Guidelines on DPIA (WP248 rev.01): https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-wp248-rev01_en
+
+---
+
 ## PVK-veiviseren (8 steg)
 
 Etter forberedelsene, generer en rapport strukturert etter veiviserens 8 steg.
