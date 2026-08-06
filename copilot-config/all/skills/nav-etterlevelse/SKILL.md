@@ -639,6 +639,23 @@ f.eks. bør en kodegjennomgang av sikkerhet i et backend-repo gi funn fra mer en
 
 Bruk explore-agenter parallelt for å analysere repoene. Fokusér på:
 
+⛔ **VIKTIG — sub-agenter og etterlevelsesregler:**
+
+1. **Gap-analyse av etterlevelsesdokumenter gjøres ALLTID av hovedagenten** — aldri av
+   sub-agenter. Gap-analyse krever MCP-tilgang (`get_krav` for `behovForBegrunnelse`,
+   `list_krav` for komplett kravliste) som sub-agenter ikke har. Å delegere dette gir
+   feil resultater.
+
+2. **Explore-agenter for kodeanalyse** er kun for å finne tekniske funn i kode — de
+   vurderer ikke etterlevelse. Inkluder alltid disse elementene i explore-agentens prompt:
+   - Relevant domenekontekst: hvilke personopplysningstyper som er aktuelle i dette
+     systemet (hentes fra `domain-context.md` og `system-context.md`)
+   - Konkrete spørsmål agenten skal svare på (se punktliste nedenfor)
+   - Eksplisitt instruks om å kun rapportere funn — ikke vurdere om krav er oppfylt
+
+3. **Ingen sub-agent skal konkludere om etterlevelse** — kun hovedagenten med full
+   skillkontekst og MCP-tilgang kan gjøre dette.
+
 **⚠️ Lagre analyseresultater til filer FØR syntesen.**
 Kontekstvinduet er begrenset — funn fra tidlige delsteg kan fade ut når rapporten skrives
 («lost in the middle»). Lagre hvert delsteg til en separat fil i arbeidsmappen:
