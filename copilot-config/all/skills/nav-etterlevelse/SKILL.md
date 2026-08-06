@@ -407,9 +407,15 @@ Bygg et set av `(kravNummer, kravVersjon)`-par.
 Finn krav i gjeldende liste som IKKE har en etterlevelse-record. Disse er helt ubesvarte.
 
 **Ved «Ufullstendige krav»-modus (i tillegg til gap-analysen):**
+
+⛔ **OBLIGATORISK: Hent kravdata (`get_krav`) for hvert krav du vurderer som ufullstendig,
+og sjekk `behovForBegrunnelse` per suksesskriterium FØR du flagger det som et gap.**
+`behovForBegrunnelse` ligger på kravdefinisjonen, ikke i etterlevelsesdokumentet — du
+kan ikke avgjøre dette uten å hente kravet.
+
 - Tom `begrunnelse` på suksesskriterier der `behovForBegrunnelse = true` = trenger utfylling
-- Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse — disse skal
-  IKKE flagges som ufullstendige selv om `begrunnelse`-feltet er tomt
+- Tom `begrunnelse` på suksesskriterier der `behovForBegrunnelse = false` = **ikke** et gap
+  — disse skal aldri flagges som ufullstendige selv om `begrunnelse`-feltet er tomt
 - Sjekk `behovForBegrunnelse` på kravets suksesskriterier for å vite HVOR teksten skal
 
 **Ved «Nye og oppdaterte krav»-modus:**
