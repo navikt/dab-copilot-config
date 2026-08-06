@@ -1079,8 +1079,9 @@ Returnerer `{content: [{id, name, numMembers}]}`. Bruk `id` som `adresse`.
    i `resources` som midlertidig eier inntil riktig team er registrert i teamkatalogen.
    Opprett **aldri** et dokument med både `teams: []` og `resources: []`.
 
-3. **`nomAvdelingId` + `avdelingNavn`** (OBLIGATORISK) — Avdeling i NAV-organisasjonen.
-   UI-valideringen krever at dette er satt. Se fremgangsmåte nedenfor.
+3. **`nomAvdelingId` + `avdelingNavn`** (OBLIGATORISK) — UI-valideringen krever at dette er satt.
+   `get_my_teams` returnerer nå `nomAvdelingId` og `avdelingNavn` direkte per team — bruk
+   verdiene fra det valgte teamet uten å gjøre ekstra oppslag.
 4. **`seksjoner`** — Seksjon(er) som eier løsningen.
 5. **`risikoeiere`** — NAVident til risikoeier (normalt seksjonsleder).
 
