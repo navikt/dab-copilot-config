@@ -69,6 +69,13 @@ det nav-etterlevelse og nav-pvk trenger for presise vurderinger.
 sammenlign med systemets fagområde (f.eks. «Arbeidsrettet oppfølging» vs. «Sosiale tjenester»).
 Hvis domenet ikke stemmer, opprett ny `domain-context-{domene}.md` i CWD.
 
+**Bundlede domenekontekster (ligger i skillmappen, kan kopieres direkte til CWD):**
+
+| Fil | Domene | Passer for |
+|---|---|---|
+| `domain-context-arbeidsrettet-oppfolging.md` | Arbeidsrettet oppfølging og veiledning | arbeidsrettet-dialog, veilarbdialog, aktivitetsplanen, inngar, m.fl. |
+| `domain-context-etterlevelse.md` | Etterlevelse av lover og regler | etterlevelse-backend/frontend, nav-etterlevelse-mcp, og andre systemer som støtter etterlevelsesarbeid |
+
 Spør bruker om nødvendig informasjon (steg 2) og fortsett direkte til å opprette filene
 uten å spørre om «hvilke filer» — det avgjøres av tabellen over.
 
