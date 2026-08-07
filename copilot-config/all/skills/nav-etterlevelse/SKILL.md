@@ -234,15 +234,23 @@ Fortsett direkte til steg 3.
 
 ### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
 
+### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
+
 #### 3a: Hent etterlevelsesdokumentasjonen med alle etterlevelser:
 
-Bruk MCP-tool `get_etterlevelse_dokumentasjon` med dokumentets UUID. Verktøyet returnerer
-dokumentet med alle nestede etterlevelser og suksesskriteriebegrunnelser.
+Bruk MCP-tool `get_etterlevelse_status_oversikt` med dokumentets UUID for initial henting.
+Verktøyet returnerer statuser (kravNummer, kravVersjon, status, suksesskriterieStatus) uten
+begrunnelsestekst — tilstrekkelig for gap-analyse og prioritering.
 
-⛔ **KRITISK: Bruk KUN dette verktøyet for å hente etterlevelser — aldri REST-endepunktet
+Hent full begrunnelsestekst per krav ved behov via `get_etterlevelse` — kun for krav du
+faktisk skal evaluere eller forbedre, ikke alle på en gang.
+
+Bruk `get_etterlevelse_dokumentasjon` (full versjon med begrunnelsestekst) kun dersom du
+eksplisitt trenger å lese eksisterende begrunnelser for mange krav samtidig, f.eks. ved
+full gjennomgang (deep-modus) av et dokument med få krav.
+
+⛔ **KRITISK: Bruk KUN MCP-verktøy for å hente etterlevelser — aldri REST-endepunktet
 direkte uten filter.** Etterlevelser er alltid nestet inne i dokumentobjektet.
-
-Lagre etterlevelsene og bruk dem konsekvent gjennom hele analysen.
 
 #### Verifiser dokumentegenskaper (RELEVANS):
 
