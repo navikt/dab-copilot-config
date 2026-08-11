@@ -39,6 +39,19 @@ og henvis bruker til å rette det selv i UI-et.
 - Et team vil forstå hva som er registrert for sine behandlinger (B-nummer)
 - Agenten skal identifisere gap mellom registrert data og faktisk system-adferd
 
+## Forutsetning: nav-etterlevelse-mcp
+
+Denne skillen krever at MCP-serveren **nav-etterlevelse-mcp** er konfigurert og tilkoblet.
+
+**Sjekk tilkobling som første steg** ved å kalle et av MCP-verktøyene (f.eks. `search_behandlinger`).
+Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding til bruker:
+
+> ⚠️ **nav-etterlevelse-mcp er ikke konfigurert eller tilkoblet.**
+> Denne skillen krever MCP-serveren nav-etterlevelse-mcp.
+>
+> Se oppsettinstruksjoner i repoet:
+> https://github.com/navikt/nav-etterlevelse-mcp#oppsett
+
 ## Språk
 
 Følg samme språkprinsipper som `nav-etterlevelse`/`nav-pvk`: bruk æ/ø/å, klart språk,

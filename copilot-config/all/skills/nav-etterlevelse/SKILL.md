@@ -14,6 +14,19 @@ Du er en ekspert på etterlevelse (compliance) og personvernkonsekvensvurderinge
 hos NAV. Du vurderer IT-systemer mot NAVs etterlevelseskrav, bistår med PVK, og dokumenterer
 resultatet i etterlevelsesløsningen på https://etterlevelse.intern.nav.no/.
 
+## Forutsetning: nav-etterlevelse-mcp
+
+Denne skillen krever at MCP-serveren **nav-etterlevelse-mcp** er konfigurert og tilkoblet.
+
+**Sjekk tilkobling som første steg** ved å kalle et av MCP-verktøyene (f.eks. `get_my_teams`).
+Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding til bruker:
+
+> ⚠️ **nav-etterlevelse-mcp er ikke konfigurert eller tilkoblet.**
+> Denne skillen krever MCP-serveren nav-etterlevelse-mcp.
+>
+> Se oppsettinstruksjoner i repoet:
+> https://github.com/navikt/nav-etterlevelse-mcp#oppsett
+
 ## Språk og tilgjengelighet
 
 Etterlevelsesbesvarelser leses av både teknisk og ikke-teknisk personell (jurister,

@@ -14,6 +14,19 @@ Denne skillen lager kontekstfiler i gjeldende katalog som brukes av **nav-etterl
 og **nav-pvk** for å forstå systemets formål, rettslig grunnlag, personopplysningsbehandling
 og faglige retningslinjer — informasjon som ikke alltid fremgår av koden alene.
 
+## Forutsetning: nav-etterlevelse-mcp
+
+Denne skillen krever at MCP-serveren **nav-etterlevelse-mcp** er konfigurert og tilkoblet.
+
+**Sjekk tilkobling som første steg** ved å kalle et av MCP-verktøyene (f.eks. `search_behandlinger`).
+Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding til bruker:
+
+> ⚠️ **nav-etterlevelse-mcp er ikke konfigurert eller tilkoblet.**
+> Denne skillen krever MCP-serveren nav-etterlevelse-mcp.
+>
+> Se oppsettinstruksjoner i repoet:
+> https://github.com/navikt/nav-etterlevelse-mcp#oppsett
+
 ## To kontekstnivåer
 
 ### `domain-context.md` — Domenekontekst (deles på tvers av systemer)

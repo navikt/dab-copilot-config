@@ -17,6 +17,19 @@ https://etterlevelse.intern.nav.no/.
 PVK-veiviseren i etterlevelsesløsningen har 8 steg. Denne skillen er strukturert
 rundt de samme stegene, med datainnhenting og kodegjennomgang som forberedelse.
 
+## Forutsetning: nav-etterlevelse-mcp
+
+Denne skillen krever at MCP-serveren **nav-etterlevelse-mcp** er konfigurert og tilkoblet.
+
+**Sjekk tilkobling som første steg** ved å kalle et av MCP-verktøyene (f.eks. `get_my_teams`).
+Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding til bruker:
+
+> ⚠️ **nav-etterlevelse-mcp er ikke konfigurert eller tilkoblet.**
+> Denne skillen krever MCP-serveren nav-etterlevelse-mcp.
+>
+> Se oppsettinstruksjoner i repoet:
+> https://github.com/navikt/nav-etterlevelse-mcp#oppsett
+
 ## Språk og tilgjengelighet
 
 PVK-en skal vurderes av personvernombud, risikoeiere og andre som ikke nødvendigvis
