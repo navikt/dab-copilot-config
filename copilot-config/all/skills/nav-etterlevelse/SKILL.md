@@ -871,6 +871,46 @@ og korriger eventuelle feil. Gi beskjed når teamet er klart.
 
 #### Interaktiv SK-gjennomgang
 
+**⛔ OBLIGATORISK PRESENTASJONSKONTRAKT VED ENKELTKRAV**
+
+Dette gjelder også når brukeren avbryter rapportflyten og ber om å «se nærmere på»
+ett bestemt krav eller SK. Agenten skal ikke presentere et forslag basert på en skjult
+analyse alene.
+
+Før et forslag til status eller begrunnelse vises, skal agenten:
+
+1. Hente kravdata med `get_krav_for_gjennomgang` (med dokument-ID når den finnes).
+2. Vise brukeren en egen kontekstblokk som minst inneholder kravets identifikator og navn,
+  **hensikt**, eventuell **utdypende beskrivelse**, og det aktuelle SK-ets fullstendige
+  **beskrivelse**. Vis også «Mer om kravet», varsel, rettskilder og eksisterende
+  besvarelse når feltene finnes eller er relevante.
+3. Markere tydelig hvor konteksten slutter og hvor agentens analyse/forslag begynner.
+4. Be om avklaring hvis kravdata eller SK-beskrivelse ikke kan hentes. Ikke fyll inn
+  manglende kravtekst fra hukommelsen eller utled den fra kravnavnet.
+
+Minimumsformat ved «se nærmere på K{nr}.{v}»:
+
+```
+K{nr}.{v} – {kravnavn}
+
+KRAVETS HENSIKT
+{hensikt}
+
+SK{id} – {suksesskriterienavn}
+KRITERIET SPØR
+{suksesskriterier[i].beskrivelse}
+
+EKSISTERENDE BESVARELSE
+{status og begrunnelse, eller «Ingen eksisterende besvarelse»}
+
+ANALYSE OG FORSLAG
+{agentens funn og forslag}
+```
+
+Den samme kontekstblokken skal gjentas dersom agenten endrer forslaget etter spørsmål
+eller innspill fra teamet. «Lest internt» er ikke tilstrekkelig — teamet skal kunne
+etterprøve at forslaget svarer på riktig spørsmål.
+
 For **hvert krav** med endringer, skriv til konsollet:
 
 ```
