@@ -83,10 +83,13 @@ men symlinker som peker til kataloger utenfor allowlisten følges ikke. Skills-m
 er symlinker til `~/dab-copilot-config/...` som ikke er tillatt som standard.
 
 Legg til en global `allow_read`-regel i cplt-konfigurasjonen, der
-`<path-to-dab-copilot-config>` er stien der du klonet dette repoet:
+`<path-to-dab-copilot-config>` er stien der du klonet dette repoet.
+
+For å kunne sjekke ut kildekode, må også agenten ha tilgang til denne funksjonaliteten. Jeg anbefaler å bruke gh verktøyet for dette. Det er også nyttig for å kunne opprette PR-er og andre ting. For at dette skal fungere, må du sende med GH_TOKEN environment variabelen inn i cplt sesjonen. (Hvis denne ikke er eksponert som en miljøvariabel hos deg, kan du også legge inn `export GH_TOKEN=$(gh auth token)` i .zshrc eller tilsvarende profil-config.
 
 ```bash
 cplt config set allow.read <path-to-dab-copilot-config>/copilot-config/all/skills
+cplt config set sandbox.pass_env GH_TOKEN
 ```
 
 Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
