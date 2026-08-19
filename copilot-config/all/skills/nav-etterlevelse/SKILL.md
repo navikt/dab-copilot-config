@@ -35,25 +35,42 @@ starter**.
 
 #### Autentisering
 
-OAuth-flows og innlogging **må alltid gjøres utenfor sandbox-sesjonen** — callback-URLer
-er blokkert inne i sandkassen. Kjør følgende i en separat terminal *før* du starter cplt:
+cplt støtter OAuth-flows med nettleser via `sandbox.allow_browser = true` (se
+konfigurasjon nedenfor). Dette er **påkrevd** for at MCP-autentisering skal fungere.
 
-**OpenCode:**
+**Copilot CLI:** OAuth-flows skjer automatisk inne i sandkassen når en MCP-server
+krever autentisering — nettleseren åpnes, bruker fullfører innlogging, og callback-
+serveren mottar redirect uten ekstra oppsett. Forutsetter `allow_browser = true`.
+
+**OpenCode:** `opencode mcp auth <server>` er en separat CLI-kommando som kjøres av
+brukeren. Den kan kjøres enten:
+- **Inne i cplt-sesjonen** (anbefalt) — forutsetter `allow_browser = true`
+- **I et separat terminalvindu utenfor cplt** — alltid fungerer
+
 ```bash
 opencode mcp auth nav-etterlevelse-mcp  # Autentiser mot etterlevelse
 opencode mcp auth github                # Hvis github-mcp er konfigurert
-gh auth login                           # GitHub CLI-autentisering
 ```
 
-**Copilot CLI:** Autentiseringsflyt i kombinasjon med cplt er ikke fullt ut avklart.
-Verifiser at `gh auth status` er OK utenfor sandkassen.
+`gh auth login` kjøres utenfor sandkassen (tokens lagres i macOS Keychain og er
+ikke tilgjengelig inne i sandkassen — se `GH_TOKEN`-konfigurasjon under).
 
 Tegn på manglende autentisering inne i sandkassen:
 - MCP-verktøy mangler eller nav-etterlevelse-mcp svarer ikke
 - `git clone` feiler med 401/403
 - `gh` rapporterer ugyldig token
 
-Løsning: Avslutt cplt-sesjonen, autentiser utenfor, start ny sesjon.
+Løsning: Kjør `opencode mcp auth <server>` i sandkassen eller i separat terminal,
+og start ny cplt-sesjon.
+
+**Påkrevd cplt-konfigurasjon** (`~/.config/cplt/config.toml`):
+```toml
+[sandbox]
+allow_browser = true      # Påkrevd for OAuth-flows med nettleser
+
+[proxy]
+allow_private_domains = ["intern.dev.nav.no"]  # Påkrevd for nav-etterlevelse-mcp
+```
 
 #### Kodeanalyse i sandkassen
 
