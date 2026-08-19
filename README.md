@@ -71,28 +71,37 @@ Copilot CLI eller OpenCode og autentiser deg:
 opencode mcp add  # velg remote, URL: https://nav-etterlevelse-mcp.intern.nav.no
 opencode mcp auth nav-etterlevelse-mcp
 
-# Copilot CLI — kjøres inne i en agentsesjon:
-# /mcp add  →  name: nav-etterlevelse-mcp, servertype: HTTP,
-#              remote server: https://nav-etterlevelse-mcp.intern.nav.no
+# Copilot CLI — autentiserer automatisk inne i agentsesjonen
 ```
 
-### OpenCode i cplt-sandbox
+### Kjøring i cplt-sandbox
 
-OpenCode-konfigurasjonen i `~/.config/opencode/` er tilgjengelig i cplt-sandboxen,
-men symlinker som peker til kataloger utenfor allowlisten følges ikke. Skills-mappene
-er symlinker til `~/dab-copilot-config/...` som ikke er tillatt som standard.
+Fra august 2026 er Nav-ansatte pålagt å kjøre AI-agenter i sandkasse-miljø (cplt).
+Legg til følgende i `~/.config/cplt/config.toml`:
 
-Legg til en global `allow_read`-regel i cplt-konfigurasjonen, der
-`<path-to-dab-copilot-config>` er stien der du klonet dette repoet.
+```toml
+[sandbox]
+allow_browser = true      # Påkrevd for MCP OAuth-flows med nettleser
+pass_env = ["GH_TOKEN"]   # Påkrevd for git clone av private repoer
 
-For å kunne sjekke ut kildekode, må også agenten ha tilgang til denne funksjonaliteten. Jeg anbefaler å bruke gh verktøyet for dette. Det er også nyttig for å kunne opprette PR-er og andre ting. For at dette skal fungere, må du sende med GH_TOKEN environment variabelen inn i cplt sesjonen. (Hvis denne ikke er eksponert som en miljøvariabel hos deg, kan du også legge inn `export GH_TOKEN=$(gh auth token)` i .zshrc eller tilsvarende profil-config.
+[allow]
+read = ["<path-to-dab-copilot-config>/copilot-config/all/skills"]
+
+[proxy]
+allow_private_domains = ["intern.nav.no"]  # Prod. Bruk ["intern.dev.nav.no"] for dev.
+timeout = 180                              # Forhindrer timeout på tunge verktøykall
+```
+
+`GH_TOKEN` hentes fra GitHub CLI og settes i shell-miljøet (f.eks. `~/.zshrc`):
 
 ```bash
-cplt config set allow.read <path-to-dab-copilot-config>/copilot-config/all/skills
-cplt config set sandbox.pass_env GH_TOKEN
+export GH_TOKEN=$(gh auth token)
 ```
 
-Dette gjelder for alle prosjekter og lagres i `~/.config/cplt/config.toml`.
+**OAuth-autentisering:**
+- **Copilot CLI:** Skjer automatisk inne i sandkassen med `allow_browser = true`
+- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen
+  (med `allow_browser = true`) eller i et separat terminalvindu utenfor cplt
 
 ### Oppdatering
 
