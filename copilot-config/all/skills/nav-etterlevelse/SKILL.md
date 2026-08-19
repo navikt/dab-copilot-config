@@ -828,9 +828,27 @@ Eksempler på plattformgarantier som løser etterlevelseskrav:
 | Azure AD / TokenX — intern autentisering | `docs.nais.io/auth/azuread`, `tokenx` | K245 |
 | Network policies — utgående trafikk begrenset | `docs.nais.io/nais-application/access-policy` | K245 |
 | Nais-logging — strukturert logging til Elastic | `docs.nais.io/observability/logging` | K245 |
-| Arcsight/CEF oppslagslogg | `sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg` | K253 |
+
+
 
 Hent spesifikke sider ved behov for å bekrefte detaljer som er relevante for kravene du vurderer.
+
+### Sikkerhetspraksis fra sikkerhet.nav.no
+
+NAVs Security Playbook ([sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/)) inneholder
+Nav-spesifikke praksiser og krav som er direkte relevante for K267 og K253. Hent aktuelle sider
+ved behov — særlig når du vurderer suksesskriterier under K267:
+
+| Side | URL | Relevant for |
+|---|---|---|
+| Oppslagslogg | `sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg` | K253 (visning av persondata til ansatte) |
+| Hemmeligheter | `sikkerhet.nav.no/docs/sikker-utvikling/hemmeligheter` | K267 SK3 (beskytte hemmeligheter) |
+| Tilgangsstyring | `sikkerhet.nav.no/docs/sikker-utvikling/tilgangsstyring` | K267 SK6 (tilgangskontroll endepunkter) |
+| Input/output validering | `sikkerhet.nav.no/docs/sikker-utvikling/inputvalidering` | K267 SK2 (validerer input og output) |
+| Applikasjonslogging | `sikkerhet.nav.no/docs/sikker-utvikling/logging` | K267 SK4 (logger sikkerhetshendelser) |
+| Supply chain-sikkerhet | `sikkerhet.nav.no/docs/sikker-utvikling/supply-chain` | K267 SK0+SK1 (sårbarheter, avhengigheter) |
+| ROS i TryggNok | `sikkerhet.nav.no/docs/sikker-utvikling/tryggnok` | K245 (risikovurdering, eskaleringsregler) |
+| Auditlogging av DB-endringer | `sikkerhet.nav.no/docs/sikker-utvikling/auditlogg_db_endring` | K267 (dataintegritet, økonomireglement) |
 
 ### Steg 6: Skriv begrunnelser og generer rapport
 
