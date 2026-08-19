@@ -27,6 +27,84 @@ Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding 
 > Se oppsettinstruksjoner i repoet:
 > https://github.com/navikt/nav-etterlevelse-mcp#oppsett
 
+### Kjøring under cplt og sandkasse-miljøer
+
+Fra august 2026 er Nav-ansatte pålagt å kjøre AI-agenter i sandkasse-miljø (cplt
+eller tilsvarende). Dette gir begrensninger som er viktige å kjenne til **FØR sesjonen
+starter**.
+
+#### Autentisering
+
+cplt støtter OAuth-flows med nettleser via `sandbox.allow_browser = true` (se
+konfigurasjon nedenfor). Dette er **påkrevd** for at MCP-autentisering skal fungere.
+
+**Copilot CLI:** OAuth-flows skjer automatisk inne i sandkassen når en MCP-server
+krever autentisering — nettleseren åpnes, bruker fullfører innlogging, og callback-
+serveren mottar redirect uten ekstra oppsett. Forutsetter `allow_browser = true`.
+
+**OpenCode:** `opencode mcp auth <server>` er en separat CLI-kommando som kjøres av
+brukeren. Den kan kjøres enten:
+- **Inne i cplt-sesjonen** (anbefalt) — forutsetter `allow_browser = true`
+- **I et separat terminalvindu utenfor cplt** — alltid fungerer
+
+```bash
+opencode mcp auth nav-etterlevelse-mcp  # Autentiser mot etterlevelse
+opencode mcp auth github                # Hvis github-mcp er konfigurert
+```
+
+`gh auth login` kjøres utenfor sandkassen (tokens lagres i macOS Keychain og er
+ikke tilgjengelig inne i sandkassen — se `GH_TOKEN`-konfigurasjon under).
+
+Tegn på manglende autentisering inne i sandkassen:
+- MCP-verktøy mangler eller nav-etterlevelse-mcp svarer ikke
+- `git clone` feiler med 401/403
+- `gh` rapporterer ugyldig token
+
+Løsning: Kjør `opencode mcp auth <server>` i sandkassen eller i separat terminal,
+og start ny cplt-sesjon.
+
+**Påkrevd cplt-konfigurasjon** (`~/.config/cplt/config.toml`):
+```toml
+[sandbox]
+allow_browser = true      # Påkrevd for OAuth-flows med nettleser
+
+[proxy]
+allow_private_domains = ["intern.dev.nav.no"]  # Påkrevd for nav-etterlevelse-mcp
+```
+
+#### Kodeanalyse i sandkassen
+
+Bruk den beste tilgjengelige metoden i denne rekkefølgen:
+
+**1. github-mcp** (for enkeltfiler og søk — anbefalt hvis tilgjengelig)
+Tilgjengelig hvis `github`-MCP-serveren er konfigurert — standard i Copilot CLI,
+valgfritt i OpenCode. Bruk `get_file_contents` og `search_code` direkte uten kloning.
+Verken `gh` CLI eller `GH_TOKEN` er nødvendig for denne metoden.
+
+**2. Lokal kloning** (for full kodeanalyse)
+SSH (port 22) er blokkert i sandkassen — bruk alltid HTTPS:
+```bash
+# Offentlige Nav-repoer:
+git clone https://github.com/navikt/{repo}.git
+
+# Private repoer (krever GH_TOKEN i miljøet):
+git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
+
+# ❌ Feiler — SSH er blokkert (port 22):
+git clone git@github.com:navikt/{repo}.git
+```
+
+`gh repo clone` kan brukes som alternativ, men kun hvis `gh` er installert **og**
+konfigurert med HTTPS (`gh config get git_protocol` må returnere `https`).
+`gh` er ikke en forutsetning.
+
+**3. Be brukeren om tilgang**
+Hvis verken github-mcp er konfigurert eller `GH_TOKEN` er tilgjengelig, be brukeren
+laste ned og dele relevante filer manuelt, eller konfigurere én av metodene over.
+
+**git push er aldri tilgjengelig i sandkassen** — be alltid brukeren pushe manuelt.
+
+
 ## Språk og tilgjengelighet
 
 Etterlevelsesbesvarelser leses av både teknisk og ikke-teknisk personell (jurister,
@@ -238,8 +316,9 @@ er normalt kun nødvendig én gang per dag.
 Hvis et MCP-tool-kall feiler med autentiseringsfeil («Unknown or expired MCP access token»
 eller «Azure access token has expired»):
 - **Stopp arbeidsflyten** og informer bruker om feilen
-- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` i et nytt terminalvindu.
-  Nettleseren åpner seg for re-autentisering. Sesjonen kan fortsettes der den slapp.
+- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` i et nytt terminalvindu
+  *utenfor cplt-sesjonen*. Nettleseren åpner seg for re-autentisering.
+  Sesjonen kan fortsettes der den slapp.
 - **Copilot CLI:** Prøv `/mcp`-kommandoen i chat-vinduet for å re-autentisere.
 - Ikke gjenta det feilende kallet automatisk — vent til bruker bekrefter at sesjonen er fornyet.
 
@@ -629,7 +708,10 @@ For hvert repo som skal analyseres (f.eks. `navikt/veilarbdialog`):
 
 3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
    ```bash
-   git clone https://github.com/navikt/{repo}
+   # Offentlige repoer:
+   git clone https://github.com/navikt/{repo}.git
+   # Private repoer (SSH er blokkert i cplt — bruk alltid HTTPS):
+   git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
    ```
    Repoet klones da som undermappe i CWD (`{repo}/`).
 
@@ -1277,4 +1359,3 @@ for enkle strukturerte deloppgaver.
 - Bruk interaktiv SK-gjennomgang (steg 7A) for effektiv kvalitetssikring — teamet ser SK-beskrivelse og diff side om side
 - Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
 - ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
-
