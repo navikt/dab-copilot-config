@@ -777,13 +777,18 @@ er tilgjengelige i konteksten.
 - Autentisering (ID-porten, Azure AD, TokenX)
 - Autorisasjon (poao-tilgang, roller, tilgangstyper)
 - Kontorsperre / beskyttede brukere
-- Auditlogging: Identifiser ALLE inngangspunkter (HTTP-endepunkter, GraphQL-resolvere,
-  meldingskonsumenter, bakgrunnsjobber) som eksponerer persondata til en bruker eller
-  system. Verifiser at hvert enkelt punkt logger oppslaget til NAVs oppslagslogg
-  (Arcsight/CEF). Mekanismen varierer etter rammeverk og språk — Spring: `@AuthorizeFnr`
-  (logback-naudit), Node.js: tilsvarende middleware, osv. Bekreft eksisterende
-  begrunnelse mot faktisk kode — ikke stol på at «noen kontrollere er dekket» betyr at
-  alle er det.
+- Oppslagslogg (K253): Identifiser inngangspunkter der en Nav-ansatt aktivt **viser**
+  personopplysninger om en borger — typisk HTTP-endepunkter/GraphQL-resolvere som returnerer
+  brukerdata til en saksbehandler-frontend. Verifiser at disse logger til ArcSight/CEF.
+
+  **Skal IKKE logges:** skrive-operasjoner, maskinell behandling, bakgrunnsjobber,
+  meldingskonsumenter, tilgangskontrollsjekker, avviste forespørsler, eller når en bruker
+  bare "dukker opp" i en liste eller en annen brukers sak uten at ansatte gjør et direkte
+  oppslag på vedkommende.
+
+  Mekanisme: Spring = logback-naudit (`naudit`-biblioteket), Node.js = Winston-syslog.
+  Én logglinje per meningsfull handling — ikke logg mer enn nødvendig.
+  Ref: [sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/)
 
 **Personvern:**
 - Hvilke personopplysninger lagres (database-skjema)
@@ -1308,7 +1313,7 @@ Agenten kan utlede: `irrelevansFor` (fra kodeanalyse), `behandlerPersonopplysnin
 | K231 Klarspråk | Tekstkvalitet, NAV DS-bruk. SK om kontakt med klarspråk = organisatorisk |
 | K232 Bokmål/nynorsk | i18n-rammeverk, språkvalg-UI, hardkodet tekst |
 | K245 Risikovurdering | CSP-policy, sårbarheter, sikkerhetstiltak |
-| K253 Oppslagslogg | Identifiser ALLE inngangspunkter som eksponerer persondata (HTTP-endepunkter, GraphQL-resolvere, meldingskonsumenter, bakgrunnsjobber). Verifiser systematisk at hvert enkelt logger til Arcsight/CEF (NAVs oppslagslogg). Mekanisme varierer: Spring = logback-naudit + dedikert annotering, Node.js = middleware, osv. |
+| K253 Oppslagslogg | Kun for **visning av personopplysninger til Nav-ansatte** i fagsystemer — ikke skrive-operasjoner, bakgrunnsjobber, meldingskonsumenter, tilgangskontrollsjekker eller listevisning uten direkte oppslag. Identifiser HTTP-endepunkter/GraphQL-resolvere som returnerer brukerdata til saksbehandler-frontend. Verifiser at disse logger til ArcSight/CEF. Spring = logback-naudit, Node.js = Winston-syslog. Ref: [sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/) |
 
 ## Rapport
 
