@@ -40,8 +40,11 @@ for komplett oppsett. Spesifikt for nav-pvk:
 - `proxy.allow_private_domains = ["intern.nav.no"]` er påkrevd for MCP-tilgang
 - **Kodeanalyse (Forberedelse D):** bruk github-mcp eller HTTPS-kloning — SSH (port 22) er blokkert
 - **git push er aldri tilgjengelig** i sandkassen — be brukeren pushe manuelt
-- **OpenCode:** kjør `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen
-  (med `allow_browser = true`) eller i et separat terminalvindu utenfor cplt
+**MCP-autentisering varierer per rammeverk** (alle forutsetter `allow_browser = true`):
+- **Copilot CLI:** autentiserer automatisk inne i sandkassen — ingen manuell handling nødvendig
+- **OpenCode:** `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen eller i separat terminal
+- **Claude Code:** `claude mcp login nav-etterlevelse-mcp` fra terminal, eller `/mcp` inne i sesjonen
+- **Andre:** se rammeverkets MCP-dokumentasjon for autentiseringskommando
 
 ## Språk og tilgjengelighet
 
