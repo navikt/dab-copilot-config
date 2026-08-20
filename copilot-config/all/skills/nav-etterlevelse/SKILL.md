@@ -849,21 +849,10 @@ ved behov — særlig når du vurderer suksesskriterier under K267:
 | Supply chain-sikkerhet | `sikkerhet.nav.no/docs/sikker-utvikling/supply-chain` | K267 SK0+SK1 (sårbarheter, avhengigheter) |
 | ROS i TryggNok | `sikkerhet.nav.no/docs/sikker-utvikling/tryggnok` | K245 (risikovurdering, eskaleringsregler) |
 | Auditlogging av DB-endringer | `sikkerhet.nav.no/docs/sikker-utvikling/auditlogg_db_endring` | K267 (dataintegritet, økonomireglement) |
-
-### Sikkerhetsverktøy for K267
-
-Under kodegjennomgangen — sjekk at teamet bruker Nav-anbefalte verktøy for K267. Disse
-er tilgjengelige for alle repoer under `navikt` og gir dokumenterbar dekning for
-suksesskriteriene:
-
-| Verktøy | Sjekk i kode | Relevant for |
-|---|---|---|
-| **Dependabot** | `.github/dependabot.yaml` — finnes og dekker riktige package-ecosystems? Gradle/Maven krever eksplisitt `dependency-submission`-action | K267 SK0 (oppdager sårbarheter), SK1 (oppdaterte avhengigheter) |
-| **GitHub Advanced Security** (CodeQL + Secret Scanning) | Workflow med `github/codeql-action` — aktivert for repoet? Secret scanning er automatisk for `navikt`-repoer | K267 SK0 (statisk analyse), SK3 (hemmeligheter i kode) |
-| **NAIS Console + Dependency-Track** | `nais/docker-build-push` i CI-workflow — gir automatisk SBOM og sårbarhetsoversikt i NAIS Console | K267 SK0 (sårbarhetsoversikt og risikoscore per app) |
-| **Chainguard baseimages** | `Dockerfile` — bruker `europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/...`? | K267 SK1 (minimale sårbarheter i baseimage) |
-
-Ref: [sikkerhet.nav.no/docs/verktoy/](https://sikkerhet.nav.no/docs/verktoy/)
+| Dependabot | `sikkerhet.nav.no/docs/verktoy/dependabot` — sjekk `.github/dependabot.yaml` + `dependency-submission`-action for Gradle/Maven | K267 SK0 (oppdager sårbarheter), SK1 (oppdaterte avhengigheter) |
+| GitHub Advanced Security (CodeQL + Secret Scanning) | `sikkerhet.nav.no/docs/verktoy/github-advanced-security` — sjekk `github/codeql-action`-workflow; secret scanning automatisk for `navikt`-repoer | K267 SK0 (statisk analyse), SK3 (hemmeligheter i kode) |
+| NAIS Console + Dependency-Track | `sikkerhet.nav.no/docs/verktoy/nais-console-dp-track` — sjekk at `nais/docker-build-push` brukes i CI (gir SBOM og sårbarhetsoversikt) | K267 SK0 (sårbarhetsoversikt og risikoscore) |
+| Chainguard baseimages | `sikkerhet.nav.no/docs/verktoy/chainguard-dockerimages` — sjekk `Dockerfile` for `europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/...` | K267 SK1 (minimale sårbarheter i baseimage) |
 
 ### Steg 6: Skriv begrunnelser og generer rapport
 
