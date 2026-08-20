@@ -1044,9 +1044,17 @@ ENDRING:
 > _
 ```
 
+**⛔ SEKVENSIELT — ETT SK OM GANGEN:**
+
+Presenter **alltid** ett suksesskriterium om gangen og vent på brukerens svar (G/H/R) før
+neste SK vises. Vis aldri to eller flere SK-er i samme melding. Dette gjelder uansett om
+kravet har ett eller mange suksesskriterier.
+
+Vis øverst i meldingen: `SK {i} av {n} for K{nr}.{v}` slik at bruker vet hvor de er i flyten.
+
 **Regler for interaktiv gjennomgang:**
-- **G (Godkjenn):** SK markeres for opplasting. Gå til neste SK.
-- **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret.
+- **G (Godkjenn):** SK markeres for opplasting. Vis neste SK (ny melding).
+- **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret. Vis neste SK (ny melding).
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
   vises den oppdaterte diff-en på nytt med G/H-valg.
 
