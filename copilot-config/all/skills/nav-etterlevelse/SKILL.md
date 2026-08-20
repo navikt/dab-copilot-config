@@ -1110,7 +1110,8 @@ Etterlevelsesløsningen har et `behovForBegrunnelse`-felt per suksesskriterium i
 Dette avgjør om begrunnelse er forventet:
 
 - **`behovForBegrunnelse = true`**: Skriv alltid en begrunnelse
-- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet — ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
+- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet for OPPFYLT/UNDER_ARBEID — ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
+- **IKKE_RELEVANT krever alltid begrunnelse** — uavhengig av `behovForBegrunnelse`. Du påstår at kriteriet ikke gjelder for systemet, og det krever en eksplisitt forklaring (f.eks. «Systemet har ingen intern brukerflate» eller «Kravet gjelder kun EKSTERN_SKJERMFLATE»)
 
 ### Tekstformatering — alle begrunnelsesfelt støtter markdown
 
