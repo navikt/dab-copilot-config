@@ -38,22 +38,16 @@ starter**.
 cplt støtter OAuth-flows med nettleser via `sandbox.allow_browser = true` (se
 konfigurasjon nedenfor). Dette er **påkrevd** for at MCP-autentisering skal fungere.
 
-**Copilot CLI:** OAuth-flows skjer automatisk inne i sandkassen når en MCP-server
-krever autentisering — nettleseren åpnes, bruker fullfører innlogging, og callback-
-serveren mottar redirect uten ekstra oppsett. Forutsetter `allow_browser = true`.
+`gh auth login` kjøres alltid utenfor sandkassen (Keychain-begrenset, se `GH_TOKEN`).
 
-**OpenCode:** `opencode mcp auth <server>` er en separat CLI-kommando som kjøres av
-brukeren. Den kan kjøres enten:
-- **Inne i cplt-sesjonen** (anbefalt) — forutsetter `allow_browser = true`
-- **I et separat terminalvindu utenfor cplt** — alltid fungerer
+**MCP-autentisering varierer per rammeverk** (alle forutsetter `allow_browser = true`):
+- **Copilot CLI:** autentiserer automatisk inne i sandkassen — ingen manuell handling nødvendig
+- **OpenCode:** `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen eller i separat terminal
+- **Claude Code:** `claude mcp login nav-etterlevelse-mcp` fra terminal, eller `/mcp` inne i sesjonen
+- **Andre:** se rammeverkets MCP-dokumentasjon for autentiseringskommando
 
-```bash
-opencode mcp auth nav-etterlevelse-mcp  # Autentiser mot etterlevelse
-opencode mcp auth github                # Hvis github-mcp er konfigurert
-```
-
-`gh auth login` kjøres utenfor sandkassen (tokens lagres i macOS Keychain og er
-ikke tilgjengelig inne i sandkassen — se `GH_TOKEN`-konfigurasjon under).
+Vil du legge til github-mcp, autentiser mot den på samme måte:
+`opencode mcp auth github` (OpenCode) eller `claude mcp login github` (Claude Code).
 
 Tegn på manglende autentisering inne i sandkassen:
 - MCP-verktøy mangler eller nav-etterlevelse-mcp svarer ikke
@@ -316,10 +310,9 @@ er normalt kun nødvendig én gang per dag.
 Hvis et MCP-tool-kall feiler med autentiseringsfeil («Unknown or expired MCP access token»
 eller «Azure access token has expired»):
 - **Stopp arbeidsflyten** og informer bruker om feilen
-- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` i et nytt terminalvindu
-  *utenfor cplt-sesjonen*. Nettleseren åpner seg for re-autentisering.
-  Sesjonen kan fortsettes der den slapp.
-- **Copilot CLI:** Prøv `/mcp`-kommandoen i chat-vinduet for å re-autentisere.
+- **Copilot CLI:** Prøv `/mcp`-kommandoen i chat-vinduet for å re-autentisere
+- **OpenCode:** Kjør `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen eller i ny terminal
+- **Claude Code:** Kjør `claude mcp login nav-etterlevelse-mcp` eller bruk `/mcp` i sesjonen
 - Ikke gjenta det feilende kallet automatisk — vent til bruker bekrefter at sesjonen er fornyet.
 
 Fortsett direkte til steg 3.
