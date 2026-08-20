@@ -206,11 +206,6 @@ Spør bruker om:
 - **GitHub-repoer**: navikt/{repo} — ett eller flere repoer (kun for eksisterende systemer)
 - **Gjennomgangstype**: Ny PVK eller oppdatering av eksisterende?
 
-Hent NAIS-dokumentasjonen som kontekst:
-```
-web_fetch https://docs.nais.io
-```
-
 ### Forberedelse B: Autentisering via MCP-serveren
 
 Alle kall til etterlevelsesløsningen og behandlingskatalogen går via **nav-etterlevelse-mcp**.
@@ -331,12 +326,18 @@ Bruk deretter lokale verktøy (`bash`, `ripgrep`, `find`) og explore-agenter par
 
 ### Forberedelse E: Verifiser mot NAIS-plattformen
 
-Sjekk `nais.yaml`-filer i repoene mot NAIS-docs:
-```
-web_fetch https://docs.nais.io
-```
-Relevante NAIS-features: Cloud SQL (private IP, kryptering), ID-porten sidecar,
-Azure AD, TokenX, Network policies, Kafka (Aiven).
+⛔ **Gjelder kun for eksisterende systemer.** Ved pre-implementasjon PVK hoppes dette
+steget over — det finnes ingen `nais.yaml` å verifisere mot.
+
+Sjekk `nais.yaml`-filene i repoene for NAIS-features som er relevante for PVK.
+Hent spesifikke sider fra NAIS-docs ved behov — ikke hele docs.nais.io:
+
+| NAIS-feature | Hent ved behov | Relevant for PVK |
+|---|---|---|
+| Cloud SQL — kryptering i hvile, private IP | `docs.nais.io/persistence/cloudsql` | Risikovurdering av datalagring |
+| Kafka/Aiven — retention, tilgangspolicyer | `docs.nais.io/persistence/kafka` | Lagringstid, dataminimering |
+| ID-porten / Azure AD / TokenX | `docs.nais.io/auth/` | Tilgangskontroll, autentisering |
+| Network policies — utgående trafikk | `docs.nais.io/nais-application/access-policy` | Dataflyt til tredjeparter |
 
 ---
 
