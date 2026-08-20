@@ -30,6 +30,19 @@ Hvis kallet feiler eller verktøyet ikke finnes, stopp og vis følgende melding 
 > Se oppsettinstruksjoner i repoet:
 > https://github.com/navikt/nav-etterlevelse-mcp#oppsett
 
+### Kjøring under cplt og sandkasse-miljøer
+
+Fra august 2026 er Nav-ansatte pålagt å kjøre AI-agenter i sandkasse-miljø (cplt).
+Se [dab-copilot-config README](https://github.com/navikt/dab-copilot-config#kjøring-i-cplt-sandbox)
+for komplett oppsett. Spesifikt for nav-pvk:
+
+- `sandbox.allow_browser = true` er påkrevd for OAuth-flow mot nav-etterlevelse-mcp
+- `proxy.allow_private_domains = ["intern.nav.no"]` er påkrevd for MCP-tilgang
+- **Kodeanalyse (Forberedelse D):** bruk github-mcp eller HTTPS-kloning — SSH (port 22) er blokkert
+- **git push er aldri tilgjengelig** i sandkassen — be brukeren pushe manuelt
+- **OpenCode:** kjør `opencode mcp auth nav-etterlevelse-mcp` inne i sandkassen
+  (med `allow_browser = true`) eller i et separat terminalvindu utenfor cplt
+
 ## Språk og tilgjengelighet
 
 PVK-en skal vurderes av personvernombud, risikoeiere og andre som ikke nødvendigvis
@@ -185,7 +198,12 @@ Vent på brukerens svar før du fortsetter.
 
 Spør bruker om:
 - **Etterlevelsesdokumentasjon**: URL eller ID (format: `a5cc7dfe-2fb9-4ff2-...`)
-- **GitHub-repoer**: navikt/{repo} — ett eller flere repoer som utgjør systemet
+- **PVK-modus**:
+  - **Pre-implementasjon** — systemet er under planlegging, kildekode finnes ikke enda.
+    PVK gjennomføres for å la personvernhensyn styre designvalg (anbefalt fremgangsmåte
+    iht. GDPR art. 35 som krever DPIA *før* behandlingen starter).
+  - **Eksisterende system** — systemet er under utvikling eller i drift, kildekode er tilgjengelig.
+- **GitHub-repoer**: navikt/{repo} — ett eller flere repoer (kun for eksisterende systemer)
 - **Gjennomgangstype**: Ny PVK eller oppdatering av eksisterende?
 
 Hent NAIS-dokumentasjonen som kontekst:
@@ -197,6 +215,9 @@ web_fetch https://docs.nais.io
 
 Alle kall til etterlevelsesløsningen og behandlingskatalogen går via **nav-etterlevelse-mcp**.
 Ingen manuell pålogging eller SSO-cookies er nødvendig.
+
+**Under cplt:** Re-autentisering gjøres med `opencode mcp auth nav-etterlevelse-mcp` inne
+i sandkassen (forutsetter `allow_browser = true`) eller i et separat terminalvindu utenfor.
 
 Fortsett direkte til Forberedelse C.
 
@@ -241,6 +262,25 @@ nøkkelfunn (identifiserte risikoer, tiltak, restrisikoer).
 
 ### Forberedelse D: Inspiser kildekode
 
+⛔ **Gjelder kun for eksisterende systemer.** Ved pre-implementasjon PVK hoppes dette steget
+over — risikoscenarioer baseres på planlagt design, Behandlingskatalog og domenekontekst.
+
+#### Pre-implementasjon PVK — alternativ til kodeanalyse
+
+Ved pre-implementasjon PVK er design og Behandlingskatalog de primære kildene.
+Spør teamet om:
+
+- **Planlagt dataflyt:** Hvilke personopplysninger samles inn, fra hvem, og hvor flyter de?
+- **Planlagte integrasjoner:** Kafka-topics, API-er mot andre systemer, tredjeparter
+- **Planlagt tilgangsstyring:** Hvem skal ha tilgang, hvilke roller, kontorsperre?
+- **Planlagt lagringstid og sletting:** Retention-mekanismer, pseudonymisering
+- **Arkitekturbeskrivelse eller designdokumenter** — last opp eller lim inn
+
+Personvernhensyn identifisert her bør aktivt styre designvalg *før* implementasjonen starter.
+Dokumenter eventuelle designbeslutninger motivert av personvern i livsløpsbeskrivelsen (steg 2).
+
+#### Eksisterende systemer — kodeanalyse
+
 **Foretrekk alltid lokal kildekode fremfor GitHub API-kall** — det er raskere, mer komplett
 og har ingen rate limits.
 
@@ -260,7 +300,10 @@ For hvert repo som skal analyseres:
 
 3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
    ```bash
-   git clone https://github.com/navikt/{repo}
+   # Offentlige repoer:
+   git clone https://github.com/navikt/{repo}.git
+   # Private repoer (SSH er blokkert i cplt — bruk HTTPS):
+   git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
    ```
    Repoet klones da som undermappe i CWD (`{repo}/`).
 
