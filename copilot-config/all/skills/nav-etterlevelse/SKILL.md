@@ -458,7 +458,7 @@ Fremgangsmåte:
    - «Det er åpenbart / ikke tolkningstvil» — åpenbare tilfeller skal OPPFYLLES, ikke hoppes over
    - «Dette gjøres i et annet system» — hvert system gjør sin egen vurdering
    - «Det er lite hensiktsmessig» — personvernsrettighetene gjelder uavhengig av hensiktsmessighet
-   - Tom begrunnelse — alltid feil for IKKE_RELEVANT (uansett `behovForBegrunnelse`)
+   - Tom begrunnelse når `behovForBegrunnelse = true` — alltid feil for IKKE_RELEVANT
    - Begrunnelse som svarer på et annet spørsmål enn det SK-et stiller
 5. **Konkluder:** Korrekt IKKE_RELEVANT ✅ / Bør være OPPFYLT ⚠️ / Bør være IKKE_OPPFYLT 🔴
 
@@ -1109,9 +1109,8 @@ felter: `suksesskriterieId`, `begrunnelse` og `suksesskriterieStatus`.
 Etterlevelsesløsningen har et `behovForBegrunnelse`-felt per suksesskriterium i kravdefinisjonen.
 Dette avgjør om begrunnelse er forventet:
 
-- **`behovForBegrunnelse = true`**: Skriv alltid en begrunnelse
-- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet for OPPFYLT/UNDER_ARBEID — ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
-- **IKKE_RELEVANT krever alltid begrunnelse** — uavhengig av `behovForBegrunnelse`. Du påstår at kriteriet ikke gjelder for systemet, og det krever en eksplisitt forklaring (f.eks. «Systemet har ingen intern brukerflate» eller «Kravet gjelder kun EKSTERN_SKJERMFLATE»)
+- **`behovForBegrunnelse = true`**: Skriv alltid en begrunnelse — gjelder for alle statuser inkludert IKKE_RELEVANT
+- **`behovForBegrunnelse = false`**: Begrunnelse er ikke forventet — gjelder for alle statuser inkludert IKKE_RELEVANT. Ikke flagg disse som ufullstendige selv om `begrunnelse` er tom
 
 ### Tekstformatering — alle begrunnelsesfelt støtter markdown
 
