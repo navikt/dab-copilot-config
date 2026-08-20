@@ -1056,6 +1056,11 @@ ENDRING:
 - **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret.
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
   vises den oppdaterte diff-en på nytt med G/H-valg.
+
+⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke last opp
+IKKE_RELEVANT automatisk selv om `behovForBegrunnelse = false` og det ikke er noe å redigere.
+IKKE_RELEVANT er en faglig påstand om at kriteriet ikke gjelder for systemet — teamet
+må bekrefte dette, ikke agenten. Presenter alltid forslaget med begrunnelse for statusvalget.
 - Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over»,
   **last deretter opp kravet umiddelbart** med `write_etterlevelse` (se under).
 - Etter alle krav: vis total oppsummering.
