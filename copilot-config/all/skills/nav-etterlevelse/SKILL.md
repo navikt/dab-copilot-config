@@ -850,6 +850,21 @@ ved behov — særlig når du vurderer suksesskriterier under K267:
 | ROS i TryggNok | `sikkerhet.nav.no/docs/sikker-utvikling/tryggnok` | K245 (risikovurdering, eskaleringsregler) |
 | Auditlogging av DB-endringer | `sikkerhet.nav.no/docs/sikker-utvikling/auditlogg_db_endring` | K267 (dataintegritet, økonomireglement) |
 
+### Sikkerhetsverktøy for K267
+
+Under kodegjennomgangen — sjekk at teamet bruker Nav-anbefalte verktøy for K267. Disse
+er tilgjengelige for alle repoer under `navikt` og gir dokumenterbar dekning for
+suksesskriteriene:
+
+| Verktøy | Sjekk i kode | Relevant for |
+|---|---|---|
+| **Dependabot** | `.github/dependabot.yaml` — finnes og dekker riktige package-ecosystems? Gradle/Maven krever eksplisitt `dependency-submission`-action | K267 SK0 (oppdager sårbarheter), SK1 (oppdaterte avhengigheter) |
+| **GitHub Advanced Security** (CodeQL + Secret Scanning) | Workflow med `github/codeql-action` — aktivert for repoet? Secret scanning er automatisk for `navikt`-repoer | K267 SK0 (statisk analyse), SK3 (hemmeligheter i kode) |
+| **NAIS Console + Dependency-Track** | `nais/docker-build-push` i CI-workflow — gir automatisk SBOM og sårbarhetsoversikt i NAIS Console | K267 SK0 (sårbarhetsoversikt og risikoscore per app) |
+| **Chainguard baseimages** | `Dockerfile` — bruker `europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/...`? | K267 SK1 (minimale sårbarheter i baseimage) |
+
+Ref: [sikkerhet.nav.no/docs/verktoy/](https://sikkerhet.nav.no/docs/verktoy/)
+
 ### Steg 6: Skriv begrunnelser og generer rapport
 
 **⛔ ALDRI SKRIV TIL API UTEN BRUKERENS EKSPLISITTE GODKJENNING.**
