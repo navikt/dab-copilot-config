@@ -82,7 +82,7 @@ Legg til følgende i `~/.config/cplt/config.toml`:
 ```toml
 [sandbox]
 allow_browser = true      # Påkrevd for MCP OAuth-flows med nettleser
-pass_env = ["GH_TOKEN"]   # Påkrevd for git clone av private repoer
+pass_env = ["GH_TOKEN"]   # Kun nødvendig for git clone av private repoer
 
 [allow]
 read = ["<path-to-dab-copilot-config>/copilot-config/all/skills"]
@@ -92,10 +92,14 @@ allow_private_domains = ["intern.nav.no"]  # Prod. Bruk ["intern.dev.nav.no"] fo
 timeout = 180                              # Forhindrer timeout på tunge verktøykall
 ```
 
-`GH_TOKEN` hentes fra GitHub CLI og settes i shell-miljøet (f.eks. `~/.zshrc`):
+`GH_TOKEN` trengs kun dersom agenten skal klone private GitHub-repoer under kodeanalyse.
+Offentlige Nav-repoer og github-mcp fungerer uten. Legg følgende i `~/.zshrc` om ønskelig:
 
 ```bash
-export GH_TOKEN=$(gh auth token)
+# Sett kun GH_TOKEN hvis gh er installert — unngår stille feil ved sourcing
+command -v gh &>/dev/null && export GH_TOKEN=$(gh auth token)
+# Alternativt: lag et PAT på github.com/settings/tokens og sett det manuelt:
+# export GH_TOKEN=github_pat_xxxx
 ```
 
 **OAuth-autentisering:**
