@@ -179,7 +179,17 @@ og hva veiledere har lov/ikke lov til å registrere. Hentes via MCP-tools
 | `pensjon-alderspensjon` | fag-og-ytelser-pensjon-alderspensjon |
 | `markedsarbeid` | fag-og-ytelser-arbeid-markedsarbeid |
 | `utbetalinger` | fag-og-ytelser-utbetalinger |
-| `stonadsokonomi` | fag-og-ytelser-stonadsokonomi |
+| `intranett-utvikling` | intranett-utvikling |
+| `intranett-omstilling` | intranett-omstilling |
+| `fag-og-ytelser` | fag-og-ytelser (hub-site, begrenset innhold) |
+
+**Merk — innhold som ikke er åpenbart fra fagområde-koden:**
+
+| Fagområde-kode | Inneholder også |
+|---|---|
+| `intranett-omstilling` | Rekrutteringsprosessen (stillingsannonse, Webcruiter, PRIM, kandidathåndtering, intervju, innstilling, ansettelse) — **bruk denne for alt om ansettelse og rekruttering i NAV** |
+| `markedsarbeid` | Arbeidsgiverkontakt, Salesforce Arbeidsgiver, rekrutteringsbistand, arbeidsplassen.no |
+| `tiltak-og-virkemidler` | Personvern i arbeidsmarkedstiltak, databehandleravtaler med tiltaksarrangører |
 
 Hvis fagområdet ikke er i listen, be bruker om å kontakte #tech-azure for tilgang.
 
