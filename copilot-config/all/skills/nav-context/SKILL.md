@@ -124,7 +124,7 @@ Ellers søk med `search_behandlinger` på systemnavn eller formål og velg rikti
 
 ### Steg 4: Faglig kontekst fra Navet
 
-⛔ **OBLIGATORISK — ALLTID utfør dette steget. Behandlingskatalog og kode er ikke tilstrekkelig alene.**
+⛔ **OBLIGATORISK — med ett unntak: hopp over hvis en predefinert `domain-context.md` allerede er kopiert til CWD (steg 1). Den har Navet-data innbakt fra da den ble laget.**
 
 Navet inneholder operativ fagkunnskap som ikke finnes noe annet sted: hva veiledere har lov
 og ikke lov til å registrere, faglige restriksjoner, rundskriv og retningslinjer. Uten Navet
