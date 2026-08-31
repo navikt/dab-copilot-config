@@ -3,7 +3,7 @@ name: nav-context
 description: >
   Lager eller oppdaterer domain-context.md og/eller system-context.md i gjeldende katalog.
   Filene gir domenekunnskap og systemspesifikk kunnskap som nav-etterlevelse og nav-pvk
-  bruker som kontekst. Henter data fra behandlingskatalog, GitHub-repoer og eventuelt Navet.
+  bruker som kontekst. Henter data fra behandlingskatalog, Navet (obligatorisk) og GitHub-repoer.
   Bruk denne når nav-etterlevelse eller nav-pvk etterlyser kontekstfil, eller når du vil
   opprette/oppdatere konteksten for et system som skal vurderes.
 ---
@@ -124,47 +124,54 @@ Ellers søk med `search_behandlinger` på systemnavn eller formål og velg rikti
 
 ### Steg 4: Faglig kontekst fra Navet
 
-Navet er NAVs interne SharePoint med fagområdespesifikke sider om lover, retningslinjer
-og hva veiledere har lov/ikke lov til å registrere. Hentes via MCP-tools
-`list_navet_pages` og `get_navet_page` — ingen manuell pålogging nødvendig.
+⛔ **OBLIGATORISK — ALLTID utfør dette steget. Behandlingskatalog og kode er ikke tilstrekkelig alene.**
+
+Navet inneholder operativ fagkunnskap som ikke finnes noe annet sted: hva veiledere har lov
+og ikke lov til å registrere, faglige restriksjoner, rundskriv og retningslinjer. Uten Navet
+blir domenekonteksten mangelfull og kan gi feil etterlevelsesbesvarelser.
+
+Hentes via MCP-tools `list_navet_pages` og `get_navet_page` — ingen manuell pålogging nødvendig.
 
 **Fremgangsmåte:**
 
-1. **List alle sidetitler** for fagområdet:
+1. **Identifiser riktig fagområde-kode** fra tabellen nedenfor basert på systemets domene.
+   Hvis usikker: hent fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
+   For systemer som spenner flere fagområder: list sider for hvert relevant fagområde.
+
+2. **List alle sidetitler** for fagområdet:
    ```
    list_navet_pages(fagomrade: "{fagomrade}")
    ```
+   ⛔ **Kall dette verktøyet alltid — ikke hopp over selv om du tror du kjenner fagområdet.**
 
-2. **Velg relevante sider** — bruk konteksten du allerede har fra steg 3 til å
-   identifisere hva du bør se etter. Fra behandlingskatalogen vet du:
-   - Hvilke lovhjemler som er brukt → søk etter sider om disse spesifikke lovene
-   - Hvilke personopplysningstyper systemet behandler → søk etter sider om
-     hva som er tillatt å registrere for akkurat disse typene
-   - Om det er automatisert behandling/profilering → søk etter sider om dette
+3. **Velg relevante sider** — bruk konteksten fra steg 3 til å prioritere:
+   - Lovhjemler fra behandlingskatalogen → søk sider om disse lovene
+   - Personopplysningstyper systemet behandler → søk sider om hva som er tillatt å registrere
+   - Automatisert behandling/profilering → søk sider om dette
 
-   Generelt nyttige sider å se etter (uavhengig av domene):
+   Generelt nyttige sider å alltid se etter:
    - Personvern og hva du kan/ikke kan skrive — operative GDPR-krav
    - Spesifikke restriksjoner («er ikke tillatt», «skal ikke», «kan ikke benyttes»)
    - Lover og regler / forvaltningskompetanse — konkrete lovhjemler
    - Journalføring og dokumentasjonskrav
-   - Tilgang og registrering — bruker-autentisering, kategorier av brukere
+   - Tilgang og registrering — brukerkategorier og tilgangsregler
    - Faglige standarder og retningslinjer for oppfølging
 
-   Velg 8–12 sider. Portalsider («NAV-loven § 14a», «Personvern») gir ofte bare
-   lenkelister — foretrekk artikler med substantivt innhold.
+   Velg **minimum 8 sider**, gjerne 10–12. Portalsider («NAV-loven § 14a», «Personvern»)
+   gir ofte bare lenkelister — foretrekk artikler med substantivt innhold.
 
-3. **Hent innholdet** fra de utvalgte sidene:
+4. **Hent innholdet** fra de utvalgte sidene:
    ```
    get_navet_page(fagomrade: "{fagomrade}", pageId: "{id}")
    ```
+   ⛔ **Hent faktisk sideinnhold — ikke bruk sidetitler alene som grunnlag for domain-context.**
 
-4. **Supplement med standardkunnskap** — noen elementer finnes ikke i Navet fordi
-   Navet inneholder operative retningslinjer, ikke juridisk rammeverk:
-   - GDPR-artikler (art. 6, art. 9) — suppler fra din juridiske kunnskap
+5. **Supplement med standardkunnskap** — noen elementer finnes ikke i Navet:
+   - GDPR-artikler (art. 6, art. 9) — suppler fra juridisk kunnskap
    - Kode 6/7 kontorsperre — suppler fra systemkunnskap hvis relevant
    - Merk slike punkter med `[Verifiser mot rundskriv]` i domain-context
 
-5. **Oppsummer kondensert** — ikke inkluder rå sideinnhold.
+6. **Oppsummer kondensert** — ikke inkluder rå sideinnhold.
 
 **Tilgjengelige fagområder:**
 
