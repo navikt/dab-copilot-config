@@ -1044,19 +1044,29 @@ ENDRING:
 > _
 ```
 
-**⛔ SEKVENSIELT — ETT SK OM GANGEN:**
+**⛔ ABSOLUTT KRAV — ETT SK PER MELDING, STOPP OG VENT:**
 
-Presenter **alltid** ett suksesskriterium om gangen og vent på brukerens svar (G/H/R) før
-neste SK vises. Vis aldri to eller flere SK-er i samme melding. Dette gjelder uansett om
-kravet har ett eller mange suksesskriterier.
+Dette er den viktigste regelen i hele gjennomgangsflyten. Brudd på denne regelen gjør
+gjennomgangen ubrukelig.
 
-Vis øverst i meldingen: `SK {i} av {n} for K{nr}.{v}` slik at bruker vet hvor de er i flyten.
+1. **Generer én SK-blokk.** Avslutt meldingen med `[G]odkjenn  [H]opp over  [R]ediger`.
+2. **STOPP HELT.** Ikke generer noe mer innhold — ikke neste SK, ikke oppsummering, ikke forklaring.
+3. **Vent på brukerens svar** (G, H eller R) før du gjør noe som helst.
+4. **Først etter svar:** behandle svaret og generer neste SK i en ny melding.
+
+Dette gjelder **uten unntak**:
+- Selv om kravet har mange SK-er — vis én om gangen
+- Selv om alle SK-er «åpenbart» er like — vis én om gangen
+- Selv om bruker sier «godkjenn alle» — be om bekreftelse per SK
+- Selv om gjennomgangen har mange krav — stopp etter hvert enkelt SK
+
+Vis øverst i hver melding: `SK {i} av {n} for K{nr}.{v}`
 
 **Regler for interaktiv gjennomgang:**
-- **G (Godkjenn):** SK markeres for opplasting. Vis neste SK (ny melding).
-- **H (Hopp over):** SK hoppes over — eksisterende data i etterlevelsesløsningen beholdes uendret. Vis neste SK (ny melding).
+- **G (Godkjenn):** SK markeres for opplasting. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er mottatt.
+- **H (Hopp over):** SK hoppes over. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter H er mottatt.
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
-  vises den oppdaterte diff-en på nytt med G/H-valg.
+  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding.
 
 ⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke last opp
 IKKE_RELEVANT automatisk selv om `behovForBegrunnelse = false` og det ikke er noe å redigere.
