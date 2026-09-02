@@ -1024,7 +1024,7 @@ Hensikt:
 ══════════════════════════════════════════════════════════════
 ```
 
-For **hvert suksesskriterium** med endring under kravet:
+For **hvert suksesskriterium** med endring under kravet (én blokk per melding):
 
 ```
 ─────────────────────────────────────────
@@ -1054,6 +1054,16 @@ gjennomgangen ubrukelig.
 3. **Vent på brukerens svar** (G, H eller R) før du gjør noe som helst.
 4. **Først etter svar:** behandle svaret og generer neste SK i en ny melding.
 
+**Output-kontrakt (hard validering før sending):**
+- Meldingen skal inneholde **akkurat én** forekomst av `SK{id}`-blokken.
+- Meldingen skal inneholde **akkurat én** meny-linje: `[G]odkjenn  [H]opp over  [R]ediger`.
+- Hvis meldingen inneholder to eller flere `SK{id}`-blokker, er output **ugyldig** og må skrives om før sending.
+
+**Forbudt mønster (aldri tillatt):**
+- «Her er SK1, SK2, SK3 — godkjenn alle samlet»
+- «Oppsummering av alle SK-er med ett G/H/R-valg»
+- «Batch med flere SK-er i samme svar, selv om alle har samme status»
+
 Dette gjelder **uten unntak**:
 - Selv om kravet har mange SK-er — vis én om gangen
 - Selv om alle SK-er «åpenbart» er like — vis én om gangen
@@ -1061,6 +1071,10 @@ Dette gjelder **uten unntak**:
 - Selv om gjennomgangen har mange krav — stopp etter hvert enkelt SK
 
 Vis øverst i hver melding: `SK {i} av {n} for K{nr}.{v}`
+
+Hvis bruker svarer «godkjenn alle», skal agenten svare:
+`Kan ikke godkjenne samlet. Vi må ta ett SK om gangen.`
+og deretter vise **nøyaktig ett** SK (neste i køen).
 
 **Regler for interaktiv gjennomgang:**
 - **G (Godkjenn):** SK markeres for opplasting. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er mottatt.
@@ -1400,5 +1414,6 @@ for enkle strukturerte deloppgaver.
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
 - Bevar ALLTID eksisterende begrunnelser ved oppdatering
 - Bruk interaktiv SK-gjennomgang (steg 7A) for effektiv kvalitetssikring — teamet ser SK-beskrivelse og diff side om side
+- **Interaktiv gjennomgang er alltid én-og-én:** nøyaktig ett SK per melding, stopp, vent på G/H/R, deretter neste SK
 - Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
 - ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
