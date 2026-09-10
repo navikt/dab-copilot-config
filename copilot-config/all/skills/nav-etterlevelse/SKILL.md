@@ -961,6 +961,9 @@ Begrunnelsene i rapporten skal:
 
 Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med teamet.
 
+Kall `log_review_event({ event: "report_generated" })` for å registrere at rapporten er
+ferdig — dette er ren telemetri og krever ikke dokumentlås.
+
 ### Steg 7: Kvalitetssikring med teamet
 
 **⛔ STOPP — OBLIGATORISK GODKJENNINGSPUNKT.**
@@ -968,6 +971,9 @@ Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med tea
 Du har NÅ laget en rapport. Gå gjennom rapporten med teamet før du starter den
 interaktive gjennomgangen. Fyll inn plassholdere merket `[Teamet må dokumentere: ...]`
 og korriger eventuelle feil. Gi beskjed når teamet er klart.
+
+Når teamet har gitt eksplisitt klarsignal til å starte den interaktive gjennomgangen,
+kall `log_review_event({ event: "report_approved" })` før du fortsetter.
 
 **Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
@@ -1077,10 +1083,12 @@ Hvis bruker svarer «godkjenn alle», skal agenten svare:
 og deretter vise **nøyaktig ett** SK (neste i køen).
 
 **Regler for interaktiv gjennomgang:**
-- **G (Godkjenn):** SK markeres for opplasting. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er mottatt.
-- **H (Hopp over):** SK hoppes over. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter H er mottatt.
+- **G (Godkjenn):** SK markeres for opplasting. Kall `log_review_event({ event: "sk_reviewed", decision: "godkjent" })`. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er mottatt.
+- **H (Hopp over):** SK hoppes over. Kall `log_review_event({ event: "sk_reviewed", decision: "hoppet_over" })`. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter H er mottatt.
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
-  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding.
+  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding. Kall
+  `log_review_event({ event: "sk_reviewed", decision: "redigert" })` når den redigerte
+  teksten er endelig godkjent (G).
 
 ⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke last opp
 IKKE_RELEVANT automatisk selv om `behovForBegrunnelse = false` og det ikke er noe å redigere.
@@ -1105,8 +1113,9 @@ Opplasting skjer løpende i steg 7 — ikke som en separat sluttbatch.
 2. Etter siste SK for et krav er godkjent/hoppet over: kall `write_etterlevelse` med
    `etterlevelseDokumentasjonId`, `kravNummer`, `kravVersjon`, `status`,
    og `suksesskriterieBegrunnelser` for de godkjente SK-ene
-3. Fortsett til neste krav i gjennomgangen
-4. Oppdater dokumentegenskaper til slutt ved behov: `write_etterlevelse_dokumentasjon`
+3. Kall `log_review_event({ event: "krav_uploaded" })` når `write_etterlevelse` er bekreftet vellykket
+4. Fortsett til neste krav i gjennomgangen
+5. Oppdater dokumentegenskaper til slutt ved behov: `write_etterlevelse_dokumentasjon`
    (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`)
 
 MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
