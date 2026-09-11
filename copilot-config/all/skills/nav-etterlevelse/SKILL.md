@@ -1120,6 +1120,15 @@ Opplasting skjer løpende i steg 7 — ikke som en separat sluttbatch.
 
 MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
 
+**Selvsjekk ved advarsel fra write_etterlevelse:** Hvis svaret fra `write_etterlevelse`
+inneholder et `batchWarning`-felt (eller en ⚠-linje i `summary`), betyr det at skrivingen
+inneholdt flere suksesskriterie-begrunnelser enn det som er rapportert enkeltvis godkjent
+via `log_review_event(sk_reviewed, godkjent)` siden forrige opplasting. Dette er et signal
+om at ett-SK-om-gangen-kontrakten i steg 7 kan ha blitt brutt for dette kravet. Reager ved
+å gå tilbake til interaktiv gjennomgang for gjenværende krav i sesjonen — presenter og
+innhent godkjenning for hvert SK individuelt, og bekreft at `log_review_event` kalles for
+hver enkelt godkjenning, før neste opplasting.
+
 ## KRITISK: Statusverdier og feltmapping
 
 **Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
