@@ -468,9 +468,12 @@ teknisk bakgrunn. Figurer må derfor:
 - Bruke farger for å skille kategorier (brukerflater, lagring, tilknyttede systemer)
 - Inkludere forklaring/legend
 
-**Filopplasting:** Agenten kan ikke laste opp filer til livsløp-steget — MCP-serveren
-er remote og kan ikke lese filer fra brukerens maskin. Be bruker om å laste opp
-figurer manuelt i UI-et:
+**Filopplasting:** Selv agenter med lokal filsystemtilgang bør ikke forsøke å laste opp
+bilder direkte til dette steget. `write_behandlingens_livsloep` aksepterer riktignok
+base64-kodet filinnhold, men å reprodusere titusenvis av base64-tegn nøyaktig i et
+tekstbasert tool-kall er upålitelig i praksis — transkripsjonen feiler typisk allerede
+på første forsøk, uavhengig av filstørrelse (verifisert ned til 13 KB via checksum).
+Generer figurene lokalt og be bruker laste dem opp manuelt: 
 
 > Jeg har generert diagrammene og lagret dem i arbeidsmappen. Last dem opp manuelt:
 > 1. Gå til etterlevelse.ansatt.nav.no → dokumentasjonen → PVK → Behandlingens livsløp
