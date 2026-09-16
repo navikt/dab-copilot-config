@@ -128,9 +128,16 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 `domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
 til `./domain-context.md` i CWD.
 
-→ Hvis ingen bundlet fil passer: **ikke generer domain-context automatisk.**
-Agenten mangler som regel nødvendig domenekunnskap (fagretningslinjer, lovgrunnlag,
-Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
+→ Hvis ingen bundlet fil passer: **prøv automatisk Navet-henting først.**
+Identifiser fagområdet fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
+Hvis fagområdet finnes i nav-context sin fagområde-tabell (alle har Navet-tilgang innvilget),
+invokér nav-context — den henter fagretningslinjer, lovhjemler og restriksjoner fra Navet
+automatisk via `list_navet_pages`/`get_navet_page` og genererer `domain-context.md`. Den
+obligatoriske menneskelige gjennomgangen nedenfor er fortsatt påkrevd etterpå.
+
+→ **Fallback — kun hvis fagområdet er ukjent eller mangler Navet-tilgang:** ikke generer
+domain-context på egen hånd. Agenten mangler da nødvendig domenekunnskap (fagretningslinjer,
+lovgrunnlag, Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
 
 > Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
 >
