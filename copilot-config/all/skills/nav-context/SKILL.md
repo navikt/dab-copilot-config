@@ -98,7 +98,8 @@ Spør om:
 - **Systemnavn**: Hva heter systemet? (f.eks. «Arbeidsrettet dialog», «Aktivitetsplanen»)
 - **Beskrivelse**: Hva gjør systemet? Hvem bruker det? (1-2 setninger)
 - **GitHub-repoer**: `navikt/{repo}` — ett eller flere repoer (valgfritt, for dypere analyse)
-- **Behandlings-ID(er)**: Format `B123`, `B456` — fra behandlingskatalog (valgfritt, men anbefalt)
+- **Behandlings-ID(er)**: Format `B123`, `B456` (behandlingsansvarlig) eller `D123`
+  (Nav kun databehandler) — fra behandlingskatalog (valgfritt, men anbefalt)
 - **Etterlevelsesdokumentasjon-ID**: UUID — fra etterlevelse.ansatt.nav.no (valgfritt)
 
 ### Steg 3: Hent data fra Behandlingskatalog
@@ -107,10 +108,14 @@ Bruk MCP-tools — ingen manuell autentisering nødvendig:
 
 - `search_behandlinger` — søk på B-nummer eller systemnavn
 - `get_behandling` — hent full behandlingsinfo (UUID eller B-nummer)
+- `search_dp_behandlinger` — søk på D-nummer eller navn der Nav kun er databehandler (min. 3 tegn)
+- `get_dp_behandling` — hent full behandlingsinfo der Nav er databehandler (UUID eller D-nummer)
 - `get_processor` — hent databehandlerdetaljer
 
 Hvis behandlings-ID er oppgitt (f.eks. `B123`), hent direkte med `get_behandling`.
-Ellers søk med `search_behandlinger` på systemnavn eller formål og velg riktig treff.
+For D-nummer (f.eks. `D123`, Nav som databehandler) bruk `get_dp_behandling`.
+Ellers søk med `search_behandlinger` (eller `search_dp_behandlinger`) på systemnavn eller formål
+og velg riktig treff.
 
 **Nøkkelfelter å hente ut:**
 - `name` — behandlingens navn
@@ -121,6 +126,11 @@ Ellers søk med `search_behandlinger` på systemnavn eller formål og velg rikti
 - `dataProcessing.processors[]` — databehandlere (hent detaljer med `get_processor`)
 - `automaticProcessing`, `profiling` — automatisert behandling/profilering
 - `dpia.needForDpia`, `dpia.refToDpia` — DPIA-vurdering
+
+**For D-nummer (DpProcess) er feltsettet redusert:** ingen `policies[]`, `legalBases[]` eller `dpia`.
+Bruk i stedet `purposeDescription`, `description`, `dataProcessingAgreements[]` (databehandleravtaler),
+`subDataProcessing`, `art9`/`art10` og `retention`. Personkategorier og rettslig grunnlag eies av den
+eksterne behandlingsansvarlige, ikke av Nav.
 
 ### Steg 4: Faglig kontekst fra Navet
 

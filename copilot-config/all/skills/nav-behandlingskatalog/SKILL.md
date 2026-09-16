@@ -1,8 +1,9 @@
 ---
 name: nav-behandlingskatalog
 description: >
-  Leser og analyserer behandlinger (B-nummer), informasjonstyper, policies,
-  legalBases, retention, dpia-felter og databehandlere fra Navs Behandlingskatalog
+  Leser og analyserer behandlinger (B-nummer for behandlingsansvarlig, D-nummer der Nav
+  kun er databehandler), informasjonstyper, policies, legalBases, retention, dpia-felter
+  og databehandlere fra Navs Behandlingskatalog
   (https://behandlingskatalog.ansatt.nav.no). Brukes når nav-etterlevelse eller
   nav-pvk trenger data fra Behandlingskatalogen, eller når et team vil forstå hva
   som er registrert for deres behandlinger.
@@ -36,7 +37,8 @@ og henvis bruker til å rette det selv i UI-et.
 - Etterlevelse/PVK-vurdering har avdekket gap (tomme felter, feil hjemmel, feil
   subjektkategori, manglende risikoeier) — agenten leser og rapporterer hva som mangler
 - nav-etterlevelse/nav-pvk trenger behandlingsdata som kontekst for etterlevelsesgjennomgang
-- Et team vil forstå hva som er registrert for sine behandlinger (B-nummer)
+- Et team vil forstå hva som er registrert for sine behandlinger (B-nummer, eller D-nummer
+  der Nav kun er databehandler)
 - Agenten skal identifisere gap mellom registrert data og faktisk system-adferd
 
 ## Forutsetning: nav-etterlevelse-mcp
@@ -105,7 +107,14 @@ All lesing skjer via MCP-tools — ingen manuell autentisering nødvendig:
 |---|---|
 | `search_behandlinger` | Søk på B-nummer eller navn |
 | `get_behandling` | Hent full behandlingsinfo (UUID eller B-nummer) |
+| `search_dp_behandlinger` | Søk behandlinger der Nav er databehandler, på D-nummer eller navn (min. 3 tegn) |
+| `get_dp_behandling` | Hent full behandlingsinfo der Nav er databehandler (UUID eller D-nummer) |
 | `get_processor` | Hent databehandler-info (UUID) |
+
+**B-nummer vs. D-nummer:** `Process` (B-nummer, f.eks. B975) er behandlinger der Nav er
+behandlingsansvarlig. `DpProcess` (D-nummer, f.eks. D103, registrert under «Nav som databehandler»)
+er behandlinger der Nav kun opptrer som databehandler for en ekstern behandlingsansvarlig. Bruk
+`*_dp_*`-toolsene for D-nummer — B-nummer-toolsene finner dem ikke.
 
 ## Datamodell
 
@@ -136,7 +145,24 @@ InformationType                   <-- Personopplysningstype (f.eks. «Fødselsnu
 
 Processor (Databehandler)
   +-- name, country, outsideEU, transferGrounds
+
+DpProcess (Behandling der Nav er databehandler)  <-- D-nummer (f.eks. D103)
+  |                                   Egen entitet i polly, parallell til Process, men med
+  |                                   redusert feltsett — ingen policies/legalBases/dpia.
+  +-- purposeDescription            <-- Formål (fritekst, ikke PURPOSE-codelist)
+  +-- description                   <-- Beskrivelse av behandlingen
+  +-- dataProcessingAgreements[]    <-- Databehandleravtaler (K190)
+  +-- subDataProcessing             <-- Underdatabehandler-forhold
+  +-- externalProcessResponsible    <-- Behandlingsansvarlig (ekstern part, THIRD_PARTY)
+  +-- art9 (bool)                   <-- Særlige kategorier (art. 9)
+  +-- art10 (bool)                  <-- Straffedommer/lovovertredelser (art. 10)
+  +-- retention                     <-- Lagringstid
+  +-- affiliation                   <-- Avdeling, system, NOM-tilknytning
 ```
+
+**DpProcess-merknad:** Personkategorier og rettslig grunnlag registreres ikke på DpProcess —
+Nav er kun databehandler, så behandlingsansvarlig (ekstern) eier disse. For etterlevelse er
+`dataProcessingAgreements[]` det sentrale (K190 databehandler).
 
 **Viktig:** Subjektkategori (BRUKER, ANSATTE, ARBEIDSGIVERE, m.fl.) settes
 **per policy** (informasjonstype-kobling), ikke per behandling. Samme
@@ -174,9 +200,10 @@ Dette er nyttig å kjenne for å tolke verdier fra `get_behandling` riktig:
 
 Når agenten identifiserer gap i Behandlingskatalogen, beskriv tydelig:
 1. **Hva som mangler** — f.eks. «Rettsgrunnlag etter art. 9 nr. 2 h mangler for helseopplysninger»
-2. **Hvilken behandling** — B-nummer og navn
+2. **Hvilken behandling** — B-nummer og navn (eller D-nummer der Nav er databehandler)
 3. **Hva som bør registreres** — konkret forslag til innhold
 4. **Hvor det rettes** — lenk direkte til behandlingen:
    `https://behandlingskatalog.ansatt.nav.no/process/{uuid}`
+   (for D-nummer/DpProcess: `https://behandlingskatalog.ansatt.nav.no/dpprocess/{uuid}`)
 
 Agenten gjør ikke endringen selv. Bruker åpner UI-et og retter manuelt.

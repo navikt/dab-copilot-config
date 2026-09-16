@@ -188,9 +188,16 @@ Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
 `domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
 til `./domain-context.md` i CWD.
 
-→ Hvis ingen bundlet fil passer: **ikke generer domain-context automatisk.**
-Agenten mangler som regel nødvendig domenekunnskap (fagretningslinjer, lovgrunnlag,
-Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
+→ Hvis ingen bundlet fil passer: **prøv automatisk Navet-henting først.**
+Identifiser fagområdet fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
+Hvis fagområdet finnes i nav-context sin fagområde-tabell (alle har Navet-tilgang innvilget),
+invokér nav-context — den henter fagretningslinjer, lovhjemler og restriksjoner fra Navet
+automatisk via `list_navet_pages`/`get_navet_page` og genererer `domain-context.md`. Den
+obligatoriske menneskelige gjennomgangen nedenfor er fortsatt påkrevd etterpå.
+
+→ **Fallback — kun hvis fagområdet er ukjent eller mangler Navet-tilgang:** ikke generer
+domain-context på egen hånd. Agenten mangler da nødvendig domenekunnskap (fagretningslinjer,
+lovgrunnlag, Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
 
 > Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
 >
@@ -200,8 +207,9 @@ Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidr
 > **B)** Fortell meg: hvilket fagområde gjelder dette, og hva er de viktigste faglige
 >    restriksjonene? Jeg lager et utkast, men du må kvalitetssikre det.
 >
-> **C)** Oppgi behandlings-ID (B-nummer) — jeg bruker behandlingskatalogen som grunnlag,
->    men Navet-kunnskap må du supplere selv etterpå.
+> **C)** Oppgi behandlings-ID (B-nummer der Nav er behandlingsansvarlig, eller D-nummer der
+>    Nav kun er databehandler) — jeg bruker behandlingskatalogen som grunnlag, men Navet-kunnskap
+>    må du supplere selv etterpå.
 
 Vent på brukerens bidrag, og invokér deretter nav-context med den innsamlede informasjonen.
 
@@ -543,9 +551,17 @@ Behandlingskatalogen inneholder strukturerte data om behandlingen som er svært 
 for etterlevelsesgjennomgangen. Hent behandlings-ID fra etterlevelsesdokumentasjonen
 (`behandlingIds[]`) og bruk MCP-tool `get_behandling` for å slå opp behandlingsdetaljer.
 
+**Behandlinger der Nav kun er databehandler (D-nummer):** Disse ligger i `dpBehandlingIds[]`,
+ikke `behandlingIds[]`. Slå dem opp med `get_dp_behandling` (fallback-søk: `search_dp_behandlinger`).
+Et team som utelukkende er databehandler har tom `behandlingIds[]` og fylt `dpBehandlingIds[]` —
+behandle det som en gyldig og komplett kobling, ikke som et gap. DpProcess har et redusert feltsett:
+ingen `policies[]`, `legalBases[]` eller `dpia`, men `dataProcessingAgreements[]` (databehandleravtaler),
+`subDataProcessing`, `art9`/`art10` og `retention`. Dette treffer nettopp K190 (databehandler) — bruk
+`dataProcessingAgreements[]` som dokumentasjon på avtaleforholdet.
+
 **Hvis behandlingslisten er tom eller mangelfull:** Bruk `search_behandlinger` for å søke på
-systemnavn, teamnavn eller formål. Foreslå relevante behandlinger til bruker slik at de kan
-koble dem i etterlevelsesdokumentasjonen.
+systemnavn, teamnavn eller formål (eller `search_dp_behandlinger` hvis Nav er databehandler).
+Foreslå relevante behandlinger til bruker slik at de kan koble dem i etterlevelsesdokumentasjonen.
 
 **Viktig: Vurder også sekundærbehandlinger.** Et system kan ha flere behandlinger med ulike
 formål. Eksempel: Et dialogsystem kan ha én behandling for selve dialogen (primær),
@@ -553,7 +569,8 @@ formål. Eksempel: Et dialogsystem kan ha én behandling for selve dialogen (pri
 Sjekk koden for dataflyter til analytics (DVH, BigQuery, NADA), kontroll-/rapporteringsformål,
 eller andre sekundære bruksområder som kan ha egne behandlinger.
 
-**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
+**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580) eller D-nummer
+(f.eks. D103), ikke UUID-en.
 
 Typiske søkekriterier for `search_behandlinger`:
 - Systemnavnet eller formålet (sjekk `purpose`, `name`, `description`)
@@ -1116,7 +1133,7 @@ Opplasting skjer løpende i steg 7 — ikke som en separat sluttbatch.
 3. Kall `log_review_event({ event: "krav_uploaded" })` når `write_etterlevelse` er bekreftet vellykket
 4. Fortsett til neste krav i gjennomgangen
 5. Oppdater dokumentegenskaper til slutt ved behov: `write_etterlevelse_dokumentasjon`
-   (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`)
+   (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`, `dpBehandlingIds`)
 
 MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
 
@@ -1369,7 +1386,8 @@ Retningslinjer:
 - Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
 
 Agenten kan utlede: `irrelevansFor` (fra kodeanalyse), `behandlerPersonopplysninger`,
-`gjenbrukBeskrivelse`, `behandlingIds` (fra Behandlingskatalogen).
+`gjenbrukBeskrivelse`, `behandlingIds` og `dpBehandlingIds` (fra Behandlingskatalogen — B-nummer der
+Nav er behandlingsansvarlig, D-nummer der Nav kun er databehandler).
 
 ## Vanlige krav og hva man ser etter i koden
 

@@ -128,9 +128,16 @@ Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
 `domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
 til `./domain-context.md` i CWD.
 
-→ Hvis ingen bundlet fil passer: **ikke generer domain-context automatisk.**
-Agenten mangler som regel nødvendig domenekunnskap (fagretningslinjer, lovgrunnlag,
-Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
+→ Hvis ingen bundlet fil passer: **prøv automatisk Navet-henting først.**
+Identifiser fagområdet fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
+Hvis fagområdet finnes i nav-context sin fagområde-tabell (alle har Navet-tilgang innvilget),
+invokér nav-context — den henter fagretningslinjer, lovhjemler og restriksjoner fra Navet
+automatisk via `list_navet_pages`/`get_navet_page` og genererer `domain-context.md`. Den
+obligatoriske menneskelige gjennomgangen nedenfor er fortsatt påkrevd etterpå.
+
+→ **Fallback — kun hvis fagområdet er ukjent eller mangler Navet-tilgang:** ikke generer
+domain-context på egen hånd. Agenten mangler da nødvendig domenekunnskap (fagretningslinjer,
+lovgrunnlag, Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
 
 > Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
 >
@@ -140,8 +147,9 @@ Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidr
 > **B)** Fortell meg: hvilket fagområde gjelder dette, og hva er de viktigste faglige
 >    restriksjonene? Jeg lager et utkast, men du må kvalitetssikre det.
 >
-> **C)** Oppgi behandlings-ID (B-nummer) — jeg bruker behandlingskatalogen som grunnlag,
->    men Navet-kunnskap må du supplere selv etterpå.
+> **C)** Oppgi behandlings-ID (B-nummer der Nav er behandlingsansvarlig, eller D-nummer der
+>    Nav kun er databehandler) — jeg bruker behandlingskatalogen som grunnlag, men Navet-kunnskap
+>    må du supplere selv etterpå.
 
 Vent på brukerens bidrag, og invokér deretter nav-context med den innsamlede informasjonen.
 
@@ -224,8 +232,12 @@ Fortsett direkte til Forberedelse C.
 #### C1: Hent etterlevelsesdokumentasjonen
 
 Bruk MCP-tool `get_etterlevelse_dokumentasjon` med dokumentets UUID.
-Viktige felter: `title`, `behandlingIds[]`, `teams[]`, `behandlerPersonopplysninger`,
+Viktige felter: `title`, `behandlingIds[]`, `dpBehandlingIds[]`, `teams[]`, `behandlerPersonopplysninger`,
 `risikovurderinger[]` (TryggNok ROS-lenker), `risikoeiere[]`.
+
+`behandlingIds[]` er behandlinger der Nav er behandlingsansvarlig (B-nummer). `dpBehandlingIds[]` er
+behandlinger der Nav kun er databehandler (D-nummer). Et dokument kan ha kun det ene settet — team
+som utelukkende er databehandler har tom `behandlingIds[]` og fylt `dpBehandlingIds[]`.
 
 #### C2: Sjekk om PVK allerede finnes
 
@@ -242,7 +254,14 @@ Hvis PVK finnes, hent risikoscenarioer og tiltak:
 Bruk MCP-tool `get_behandling` for hver `behandlingId` fra etterlevelsesdokumentasjonen.
 Bruk `search_behandlinger` hvis behandlingslisten er tom.
 
-**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580), ikke UUID-en.
+For hver `dpBehandlingId` (behandlinger der Nav kun er databehandler, D-nummer): bruk
+`get_dp_behandling` (fallback-søk: `search_dp_behandlinger`). DpProcess har et redusert feltsett —
+ingen `policies[]`, `legalBases[]` eller `dpia`. I stedet finnes `dataProcessingAgreements[]`,
+`subDataProcessing`, `art9`/`art10` og `retention`. For databehandler-only behandlinger må
+personkategorier og rettslig grunnlag hentes fra den behandlingsansvarlige (utenfor Nav).
+
+**Behandlingsnummer:** Referer alltid til behandlinger med B-nummer (f.eks. B580) eller D-nummer
+(f.eks. D103), ikke UUID-en.
 
 Viktige felter for PVK:
 - `policies[]` — personopplysningstyper, personkategorier, sensitivitet
@@ -566,7 +585,9 @@ PUT  /api/behandlingens-art-og-omfang/{id}                          -> oppdater 
 **Formål:** Verifisere at nødvendig dokumentasjon er på plass.
 
 **Hva agenten gjør:** Sjekk at følgende er komplett:
-- Behandling(er) er koblet i Behandlingskatalogen (`behandlingIds.length > 0`)
+- Behandling(er) er koblet i Behandlingskatalogen
+  (`behandlingIds.length > 0 || dpBehandlingIds.length > 0`) — team som kun er databehandler
+  har tom `behandlingIds[]`, men fylt `dpBehandlingIds[]`, og skal ikke feilflagges
 - Risikovurdering(er) er koblet (`risikovurderinger.length > 0`)
 - PVK-relaterte etterlevelseskrav er besvart (krav tagget med "Personvernkonsekvensvurdering")
 
@@ -586,6 +607,11 @@ etterlevelsene er nestet i dokumentobjektet under `etterlevelser`.
 - List personkategorier (fra policies[].subjectCategories)
 - List databehandlere (fra dataProcessing.processors[])
 - Foreslå beskrivelser for involvering/manglende involvering
+
+**Når Nav kun er databehandler (D-nummer/`dpBehandlingIds`):** Behandlingsansvarlig er en ekstern
+part (utenfor Nav). Involvering av representanter for de registrerte er da typisk den
+behandlingsansvarliges ansvar — beskriv Navs databehandlerrolle og hvordan involvering er avklart
+i databehandleravtalen (`dataProcessingAgreements[]`).
 
 **PvkDokument-felter (R/W):**
 - `harInvolvertRepresentant` (bool)
