@@ -978,9 +978,6 @@ Begrunnelsene i rapporten skal:
 
 Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med teamet.
 
-Kall `log_review_event({ event: "report_generated" })` for å registrere at rapporten er
-ferdig — dette er ren telemetri og krever ikke dokumentlås.
-
 ### Steg 7: Kvalitetssikring med teamet
 
 **⛔ STOPP — OBLIGATORISK GODKJENNINGSPUNKT.**
@@ -989,8 +986,7 @@ Du har NÅ laget en rapport. Gå gjennom rapporten med teamet før du starter de
 interaktive gjennomgangen. Fyll inn plassholdere merket `[Teamet må dokumentere: ...]`
 og korriger eventuelle feil. Gi beskjed når teamet er klart.
 
-Når teamet har gitt eksplisitt klarsignal til å starte den interaktive gjennomgangen,
-kall `log_review_event({ event: "report_approved" })` før du fortsetter.
+Vent på teamets eksplisitte klarsignal før du starter den interaktive gjennomgangen.
 
 **Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
@@ -1100,51 +1096,63 @@ Hvis bruker svarer «godkjenn alle», skal agenten svare:
 og deretter vise **nøyaktig ett** SK (neste i køen).
 
 **Regler for interaktiv gjennomgang:**
-- **G (Godkjenn):** SK markeres for opplasting. Kall `log_review_event({ event: "sk_reviewed", decision: "godkjent" })`. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er mottatt.
-- **H (Hopp over):** SK hoppes over. Kall `log_review_event({ event: "sk_reviewed", decision: "hoppet_over" })`. Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter H er mottatt.
+- **G (Godkjenn):** Last opp dette SK-et **umiddelbart** med `write_suksesskriterium` (ett kall,
+  kun dette SK-et — se steg 8). Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er
+  mottatt og opplastingen er bekreftet.
+- **H (Hopp over):** SK hoppes over — **ingen skriving**. Avslutt meldingen. Vent. Vis neste SK i
+  ny melding kun etter H er mottatt.
 - **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
-  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding. Kall
-  `log_review_event({ event: "sk_reviewed", decision: "redigert" })` når den redigerte
-  teksten er endelig godkjent (G).
+  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding. Last opp med
+  `write_suksesskriterium` først når den redigerte teksten er endelig godkjent (G).
 
 ⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke last opp
 IKKE_RELEVANT automatisk selv om `behovForBegrunnelse = false` og det ikke er noe å redigere.
 IKKE_RELEVANT er en faglig påstand om at kriteriet ikke gjelder for systemet — teamet
 må bekrefte dette, ikke agenten. Presenter alltid forslaget med begrunnelse for statusvalget.
-- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over»,
-  **last deretter opp kravet umiddelbart** med `write_etterlevelse` (se under).
+- Ett `write_suksesskriterium`-kall per godkjent SK er den strukturelle garantien mot batching:
+  verktøyet tar kun ETT suksesskriterium, så det er umulig å laste opp flere SK-er samlet.
+- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over». Sett krav-nivå
+  status ved behov med `write_krav_status` (se steg 8).
 - Etter alle krav: vis total oppsummering.
 
-**Last opp hvert krav umiddelbart etter siste SK er gjennomgått** — ikke vent til alle
-krav er ferdig. Dette sikrer at fremgang lagres løpende og at bruker ser resultatet i
-UI-et med en gang. Hoppede-over SK-er røres ikke.
+**Last opp hvert SK umiddelbart når det er godkjent** — ikke vent til alle SK-er for kravet er
+gjennomgått, og ikke til alle krav er ferdig. Dette sikrer at fremgang lagres løpende og at bruker
+ser resultatet i UI-et med en gang. Hoppede-over SK-er røres ikke.
 
-### Steg 8: Last opp per krav under gjennomgangen
+### Steg 8: Last opp per suksesskriterium under gjennomgangen
 
-Opplasting skjer løpende i steg 7 — ikke som en separat sluttbatch.
+Opplasting skjer løpende i steg 7 — ett suksesskriterium om gangen, ikke som en batch per krav
+eller en sluttbatch.
 
-**Opplasting etter hvert krav:**
+**To skriveverktøy (erstatter det tidligere `write_etterlevelse`):**
+
+- `write_suksesskriterium` — skriver **ett** suksesskriterium: begrunnelse + `suksesskriterieStatus`.
+  Dette er hovedverktøyet i gjennomgangen. Verktøyet tar bare ett SK, så batch-opplasting er
+  strukturelt umulig.
+- `write_krav_status` — setter **krav-nivå** status (`UNDER_ARBEID` eller `IKKE_RELEVANT`) uten å
+  røre SK-begrunnelsene.
+
+**Flyt:**
 
 1. Lås dokumentet første gang: `lock_document` med etterlevelsesdokumentasjonens UUID
-   (kun nødvendig én gang — låsen gjelder hele sesjonen)
-2. Etter siste SK for et krav er godkjent/hoppet over: kall `write_etterlevelse` med
-   `etterlevelseDokumentasjonId`, `kravNummer`, `kravVersjon`, `status`,
-   og `suksesskriterieBegrunnelser` for de godkjente SK-ene
-3. Kall `log_review_event({ event: "krav_uploaded" })` når `write_etterlevelse` er bekreftet vellykket
-4. Fortsett til neste krav i gjennomgangen
+   (kun nødvendig én gang — låsen gjelder hele sesjonen).
+2. For hvert SK som godkjennes (G) i steg 7: kall `write_suksesskriterium` umiddelbart med
+   `etterlevelseDokumentasjonId`, `kravNummer`, `kravVersjon`, `suksesskriterieId`, `begrunnelse`
+   og `suksesskriterieStatus`. Ett kall per SK.
+3. Krav-nivå status: Å skrive det første SK-et oppretter etterlevelsen med krav-status
+   «under redigering» automatisk — du trenger normalt ikke sette den eksplisitt. Bruk
+   `write_krav_status` kun når du vil overstyre krav-status, f.eks.:
+   - Hele kravet er **IKKE_RELEVANT** → kall `write_krav_status(IKKE_RELEVANT)`. Da trenger du
+     ikke skrive SK-er i det hele tatt.
+   - Sikre at kravet står som under arbeid selv om ingen SK ble skrevet → `write_krav_status(UNDER_ARBEID)`.
+4. Fortsett til neste SK / neste krav i gjennomgangen.
 5. Oppdater dokumentegenskaper til slutt ved behov: `write_etterlevelse_dokumentasjon`
-   (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`, `dpBehandlingIds`)
+   (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`, `dpBehandlingIds`).
 
-MCP-serveren håndterer optimistisk låsing og autentisering automatisk.
-
-**Selvsjekk ved advarsel fra write_etterlevelse:** Hvis svaret fra `write_etterlevelse`
-inneholder et `batchWarning`-felt (eller en ⚠-linje i `summary`), betyr det at skrivingen
-inneholdt flere suksesskriterie-begrunnelser enn det som er rapportert enkeltvis godkjent
-via `log_review_event(sk_reviewed, godkjent)` siden forrige opplasting. Dette er et signal
-om at ett-SK-om-gangen-kontrakten i steg 7 kan ha blitt brutt for dette kravet. Reager ved
-å gå tilbake til interaktiv gjennomgang for gjenværende krav i sesjonen — presenter og
-innhent godkjenning for hvert SK individuelt, og bekreft at `log_review_event` kalles for
-hver enkelt godkjenning, før neste opplasting.
+MCP-serveren håndterer optimistisk låsing (sesjonssporet versjonssjekk) og autentisering
+automatisk — du trenger ikke oppgi eller huske versjonsnummer. Rekkefølgen mellom
+`write_suksesskriterium` og `write_krav_status` på samme krav er fri; hvert kall leser fersk
+tilstand rett før skriving.
 
 ## KRITISK: Statusverdier og feltmapping
 
@@ -1168,8 +1176,9 @@ disse statusene uavhengig av modus.
 
 ## KRITISK: Feltmapping for opplasting
 
-`write_etterlevelse` tar `suksesskriterieBegrunnelser` som en liste av objekter med tre
-felter: `suksesskriterieId`, `begrunnelse` og `suksesskriterieStatus`.
+`write_suksesskriterium` skriver **ett** suksesskriterium om gangen, med feltene
+`suksesskriterieId`, `begrunnelse` og `suksesskriterieStatus`. `write_krav_status` setter
+krav-nivå `status` (+ valgfri `statusBegrunnelse`) uten å røre SK-begrunnelsene.
 
 Etterlevelsesløsningen har et `behovForBegrunnelse`-felt per suksesskriterium i kravdefinisjonen.
 Dette avgjør om begrunnelse er forventet:
@@ -1214,17 +1223,17 @@ Se `src/auth/middleware.ts` for implementasjonen.
 - Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
 
 
-- `OPPFYLT` – kravet er oppfylt, ingen åpne punkter
-- `IKKE_OPPFYLT` – en klar mangel er identifisert som teamet må fikse
+### Gyldige verdier for `suksesskriterieStatus` (write_suksesskriterium):
 - `UNDER_ARBEID` – arbeid gjenstår (f.eks. organisatorisk bekreftelse trengs)
-- `IKKE_RELEVANT` – kravet er ikke relevant for denne løsningen
+- `IKKE_OPPFYLT` – en klar mangel er identifisert som teamet må fikse
+- `IKKE_RELEVANT` – suksesskriteriet er ikke relevant for denne løsningen
 
-### Gyldige verdier for etterlevelse `status`:
+### Gyldige verdier for krav-nivå `status` (write_krav_status):
 - `UNDER_ARBEID` – etterlevelsen er under arbeid
 - `IKKE_RELEVANT` – kravet er ikke relevant
 
 ⛔ **`OPPFYLT`/`FERDIG`/`FERDIGSTILT` settes manuelt i etterlevelse.ansatt.nav.no** —
-MCP-verktøyet støtter ikke disse statusene direkte.
+verktøyene støtter ikke disse statusene direkte.
 
 **Sett suksesskriterieStatus slik:**
 - Suksesskriterier agenten har vurdert som oppfylt → `UNDER_ARBEID`
@@ -1232,12 +1241,13 @@ MCP-verktøyet støtter ikke disse statusene direkte.
 - Suksesskriterier som ikke er relevant → `IKKE_RELEVANT`
 - Suksesskriterier med `[Teamet må dokumentere: ...]` → `UNDER_ARBEID`
 
-⛔ **KRITISK: Etterlevelse-status MÅ gjenspeile suksesskriteriene.**
+⛔ **KRITISK: Krav-nivå status MÅ gjenspeile suksesskriteriene.**
 - Bruk alltid `UNDER_ARBEID` ved opplasting — SK-ene holdes som `UNDER_ARBEID`
   for manuell kvittering av teamet i etterlevelsesløsningen.
-- Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ etterlevelsens
+- Hvis EN ELLER FLERE SK har status `UNDER_ARBEID` eller `IKKE_OPPFYLT`, MÅ krav-nivå
   status settes til `UNDER_ARBEID`, ikke `IKKE_RELEVANT`.
-- Denne regelen gjelder alltid — også ved batch-oppdateringer.
+- Sett først krav-status til `IKKE_RELEVANT` (via `write_krav_status`) når hele kravet er
+  irrelevant og ingen SK er vurdert som gjeldende.
 
 ## API for etterlevelsesdokumentasjon (prioritert kravliste m.m.)
 
@@ -1421,7 +1431,7 @@ for enkle strukturerte deloppgaver.
 | Hente data via MCP-tools (etterlevelse, krav, behandling) | **Lav** | Enkel datahenting og JSON-parsing |
 | Søke etter spesifikke mønstre i kode | **Lav** | Strukturert søk, ingen tolkning nødvendig |
 | Sammenligne kravliste mot etterlevelser (gap-analyse) | **Lav** | Enkel set-differanse-operasjon |
-| Laste opp begrunnelser via MCP write_etterlevelse (steg 8) | **Lav** | Mekanisk opplasting etter ferdig rapport |
+| Laste opp begrunnelser via MCP write_suksesskriterium (steg 8) | **Lav** | Mekanisk opplasting per SK etter ferdig rapport |
 
 ## Viktige huskeregler
 
