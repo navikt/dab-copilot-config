@@ -873,6 +873,11 @@ opplasting — og KUN etter at bruker har gitt eksplisitt klarsignal (f.eks. «l
 «oppdater etterlevelsesløsningen», «godkjent»). Denne regelen gjelder uansett om
 bruker sier «full gjennomgang» eller annet — «gjennomgang» betyr IKKE «last opp».
 
+**Rapporten er en oversikt, ikke en godkjenning.** Den viser alle forslag til status og
+begrunnelse samlet slik at teamet får helheten. Men den **autoriserer ingen skriving** og
+**erstatter ikke** den per-SK-interaktive gjennomgangen i steg 7. Etter rapporten går du alltid
+gjennom hvert SK enkeltvis (ett per melding, G/H/R) — aldri en samlet «skal jeg skrive disse?».
+
 **For gjennomganger med 20+ krav:** Del rapporten i bolker per tema (sikkerhet, personvern,
 tilgjengelighet osv.) i stedet for å generere ~700 linjer i ett kall — reduserer sjansen
 for å miste detaljer under generering.
@@ -990,6 +995,18 @@ Vent på teamets eksplisitte klarsignal før du starter den interaktive gjennomg
 
 **Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
+⛔ **HARD GATE — RAPPORTEN AUTORISERER INGEN SKRIVING.** Når teamet gir klarsignal til
+gjennomgang, skal agentens **neste melding** være nøyaktig ett suksesskriterium: `SK 1 av N for
+K{nr}.{v}` med `[G]odkjenn [H]opp over [R]ediger`, deretter stopp. Ingenting annet.
+
+Det er **forbudt** å bygge bro fra rapporten til opplasting med:
+- en oppsummeringstabell over «SK-er jeg vil skrive via API» (eller lignende skriveplan), eller
+- ett samlet «Vil du at jeg skal skrive/laste opp disse?»-spørsmål.
+
+Rapporten (steg 6) er en oversikt/leveranse — den er **ikke** en per-SK-godkjenning. At alle
+forslag allerede står i rapporten fjerner ikke kravet om å gå gjennom hvert SK enkeltvis her.
+Selv om brukeren sier «last opp alt» eller «godkjent», starter du per-SK-løkka på SK 1 og venter.
+
 #### Interaktiv SK-gjennomgang
 
 **⛔ OBLIGATORISK PRESENTASJONSKONTRAKT VED ENKELTKRAV**
@@ -1082,6 +1099,9 @@ gjennomgangen ubrukelig.
 - «Her er SK1, SK2, SK3 — godkjenn alle samlet»
 - «Oppsummering av alle SK-er med ett G/H/R-valg»
 - «Batch med flere SK-er i samme svar, selv om alle har samme status»
+- En oppsummeringstabell over «SK-er jeg vil skrive via API» (skriveplan) etterfulgt av ett samlet
+  «Vil du at jeg skal skrive/laste opp?»-spørsmål — dette er batch-godkjenning i forkledning
+- Presentere flere kravs SK-er i samme melding før per-SK-løkka har startet
 
 Dette gjelder **uten unntak**:
 - Selv om kravet har mange SK-er — vis én om gangen
