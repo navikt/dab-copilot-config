@@ -1084,8 +1084,11 @@ For **hvert suksesskriterium** med endring under kravet (én blokk per melding):
 
 ```
 ─────────────────────────────────────────
-SK{id} – {suksesskriterienavn}
+K{nr}.{v} – {kravnavn}
+Kravets hensikt:
+  {krav.hensikt}
 ─────────────────────────────────────────
+SK{id} – {suksesskriterienavn}
 Kriteriet spør:
   {suksesskriterier[i].beskrivelse}
 
@@ -1099,6 +1102,11 @@ ENDRING:
 [G]odkjenn  [H]opp over  [R]ediger
 > _
 ```
+
+⛔ **Kravets hensikt skal alltid stå øverst i hver SK-blokk.** Fordi hvert SK presenteres i sin
+egen melding (stopp og vent), forsvinner krav-headeren over ut av synsfeltet — og SK-teksten alene
+er ikke alltid nok til å forstå hva kravet omhandler. Gjenta derfor kravets identifikator, navn og
+`hensikt` øverst i hver SK-blokk, slik at hver G/H/R-beslutning tas med kravets formål synlig.
 
 **⛔ ABSOLUTT KRAV — ETT SK PER MELDING, STOPP OG VENT:**
 
