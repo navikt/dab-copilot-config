@@ -75,22 +75,34 @@ Tilgjengelig hvis `github`-MCP-serveren er konfigurert — standard i Copilot CL
 valgfritt i OpenCode. Bruk `get_file_contents` og `search_code` direkte uten kloning.
 Verken `gh` CLI eller `GH_TOKEN` er nødvendig for denne metoden.
 
-**2. Lokal kloning** (for full kodeanalyse)
-SSH (port 22) er blokkert i sandkassen — bruk alltid HTTPS:
+**2. Lokal kildekode** (for full kodeanalyse)
+
+I cplt-sandkassen blokkeres `.git`-oppretting i en ren arbeidsmappe (ikke-repo), så `git clone`
+feiler der. Hent derfor koden som en `.git`-løs kildeeksport — det passer også read-only-prinsippet,
+siden det ikke finnes noe å committe eller pushe. Har du `gh` installert, er den enkleste veien:
 ```bash
-# Offentlige Nav-repoer:
-git clone https://github.com/navikt/{repo}.git
-
-# Private repoer (krever GH_TOKEN i miljøet):
-git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
-
-# ❌ Feiler — SSH er blokkert (port 22):
-git clone git@github.com:navikt/{repo}.git
+mkdir -p {repo}
+gh api repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
 ```
+`gh` er anbefalt, men ikke påkrevd. Uten `gh` gjør `curl` + `GH_TOKEN` det samme:
+```bash
+mkdir -p {repo}
+curl -fL -H "Authorization: Bearer $GH_TOKEN" \
+  https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
+```
+- `{ref}` er branch, tag eller SHA (utelatt → default branch). Pin til en SHA for reproduserbar dokumentasjon.
+- Begge bruker GH-tokenet og virker for private Nav-repoer. SSH (port 22) er uansett blokkert i sandkassen.
+- `curl`-varianten sender tokenet i en header (ikke i URL-en), så det lekker ikke til git-config eller logger.
+- Ved `--preset strict` / tvunget proxy: sørg for egress til `api.github.com` og `codeload.github.com`.
 
-`gh repo clone` kan brukes som alternativ, men kun hvis `gh` er installert **og**
-konfigurert med HTTPS (`gh config get git_protocol` må returnere `https`).
-`gh` er ikke en forutsetning.
+`git clone` (HTTPS) er et alternativ **kun der `.git`-oppretting er tillatt** — dvs. når du launcher
+*inne i* et eksisterende repo (enkelt-repo-gjennomgang), eller i en mappe du har gjort til et repo
+(`git init`) eller gitt `allow.write`:
+```bash
+git clone https://github.com/navikt/{repo}.git                          # offentlig
+git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git  # privat
+git clone git@github.com:navikt/{repo}.git                              # ❌ SSH blokkert (port 22)
+```
 
 **3. Be brukeren om tilgang**
 Hvis verken github-mcp er konfigurert eller `GH_TOKEN` er tilgjengelig, be brukeren
@@ -250,8 +262,12 @@ pwd && ls -la
 ```
 
 Vurder CWD:
-- **Tom mappe eller mappe som allerede inneholder kontekstfiler/repoer for denne gjennomgangen** → fortsett herfra
-- **Inne i et Git-repo** (`ls .git`) eller **mappe med urelatert innhold** → informer bruker:
+- **Tom mappe eller mappe som allerede inneholder kontekstfiler/kildekode for denne gjennomgangen** → fortsett herfra
+- **Inne i repoet som skal vurderes** (enkelt-repo-system) → helt greit å jobbe her hvis det er
+  mest praktisk. Artefakter (rapport, kontekstfiler) lagres da i repoet; legg dem gjerne i en
+  gitignorert undermappe for ryddighet. Agenten endrer aldri koden den vurderer — om et menneske
+  velger å sjekke inn rapporten eller endre kode, er det brukerens ansvar.
+- **Inne i et urelatert repo, eller en mappe med urelatert innhold** → anbefal en dedikert arbeidsmappe:
 
 > Jeg anbefaler å opprette en dedikert arbeidsmappe for denne gjennomgangen.
 > En etterlevelsesgjennomgang består ofte av flere repoer og produserer flere filer
@@ -261,7 +277,8 @@ Vurder CWD:
 > mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
 > ```
 >
-> Kildekoden klones som undermapper her, og rapport og kontekstfiler lagres samme sted.
+> Kildekoden hentes inn som undermapper (kildeeksport, ikke klon — se «Kodeanalyse i sandkassen»),
+> og rapport og kontekstfiler lagres samme sted.
 > Vil du opprette en slik mappe før vi starter?
 
 Vent på brukerens svar før du fortsetter.
@@ -716,14 +733,18 @@ For hvert repo som skal analyseres (f.eks. `navikt/veilarbdialog`):
    ```
    Hvis det er commits bak `origin/main`: spør bruker om de vil pulle først.
 
-3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
+3. **Hvis ikke funnet — hent koden inn i arbeidsmappen som kildeeksport:**
    ```bash
-   # Offentlige repoer:
-   git clone https://github.com/navikt/{repo}.git
-   # Private repoer (SSH er blokkert i cplt — bruk alltid HTTPS):
-   git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
+   mkdir -p {repo}
+   # Med gh (anbefalt):
+   gh api repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
+   # Uten gh — curl + GH_TOKEN:
+   curl -fL -H "Authorization: Bearer $GH_TOKEN" \
+     https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
    ```
-   Repoet klones da som undermappe i CWD (`{repo}/`).
+   Gir en `.git`-løs kopi i `{repo}/` — virker i en ren arbeidsmappe under cplt, der `git clone`
+   feiler på `.git`-oppretting. `git clone` er kun et alternativ når du launcher inne i et repo
+   eller en `git init`/`allow.write`-mappe. Se «Kodeanalyse i sandkassen» for detaljer og ref-pinning.
 
 Bruk deretter lokale verktøy for søk — `bash`, `grep`/`ripgrep`, `find` — i stedet for
 GitHub API. Bruk explore-agenter parallelt på de lokale repoene.
