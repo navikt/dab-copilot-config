@@ -68,14 +68,12 @@ allow_private_domains = ["intern.dev.nav.no"]  # Påkrevd for nav-etterlevelse-m
 
 #### Kodeanalyse i sandkassen
 
-Bruk den beste tilgjengelige metoden i denne rekkefølgen:
+En full etterlevelsesgjennomgang greper på tvers av hele kodebasen (auth, personopplysninger,
+Kafka, lagringstid osv.). Da er **lokal kildekode + `grep`/`ripgrep` den foretrukne metoden** —
+raskere, komplett, og uten API-rundturer. github-mcp kan verken klone eller hente hele repoet, så
+den er et supplement for enkeltoppslag, ikke en erstatning. Rekkefølge etter preferanse:
 
-**1. github-mcp** (for enkeltfiler og søk — anbefalt hvis tilgjengelig)
-Tilgjengelig hvis `github`-MCP-serveren er konfigurert — standard i Copilot CLI,
-valgfritt i OpenCode. Bruk `get_file_contents` og `search_code` direkte uten kloning.
-Verken `gh` CLI eller `GH_TOKEN` er nødvendig for denne metoden.
-
-**2. Lokal kildekode** (for full kodeanalyse)
+**1. Lokal kildekode** (foretrukket for full kodeanalyse)
 
 I cplt-sandkassen blokkeres `.git`-oppretting i en ren arbeidsmappe (ikke-repo), så `git clone`
 feiler der. Hent derfor koden som en `.git`-løs kildeeksport — det passer også read-only-prinsippet,
@@ -104,6 +102,13 @@ git clone https://github.com/navikt/{repo}.git                          # offent
 git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git  # privat
 git clone git@github.com:navikt/{repo}.git                              # ❌ SSH blokkert (port 22)
 ```
+
+**2. github-mcp** (for enkeltoppslag og målrettet søk, eller når lokal kode ikke er tilgjengelig)
+Tilgjengelig hvis `github`-MCP-serveren er konfigurert — standard i Copilot CLI, valgfritt i OpenCode.
+`get_file_contents` (én fil / kataloglisting) og `search_code` (kodesøk) uten kloning; verken `gh`
+eller `GH_TOKEN` er nødvendig. Merk: den støtter **ikke** helrepo-uthenting, så for bred grep-basert
+analyse er lokal kildekode (metode 1) raskere og mer komplett — bruk github-mcp til å slå opp
+enkeltfiler eller søke etter et konkret symbol.
 
 **3. Be brukeren om tilgang**
 Hvis verken github-mcp er konfigurert eller `GH_TOKEN` er tilgjengelig, be brukeren
