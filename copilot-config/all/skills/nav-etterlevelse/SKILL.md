@@ -79,13 +79,20 @@ Verken `gh` CLI eller `GH_TOKEN` er nødvendig for denne metoden.
 
 I cplt-sandkassen blokkeres `.git`-oppretting i en ren arbeidsmappe (ikke-repo), så `git clone`
 feiler der. Hent derfor koden som en `.git`-løs kildeeksport — det passer også read-only-prinsippet,
-siden det ikke finnes noe å committe eller pushe:
+siden det ikke finnes noe å committe eller pushe. Har du `gh` installert, er den enkleste veien:
 ```bash
 mkdir -p {repo}
 gh api repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
 ```
+`gh` er anbefalt, men ikke påkrevd. Uten `gh` gjør `curl` + `GH_TOKEN` det samme:
+```bash
+mkdir -p {repo}
+curl -fL -H "Authorization: Bearer $GH_TOKEN" \
+  https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
+```
 - `{ref}` er branch, tag eller SHA (utelatt → default branch). Pin til en SHA for reproduserbar dokumentasjon.
-- `gh api` bruker GH-tokenet og virker for private Nav-repoer. SSH (port 22) er uansett blokkert i sandkassen.
+- Begge bruker GH-tokenet og virker for private Nav-repoer. SSH (port 22) er uansett blokkert i sandkassen.
+- `curl`-varianten sender tokenet i en header (ikke i URL-en), så det lekker ikke til git-config eller logger.
 - Ved `--preset strict` / tvunget proxy: sørg for egress til `api.github.com` og `codeload.github.com`.
 
 `git clone` (HTTPS) er et alternativ **kun der `.git`-oppretting er tillatt** — dvs. når du launcher
@@ -729,7 +736,11 @@ For hvert repo som skal analyseres (f.eks. `navikt/veilarbdialog`):
 3. **Hvis ikke funnet — hent koden inn i arbeidsmappen som kildeeksport:**
    ```bash
    mkdir -p {repo}
+   # Med gh (anbefalt):
    gh api repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
+   # Uten gh — curl + GH_TOKEN:
+   curl -fL -H "Authorization: Bearer $GH_TOKEN" \
+     https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
    ```
    Gir en `.git`-løs kopi i `{repo}/` — virker i en ren arbeidsmappe under cplt, der `git clone`
    feiler på `.git`-oppretting. `git clone` er kun et alternativ når du launcher inne i et repo
