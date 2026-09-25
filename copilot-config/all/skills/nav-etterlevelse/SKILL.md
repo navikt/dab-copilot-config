@@ -455,7 +455,7 @@ fremgikk av `versjonEndringer`).
 
 Fremgangsmåte:
 
-1. **Hent SK-beskrivelsen** for hvert SK som er satt til IKKE_RELEVANT (via GraphQL `kravById`)
+1. **Hent SK-beskrivelsen** for hvert SK som er satt til IKKE_RELEVANT (med `get_krav`)
 2. **Formuler spørsmålet** SK-et stiller: *«Dette kriteriet spør: [...]»*
 3. **Vurder om grunnlaget er gyldig.** Gyldige grunner for IKKE_RELEVANT:
    - Systemets egenskaper (`relevansFor`) matcher ikke SK-ets forutsetning (f.eks. SK gjelder
@@ -474,7 +474,9 @@ Fremgangsmåte:
 SK spør «Har dere dokumentert valget av behandlingsgrunnlag?»
 Eksisterende begrunnelse: «Grunnlaget er åpenbart — hjemmel i lov.»
 → Feil: begrunnelsen svarer på «er grunnlaget klart?», ikke «er det dokumentert?»
-→ Korrekt status: OPPFYLT med B-nummer-referanse
+→ Riktig: begrunnelsen skal vise til dokumentasjonen i Behandlingskatalogen med B-nummer.
+  Konklusjonen «bør være OPPFYLT» er en anbefaling til teamet — agenten kan ikke sette
+  OPPFYLT selv, det gjøres manuelt i etterlevelse.ansatt.nav.no.
 
 
 Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
