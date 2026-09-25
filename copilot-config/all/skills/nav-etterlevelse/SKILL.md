@@ -1043,9 +1043,11 @@ Før et forslag til status eller begrunnelse vises, skal agenten:
    - **Skrivegjennomgang** (dokumentet er låst og SK-et skal kunne skrives): `begin_sk_review`.
      Dette er eneste gyldige kilde til SK-presentasjonen i gjennomgangsløkka.
    - **Ren utforskning** (brukeren vil bare «se nærmere på» et krav, dokumentet er ikke låst,
-     eller ingenting skal skrives ennå): `get_krav` / `get_krav_for_gjennomgang`.
-     `begin_sk_review` krever aktiv dokumentlås og utsteder et skrivetoken — ikke kall den
-     bare for å lese.
+     eller ingenting skal skrives ennå): `get_krav_for_gjennomgang` for kravkonteksten (hensikt,
+     utdypende beskrivelse, rettskilder) og **`get_krav` for SK-beskrivelsen**.
+     `get_krav_for_gjennomgang` returnerer kun suksesskriterienes id, navn og
+     `behovForBegrunnelse` — ikke selve beskrivelsen. `begin_sk_review` krever aktiv
+     dokumentlås og utsteder et skrivetoken — ikke kall den bare for å lese.
    I begge tilfeller: ikke gjenbruk SK-tekst fra tidligere i samtalen eller fra hukommelsen.
 2. Vise kravteksten ordrett — kravets identifikator og navn, **hensikt**, SK-ets fullstendige
    **beskrivelse** og eksisterende besvarelse. Ved `begin_sk_review` er dette feltet `presentasjon`.
