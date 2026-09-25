@@ -289,6 +289,11 @@ Vurder CWD:
 
 Vent på brukerens svar før du fortsetter.
 
+**Nevn modellvalg tidlig, én gang:** analysen i steg 4 og 6 er juridisk og teknisk vurdering
+der kvaliteten avhenger merkbart av modellen. Anbefal brukeren å kjøre gjennomgangen på den
+sterkeste modellen de har tilgang til, og gå videre uten å insistere — dette er en anbefaling,
+ikke en blokker. Se «Modellvalg for deloppgaver».
+
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
 2. **Etterlevelsesdokumentasjon-ID** (UUID fra URL-en i etterlevelsesløsningen, f.eks. `a5cc7dfe-2fb9-4ff2-8eda-52d7079cda4c`)
@@ -1432,6 +1437,13 @@ av bruker og teamet før eventuell opplasting til etterlevelsesløsningen (steg 
 
 Bruk mer kapable modeller for tunge analytiske oppgaver og raskere/billigere modeller
 for enkle strukturerte deloppgaver.
+
+**Primærsesjonen bør kjøre på den sterkeste modellen du har tilgang til.** Deloppgaver kan
+delegeres til subagenter, men steg 6 (begrunnelser og rapport) og deler av steg 4 kjører i
+primærsesjonen og arver dens modell. Erfaringsmessig gir sterkere modeller merkbart dypere
+analyse og flere reelle funn i nettopp disse stegene — forskjellen er faglig, ikke mekanisk,
+og kan ikke kompenseres av verktøyene. Gjennomgangsløkka i steg 7 er lite modellsensitiv, men
+den utgjør en liten del av arbeidet.
 
 | Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
