@@ -1034,14 +1034,22 @@ analyse alene.
 
 Før et forslag til status eller begrunnelse vises, skal agenten:
 
-1. Kalle `begin_sk_review` for det aktuelle suksesskriteriet. **Dette er eneste kilde til
-   SK-presentasjonen** — ikke gjenbruk SK-tekst fra `get_krav_for_gjennomgang`, fra tidligere
-   i samtalen eller fra hukommelsen.
-2. Vise `presentasjon` ordrett. Den inneholder kravets identifikator og navn, **hensikt**,
-   SK-ets fullstendige **beskrivelse** og eksisterende besvarelse.
+1. Hente kravteksten fra API-et. Hvilket verktøy avhenger av modus:
+   - **Skrivegjennomgang** (dokumentet er låst og SK-et skal kunne skrives): `begin_sk_review`.
+     Dette er eneste gyldige kilde til SK-presentasjonen i gjennomgangsløkka.
+   - **Ren utforskning** (brukeren vil bare «se nærmere på» et krav, dokumentet er ikke låst,
+     eller ingenting skal skrives ennå): `get_krav` / `get_krav_for_gjennomgang`.
+     `begin_sk_review` krever aktiv dokumentlås og utsteder et skrivetoken — ikke kall den
+     bare for å lese.
+   I begge tilfeller: ikke gjenbruk SK-tekst fra tidligere i samtalen eller fra hukommelsen.
+2. Vise kravteksten ordrett — kravets identifikator og navn, **hensikt**, SK-ets fullstendige
+   **beskrivelse** og eksisterende besvarelse. Ved `begin_sk_review` er dette feltet `presentasjon`.
 3. Markere tydelig hvor konteksten slutter og hvor agentens analyse/forslag begynner.
-4. Be om avklaring hvis `begin_sk_review` feiler. Ikke fyll inn manglende kravtekst fra
+4. Be om avklaring hvis kravdata ikke kan hentes. Ikke fyll inn manglende kravtekst fra
    hukommelsen og ikke utled den fra kravnavnet.
+
+⛔ **Skal SK-et skrives, må presentasjonen komme fra `begin_sk_review`** — en utforskningsvisning
+gir ikke noe gyldig `reviewToken`, og skrivingen vil bli avvist.
 
 Formatet på `presentasjon` bestemmes av serveren. Agenten legger sin analyse etter blokken:
 
@@ -1064,6 +1072,10 @@ Takten håndheves av MCP-serveren, ikke av denne teksten: `begin_sk_review` utst
 engangstoken for **ett** suksesskriterium, og `write_suksesskriterium` avvises uten et
 gyldig token. Du kan derfor ikke komme i forkant — følg oppskriften.
 
+⛔ **Forutsetning: lås dokumentet før løkka starter.** Kall `lock_document` med
+etterlevelsesdokumentasjonens UUID én gang (låsen gjelder hele sesjonen). `begin_sk_review`
+krever aktiv lås og feiler uten den.
+
 For hvert suksesskriterium som skal vurderes:
 
 1. **`begin_sk_review(etterlevelseDokumentasjonId, kravNummer, kravVersjon, suksesskriterieId)`**
@@ -1078,6 +1090,13 @@ For hvert suksesskriterium som skal vurderes:
    - **R** → la brukeren redigere, vis oppdatert forslag på nytt, og skriv først når
      brukeren lander på G (`brukerGodkjenning: "R"` når teksten er endret underveis).
 5. Gå til neste SK og start på nytt fra punkt 1.
+
+**Ett aktivt token om gangen.** Kall `begin_sk_review` for ett SK om gangen, rett før du
+presenterer det. Et nytt kall opphever det forrige tokenet — henter du tokens for flere SK-er
+på forhånd, vil alle unntatt det siste bli avvist.
+
+**Tokenet varer 45 minutter.** Tar gjennomgangen av ett SK lengre tid, kall `begin_sk_review`
+på nytt for det samme SK-et og presenter det igjen før du skriver.
 
 ⛔ **Vis `presentasjon` uforkortet.** Den inneholder kravets hensikt, som er nødvendig for å
 forstå hva kravet omhandler — SK-teksten alene er ikke alltid nok. Ikke gjenskap blokken fra
@@ -1118,8 +1137,8 @@ eller en sluttbatch.
 
 **Flyt:**
 
-1. Lås dokumentet første gang: `lock_document` med etterlevelsesdokumentasjonens UUID
-   (kun nødvendig én gang — låsen gjelder hele sesjonen).
+1. Dokumentet skal allerede være låst med `lock_document` før gjennomgangsløkka startet
+   (se steg 7). Er det ikke det, lås det nå — `begin_sk_review` feiler uten aktiv lås.
 2. Kjør gjennomgangsløkka fra steg 7 per SK: `begin_sk_review` → vis `presentasjon` → vent på
    G/H/R → `write_suksesskriterium` med `reviewToken` og `brukerGodkjenning` ved G.
 3. Krav-nivå status: Å skrive det første SK-et oppretter etterlevelsen med krav-status
