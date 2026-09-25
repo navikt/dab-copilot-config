@@ -1034,32 +1034,24 @@ analyse alene.
 
 Før et forslag til status eller begrunnelse vises, skal agenten:
 
-1. Hente kravdata med `get_krav_for_gjennomgang` (med dokument-ID når den finnes).
-2. Vise brukeren en egen kontekstblokk som minst inneholder kravets identifikator og navn,
-  **hensikt**, eventuell **utdypende beskrivelse**, og det aktuelle SK-ets fullstendige
-  **beskrivelse**. Vis også «Mer om kravet», varsel, rettskilder og eksisterende
-  besvarelse når feltene finnes eller er relevante.
+1. Kalle `begin_sk_review` for det aktuelle suksesskriteriet. **Dette er eneste kilde til
+   SK-presentasjonen** — ikke gjenbruk SK-tekst fra `get_krav_for_gjennomgang`, fra tidligere
+   i samtalen eller fra hukommelsen.
+2. Vise `presentasjon` ordrett. Den inneholder kravets identifikator og navn, **hensikt**,
+   SK-ets fullstendige **beskrivelse** og eksisterende besvarelse.
 3. Markere tydelig hvor konteksten slutter og hvor agentens analyse/forslag begynner.
-4. Be om avklaring hvis kravdata eller SK-beskrivelse ikke kan hentes. Ikke fyll inn
-  manglende kravtekst fra hukommelsen eller utled den fra kravnavnet.
+4. Be om avklaring hvis `begin_sk_review` feiler. Ikke fyll inn manglende kravtekst fra
+   hukommelsen og ikke utled den fra kravnavnet.
 
-Minimumsformat ved «se nærmere på K{nr}.{v}»:
+Formatet på `presentasjon` bestemmes av serveren. Agenten legger sin analyse etter blokken:
 
 ```
-K{nr}.{v} – {kravnavn}
-
-KRAVETS HENSIKT
-{hensikt}
-
-SK{id} – {suksesskriterienavn}
-KRITERIET SPØR
-{suksesskriterier[i].beskrivelse}
-
-EKSISTERENDE BESVARELSE
-{status og begrunnelse, eller «Ingen eksisterende besvarelse»}
+{presentasjon fra begin_sk_review — vises ordrett}
 
 ANALYSE OG FORSLAG
 {agentens funn og forslag}
+
+[G]odkjenn  [H]opp over  [R]ediger
 ```
 
 Den samme kontekstblokken skal gjentas dersom agenten endrer forslaget etter spørsmål
