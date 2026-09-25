@@ -1324,7 +1324,7 @@ Nav er behandlingsansvarlig, D-nummer der Nav kun er databehandler).
 | K231 Klarspråk | Tekstkvalitet, NAV DS-bruk. SK om kontakt med klarspråk = organisatorisk |
 | K232 Bokmål/nynorsk | i18n-rammeverk, språkvalg-UI, hardkodet tekst |
 | K245 Risikovurdering | CSP-policy, sårbarheter, sikkerhetstiltak |
-| K253 Oppslagslogg | Kun for **visning av personopplysninger til Nav-ansatte** i fagsystemer — ikke skrive-operasjoner, bakgrunnsjobber, meldingskonsumenter, tilgangskontrollsjekker eller listevisning uten direkte oppslag. Identifiser HTTP-endepunkter/GraphQL-resolvere som returnerer brukerdata til saksbehandler-frontend. Verifiser at disse logger til ArcSight/CEF. Spring = logback-naudit, Node.js = Winston-syslog. Ref: [sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/) |
+| K253 Oppslagslogg | Kun for **visning av personopplysninger til Nav-ansatte** i fagsystemer — ikke skrive-operasjoner, bakgrunnsjobber, meldingskonsumenter, tilgangskontrollsjekker eller listevisning uten direkte oppslag. Identifiser HTTP-endepunkter/GraphQL-resolvere som returnerer brukerdata til saksbehandler-frontend. Verifiser at disse logger til ArcSight på CEF-format over Syslog. Java/Kotlin: `logback` (se [navikt/naudit](https://github.com/navikt/naudit) for Syslog-oppsett, eller Team Komets `audit-log`-modul). Node.js: Winston / `winston-syslog`. Ref: [sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/) |
 
 ## Rapport
 
