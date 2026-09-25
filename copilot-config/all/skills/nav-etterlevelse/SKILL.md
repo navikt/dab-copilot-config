@@ -289,6 +289,11 @@ Vurder CWD:
 
 Vent på brukerens svar før du fortsetter.
 
+**Nevn modellvalg tidlig, én gang:** analysen i steg 4 og 6 er juridisk og teknisk vurdering
+der kvaliteten avhenger merkbart av modellen. Anbefal brukeren å kjøre gjennomgangen på den
+sterkeste modellen de har tilgang til, og gå videre uten å insistere — dette er en anbefaling,
+ikke en blokker. Se «Modellvalg for deloppgaver».
+
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
 2. **Etterlevelsesdokumentasjon-ID** (UUID fra URL-en i etterlevelsesløsningen, f.eks. `a5cc7dfe-2fb9-4ff2-8eda-52d7079cda4c`)
@@ -347,8 +352,6 @@ eller «Azure access token has expired»):
 - Ikke gjenta det feilende kallet automatisk — vent til bruker bekrefter at sesjonen er fornyet.
 
 Fortsett direkte til steg 3.
-
-### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
 
 ### Steg 3: Hent etterlevelsesdata og behandlingskatalogdata
 
@@ -1020,17 +1023,11 @@ Vent på teamets eksplisitte klarsignal før du starter den interaktive gjennomg
 
 **Ingen SK lastes opp uten eksplisitt godkjenning per SK i den interaktive gjennomgangen.**
 
-⛔ **HARD GATE — RAPPORTEN AUTORISERER INGEN SKRIVING.** Når teamet gir klarsignal til
-gjennomgang, skal agentens **neste melding** være nøyaktig ett suksesskriterium: `SK 1 av N for
-K{nr}.{v}` med `[G]odkjenn [H]opp over [R]ediger`, deretter stopp. Ingenting annet.
-
-Det er **forbudt** å bygge bro fra rapporten til opplasting med:
-- en oppsummeringstabell over «SK-er jeg vil skrive via API» (eller lignende skriveplan), eller
-- ett samlet «Vil du at jeg skal skrive/laste opp disse?»-spørsmål.
-
-Rapporten (steg 6) er en oversikt/leveranse — den er **ikke** en per-SK-godkjenning. At alle
-forslag allerede står i rapporten fjerner ikke kravet om å gå gjennom hvert SK enkeltvis her.
-Selv om brukeren sier «last opp alt» eller «godkjent», starter du per-SK-løkka på SK 1 og venter.
+Rapporten (steg 6) er en oversikt og leveranse — den er **ikke** en per-SK-godkjenning. At alle
+forslag allerede står i rapporten fjerner ikke behovet for å gå gjennom hvert SK enkeltvis. Når
+teamet gir klarsignal, starter du gjennomgangsløkka på første SK. Tilby aldri en samlet
+opplasting av flere SK-er — serveren avviser det uansett, siden hvert skriv krever et ferskt
+token fra `begin_sk_review`.
 
 #### Interaktiv SK-gjennomgang
 
@@ -1042,156 +1039,113 @@ analyse alene.
 
 Før et forslag til status eller begrunnelse vises, skal agenten:
 
-1. Hente kravdata med `get_krav_for_gjennomgang` (med dokument-ID når den finnes).
-2. Vise brukeren en egen kontekstblokk som minst inneholder kravets identifikator og navn,
-  **hensikt**, eventuell **utdypende beskrivelse**, og det aktuelle SK-ets fullstendige
-  **beskrivelse**. Vis også «Mer om kravet», varsel, rettskilder og eksisterende
-  besvarelse når feltene finnes eller er relevante.
+1. Hente kravteksten fra API-et. Hvilket verktøy avhenger av modus:
+   - **Skrivegjennomgang** (dokumentet er låst og SK-et skal kunne skrives): `begin_sk_review`.
+     Dette er eneste gyldige kilde til SK-presentasjonen i gjennomgangsløkka.
+   - **Ren utforskning** (brukeren vil bare «se nærmere på» et krav, dokumentet er ikke låst,
+     eller ingenting skal skrives ennå): `get_krav` / `get_krav_for_gjennomgang`.
+     `begin_sk_review` krever aktiv dokumentlås og utsteder et skrivetoken — ikke kall den
+     bare for å lese.
+   I begge tilfeller: ikke gjenbruk SK-tekst fra tidligere i samtalen eller fra hukommelsen.
+2. Vise kravteksten ordrett — kravets identifikator og navn, **hensikt**, SK-ets fullstendige
+   **beskrivelse** og eksisterende besvarelse. Ved `begin_sk_review` er dette feltet `presentasjon`.
 3. Markere tydelig hvor konteksten slutter og hvor agentens analyse/forslag begynner.
-4. Be om avklaring hvis kravdata eller SK-beskrivelse ikke kan hentes. Ikke fyll inn
-  manglende kravtekst fra hukommelsen eller utled den fra kravnavnet.
+4. Be om avklaring hvis kravdata ikke kan hentes. Ikke fyll inn manglende kravtekst fra
+   hukommelsen og ikke utled den fra kravnavnet.
 
-Minimumsformat ved «se nærmere på K{nr}.{v}»:
+⛔ **Skal SK-et skrives, må presentasjonen komme fra `begin_sk_review`** — en utforskningsvisning
+gir ikke noe gyldig `reviewToken`, og skrivingen vil bli avvist.
+
+Formatet på `presentasjon` bestemmes av serveren. Agenten legger sin analyse etter blokken:
 
 ```
-K{nr}.{v} – {kravnavn}
-
-KRAVETS HENSIKT
-{hensikt}
-
-SK{id} – {suksesskriterienavn}
-KRITERIET SPØR
-{suksesskriterier[i].beskrivelse}
-
-EKSISTERENDE BESVARELSE
-{status og begrunnelse, eller «Ingen eksisterende besvarelse»}
+{presentasjon fra begin_sk_review — vises ordrett}
 
 ANALYSE OG FORSLAG
 {agentens funn og forslag}
+
+[G]odkjenn  [H]opp over  [R]ediger
 ```
 
 Den samme kontekstblokken skal gjentas dersom agenten endrer forslaget etter spørsmål
 eller innspill fra teamet. «Lest internt» er ikke tilstrekkelig — teamet skal kunne
 etterprøve at forslaget svarer på riktig spørsmål.
 
-For **hvert krav** med endringer, skriv til konsollet:
+#### Gjennomgangsløkka — én runde per suksesskriterium
 
-```
-══════════════════════════════════════════════════════════════
-K{nr}.{v} – {kravnavn}
-──────────────────────────────────────────────────────────────
-Hensikt:
-  {krav.hensikt}
-══════════════════════════════════════════════════════════════
-```
+Takten håndheves av MCP-serveren, ikke av denne teksten: `begin_sk_review` utsteder et
+engangstoken for **ett** suksesskriterium, og `write_suksesskriterium` avvises uten et
+gyldig token. Du kan derfor ikke komme i forkant — følg oppskriften.
 
-For **hvert suksesskriterium** med endring under kravet (én blokk per melding):
+⛔ **Forutsetning: lås dokumentet før løkka starter.** Kall `lock_document` med
+etterlevelsesdokumentasjonens UUID én gang (låsen gjelder hele sesjonen). `begin_sk_review`
+krever aktiv lås og feiler uten den.
 
-```
-─────────────────────────────────────────
-K{nr}.{v} – {kravnavn}
-Kravets hensikt:
-  {krav.hensikt}
-─────────────────────────────────────────
-SK{id} – {suksesskriterienavn}
-Kriteriet spør:
-  {suksesskriterier[i].beskrivelse}
+For hvert suksesskriterium som skal vurderes:
 
-ENDRING:
-  Status:     {gammel_status} → {ny_status}
-  Begrunnelse (før):
-    {eksisterende begrunnelse, eller "(tom)"}
-  Begrunnelse (etter):
-    {foreslått begrunnelse}
+1. **`begin_sk_review(etterlevelseDokumentasjonId, kravNummer, kravVersjon, suksesskriterieId)`**
+   Returnerer `presentasjon` (ferdig formatert blokk med kravets hensikt, SK-beskrivelse og
+   eksisterende besvarelse) og `reviewToken`.
+2. **Vis `presentasjon` ordrett**, legg til din analyse og ditt forslag til status/begrunnelse,
+   og avslutt meldingen med `[G]odkjenn  [H]opp over  [R]ediger`.
+3. **STOPP. Vent på brukerens svar.** Ikke generer neste SK, ikke oppsummering.
+4. **Etter svar:**
+   - **G** → `write_suksesskriterium(..., reviewToken, brukerGodkjenning: "G")`
+   - **H** → ingen skriving. Tokenet brukes bare ikke. Gå videre.
+   - **R** → la brukeren redigere, vis oppdatert forslag på nytt, og skriv først når
+     brukeren lander på G (`brukerGodkjenning: "R"` når teksten er endret underveis).
+5. Gå til neste SK og start på nytt fra punkt 1.
 
-[G]odkjenn  [H]opp over  [R]ediger
-> _
-```
+**Ett aktivt token om gangen.** Kall `begin_sk_review` for ett SK om gangen, rett før du
+presenterer det. Et nytt kall opphever det forrige tokenet — henter du tokens for flere SK-er
+på forhånd, vil alle unntatt det siste bli avvist.
 
-⛔ **Kravets hensikt skal alltid stå øverst i hver SK-blokk.** Fordi hvert SK presenteres i sin
-egen melding (stopp og vent), forsvinner krav-headeren over ut av synsfeltet — og SK-teksten alene
-er ikke alltid nok til å forstå hva kravet omhandler. Gjenta derfor kravets identifikator, navn og
-`hensikt` øverst i hver SK-blokk, slik at hver G/H/R-beslutning tas med kravets formål synlig.
+**Tokenet varer 45 minutter.** Tar gjennomgangen av ett SK lengre tid, kall `begin_sk_review`
+på nytt for det samme SK-et og presenter det igjen før du skriver.
 
-**⛔ ABSOLUTT KRAV — ETT SK PER MELDING, STOPP OG VENT:**
-
-Dette er den viktigste regelen i hele gjennomgangsflyten. Brudd på denne regelen gjør
-gjennomgangen ubrukelig.
-
-1. **Generer én SK-blokk.** Avslutt meldingen med `[G]odkjenn  [H]opp over  [R]ediger`.
-2. **STOPP HELT.** Ikke generer noe mer innhold — ikke neste SK, ikke oppsummering, ikke forklaring.
-3. **Vent på brukerens svar** (G, H eller R) før du gjør noe som helst.
-4. **Først etter svar:** behandle svaret og generer neste SK i en ny melding.
-
-**Output-kontrakt (hard validering før sending):**
-- Meldingen skal inneholde **akkurat én** forekomst av `SK{id}`-blokken.
-- Meldingen skal inneholde **akkurat én** meny-linje: `[G]odkjenn  [H]opp over  [R]ediger`.
-- Hvis meldingen inneholder to eller flere `SK{id}`-blokker, er output **ugyldig** og må skrives om før sending.
-
-**Forbudt mønster (aldri tillatt):**
-- «Her er SK1, SK2, SK3 — godkjenn alle samlet»
-- «Oppsummering av alle SK-er med ett G/H/R-valg»
-- «Batch med flere SK-er i samme svar, selv om alle har samme status»
-- En oppsummeringstabell over «SK-er jeg vil skrive via API» (skriveplan) etterfulgt av ett samlet
-  «Vil du at jeg skal skrive/laste opp?»-spørsmål — dette er batch-godkjenning i forkledning
-- Presentere flere kravs SK-er i samme melding før per-SK-løkka har startet
-
-Dette gjelder **uten unntak**:
-- Selv om kravet har mange SK-er — vis én om gangen
-- Selv om alle SK-er «åpenbart» er like — vis én om gangen
-- Selv om bruker sier «godkjenn alle» — be om bekreftelse per SK
-- Selv om gjennomgangen har mange krav — stopp etter hvert enkelt SK
+⛔ **Vis `presentasjon` uforkortet.** Den inneholder kravets hensikt, som er nødvendig for å
+forstå hva kravet omhandler — SK-teksten alene er ikke alltid nok. Ikke gjenskap blokken fra
+hukommelsen og ikke komprimer den; da mister teamet grunnlaget for å vurdere forslaget.
 
 Vis øverst i hver melding: `SK {i} av {n} for K{nr}.{v}`
 
-Hvis bruker svarer «godkjenn alle», skal agenten svare:
-`Kan ikke godkjenne samlet. Vi må ta ett SK om gangen.`
-og deretter vise **nøyaktig ett** SK (neste i køen).
-
-**Regler for interaktiv gjennomgang:**
-- **G (Godkjenn):** Last opp dette SK-et **umiddelbart** med `write_suksesskriterium` (ett kall,
-  kun dette SK-et — se steg 8). Avslutt meldingen. Vent. Vis neste SK i ny melding kun etter G er
-  mottatt og opplastingen er bekreftet.
-- **H (Hopp over):** SK hoppes over — **ingen skriving**. Avslutt meldingen. Vent. Vis neste SK i
-  ny melding kun etter H er mottatt.
-- **R (Rediger):** Vis foreslått begrunnelse og be bruker skrive ny tekst. Etter redigering
-  vises den oppdaterte diff-en på nytt med G/H-valg — fortsatt én SK per melding. Last opp med
-  `write_suksesskriterium` først når den redigerte teksten er endelig godkjent (G).
-
-⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke last opp
+⛔ **IKKE_RELEVANT krever alltid teamets eksplisitte godkjenning (G).** Ikke skriv
 IKKE_RELEVANT automatisk selv om `behovForBegrunnelse = false` og det ikke er noe å redigere.
 IKKE_RELEVANT er en faglig påstand om at kriteriet ikke gjelder for systemet — teamet
 må bekrefte dette, ikke agenten. Presenter alltid forslaget med begrunnelse for statusvalget.
-- Ett `write_suksesskriterium`-kall per godkjent SK er den strukturelle garantien mot batching:
-  verktøyet tar kun ETT suksesskriterium, så det er umulig å laste opp flere SK-er samlet.
-- Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over». Sett krav-nivå
-  status ved behov med `write_krav_status` (se steg 8).
-- Etter alle krav: vis total oppsummering.
 
-**Last opp hvert SK umiddelbart når det er godkjent** — ikke vent til alle SK-er for kravet er
-gjennomgått, og ikke til alle krav er ferdig. Dette sikrer at fremgang lagres løpende og at bruker
-ser resultatet i UI-et med en gang. Hoppede-over SK-er røres ikke.
+Hvis bruker svarer «godkjenn alle»: forklar at hvert suksesskriterium må bekreftes for seg,
+og fortsett med neste SK. Poenget med gjennomgangen er at teamet tar stilling til hver enkelt
+vurdering — ikke at den går raskest mulig.
+
+Etter alle SK-er for ett krav: vis oppsummering «{n} godkjent, {m} hoppet over». Sett krav-nivå
+status ved behov med `write_krav_status` (se steg 8). Etter alle krav: vis total oppsummering.
+
+**Hoppede-over SK-er røres ikke.**
+
+
 
 ### Steg 8: Last opp per suksesskriterium under gjennomgangen
 
 Opplasting skjer løpende i steg 7 — ett suksesskriterium om gangen, ikke som en batch per krav
 eller en sluttbatch.
 
-**To skriveverktøy (erstatter det tidligere `write_etterlevelse`):**
+**Verktøyene:**
 
-- `write_suksesskriterium` — skriver **ett** suksesskriterium: begrunnelse + `suksesskriterieStatus`.
-  Dette er hovedverktøyet i gjennomgangen. Verktøyet tar bare ett SK, så batch-opplasting er
-  strukturelt umulig.
+- `begin_sk_review` — starter gjennomgangen av **ett** SK. Returnerer `presentasjon` (som skal
+  vises ordrett) og `reviewToken`.
+- `write_suksesskriterium` — skriver **ett** suksesskriterium: begrunnelse +
+  `suksesskriterieStatus`. Krever `reviewToken` fra `begin_sk_review` og `brukerGodkjenning`.
+  Tokenet er engangsbruk og bundet til nøyaktig det SK-et det ble utstedt for.
 - `write_krav_status` — setter **krav-nivå** status (`UNDER_ARBEID` eller `IKKE_RELEVANT`) uten å
-  røre SK-begrunnelsene.
+  røre SK-begrunnelsene. Krever ikke token.
 
 **Flyt:**
 
-1. Lås dokumentet første gang: `lock_document` med etterlevelsesdokumentasjonens UUID
-   (kun nødvendig én gang — låsen gjelder hele sesjonen).
-2. For hvert SK som godkjennes (G) i steg 7: kall `write_suksesskriterium` umiddelbart med
-   `etterlevelseDokumentasjonId`, `kravNummer`, `kravVersjon`, `suksesskriterieId`, `begrunnelse`
-   og `suksesskriterieStatus`. Ett kall per SK.
+1. Dokumentet skal allerede være låst med `lock_document` før gjennomgangsløkka startet
+   (se steg 7). Er det ikke det, lås det nå — `begin_sk_review` feiler uten aktiv lås.
+2. Kjør gjennomgangsløkka fra steg 7 per SK: `begin_sk_review` → vis `presentasjon` → vent på
+   G/H/R → `write_suksesskriterium` med `reviewToken` og `brukerGodkjenning` ved G.
 3. Krav-nivå status: Å skrive det første SK-et oppretter etterlevelsen med krav-status
    «under redigering» automatisk — du trenger normalt ikke sette den eksplisitt. Bruk
    `write_krav_status` kun når du vil overstyre krav-status, f.eks.:
@@ -1203,21 +1157,26 @@ eller en sluttbatch.
    (f.eks. `prioritertKravNummer`, `irrelevansFor`, `behandlingIds`, `dpBehandlingIds`).
 
 MCP-serveren håndterer optimistisk låsing (sesjonssporet versjonssjekk) og autentisering
-automatisk — du trenger ikke oppgi eller huske versjonsnummer. Rekkefølgen mellom
-`write_suksesskriterium` og `write_krav_status` på samme krav er fri; hvert kall leser fersk
-tilstand rett før skriving.
+automatisk — du trenger ikke oppgi eller huske versjonsnummer.
+
+**Hvis `write_suksesskriterium` avvises** fordi tokenet mangler, er brukt eller gjelder et annet
+SK: det betyr at gjennomgangsløkka ble hoppet over. Gå tilbake til punkt 2, kall
+`begin_sk_review` for det aktuelle SK-et, presenter det for brukeren, og vent på svar.
+
+#### Alt agenten skriver er utkast
+
+Dette er sikkerhetsmodellen bak gjennomgangen, ikke bare en statusregel:
+
+- SK skrives som `UNDER_ARBEID`, `IKKE_OPPFYLT` eller `IKKE_RELEVANT` — **aldri `OPPFYLT`**.
+- Krav-status settes til «under redigering» ved opprettelse.
+- **Finalisering (`OPPFYLT` / `FERDIG`) skjer kun manuelt i etterlevelse.ansatt.nav.no**, etter at
+  teamet har gjennomgått begrunnelsen.
+
+Ingenting agenten skriver er derfor endelig. Den manuelle kvitteringen i etterlevelsesløsningen
+er det siste menneskelige kontrollpunktet, og den kan ikke omgås av en agentsesjon.
+
 
 ## KRITISK: Statusverdier og feltmapping
-
-**Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
-oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
-enkelt i etterlevelsesløsningen. Bare dersom bruker eksplisitt ber om det brukes `OPPFYLT`.
-
-Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
-disse statusene uavhengig av modus.
-
-**Feltet `behovForBegrunnelse`** per suksesskriterium bestemmer om begrunnelsetekst er
-forventet. Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse.
 
 **Standard opplastingsmodus er UNDER_ARBEID.** Suksesskriterier agenten har vurdert som
 oppfylt lastes opp med status `UNDER_ARBEID` slik at teamet selv kan kvittere ut hvert
@@ -1226,6 +1185,9 @@ manuelt i etterlevelse.ansatt.nav.no etter at teamet har gjennomgått begrunnels
 
 Suksesskriterier vurdert som `IKKE_OPPFYLT` eller `IKKE_RELEVANT` settes alltid til
 disse statusene uavhengig av modus.
+
+**Feltet `behovForBegrunnelse`** per suksesskriterium bestemmer om begrunnelsetekst er
+forventet. Suksesskriterier der `behovForBegrunnelse = false` trenger IKKE begrunnelse.
 
 ## KRITISK: Feltmapping for opplasting
 
@@ -1476,6 +1438,13 @@ av bruker og teamet før eventuell opplasting til etterlevelsesløsningen (steg 
 Bruk mer kapable modeller for tunge analytiske oppgaver og raskere/billigere modeller
 for enkle strukturerte deloppgaver.
 
+**Primærsesjonen bør kjøre på den sterkeste modellen du har tilgang til.** Deloppgaver kan
+delegeres til subagenter, men steg 6 (begrunnelser og rapport) og deler av steg 4 kjører i
+primærsesjonen og arver dens modell. Erfaringsmessig gir sterkere modeller merkbart dypere
+analyse og flere reelle funn i nettopp disse stegene — forskjellen er faglig, ikke mekanisk,
+og kan ikke kompenseres av verktøyene. Gjennomgangsløkka i steg 7 er lite modellsensitiv, men
+den utgjør en liten del av arbeidet.
+
 | Oppgave | Kapasitetsbehov | Begrunnelse |
 |---|---|---|
 | Full kodegjennomgang med juridisk vurdering (steg 4) | **Høy** | Krever dyp forståelse av kode OG lovkrav |
@@ -1512,7 +1481,7 @@ for enkle strukturerte deloppgaver.
 - Skill mellom det som kan verifiseres i kode og det som krever teamets input
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
 - Bevar ALLTID eksisterende begrunnelser ved oppdatering
-- Bruk interaktiv SK-gjennomgang (steg 7A) for effektiv kvalitetssikring — teamet ser SK-beskrivelse og diff side om side
-- **Interaktiv gjennomgang er alltid én-og-én:** nøyaktig ett SK per melding, stopp, vent på G/H/R, deretter neste SK
+- Bruk gjennomgangsløkka i steg 7 for kvalitetssikring — teamet ser kravets hensikt, SK-beskrivelse og diff side om side
+- **Gjennomgangen er alltid én-og-én:** `begin_sk_review` → vis `presentasjon` → stopp → vent på G/H/R → skriv. Serveren avviser skriving uten gyldig token
 - Rapporten er ALLTID hovedleveransen – opplasting er et valgfritt tilleggssteg
 - ALDRI last opp til etterlevelsesløsningen uten eksplisitt godkjenning fra bruker etter teamgjennomgang
