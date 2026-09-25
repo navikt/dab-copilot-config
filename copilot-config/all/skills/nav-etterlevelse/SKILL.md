@@ -139,49 +139,30 @@ risikoeiere, ledere). Skriv derfor i et klart og tilgjengelig språk:
 Etterlevelsesbesvarelser er juridisk og faglig dokumentasjon. Agenten skal opptre som en
 uavhengig fagrevisor — ikke som en samtalepartner som søker konsensus.
 
-### Ikke speile brukerens sentiment
+**Ikke speil brukerens sentiment.** Unngå åpninger som «Du har helt rett», «Godt poeng»,
+«Nettopp», «Absolutt». De signaliserer enighet *fordi brukeren sa det*, ikke fordi kildene
+støtter det. Dette gjelder også når brukeren fremsetter en hypotese selvsikkert: premisset er
+enten støttet av kildene eller ikke, og agentens jobb er å klargjøre hvilken av delene som er
+tilfelle — ikke å finne en formulering begge parter kan leve med.
 
-Ikke åpne svar med fraser som validerer brukerens framing, entusiasme eller selvsikkerhet:
+**Forankre alltid enighet i en autoritativ kilde.** Aldri bare «stemmer» eller «det er riktig»
+uten at kilden er navngitt. Gyldige kilder:
 
-❌ «Du har helt rett — [...]»  
-❌ «Godt poeng — [...]»  
-❌ «Nettopp — [...]»  
-❌ «Absolutt — [...]»  
-
-Disse frasene signaliserer at agenten er enig *fordi brukeren sa det*, ikke fordi fakta
-støtter det. Enighet skal uttrykkes ved å sitere kilden direkte:
-
-✅ «K103.2 SK2 spør om retting (art. 16), ikke innsyn — begrunnelsen svarer på feil krav.»  
-✅ «GDPR art. 4(1) definerer personopplysning som enhver opplysning som kan knyttes til en
-   identifiserbar fysisk person — kontortilhørighet kombinert med navn og fnr oppfyller dette.»  
-✅ «Kravet gjelder alle systemer med eksternt tilgjengelig brukerflate — `ingresses`-feltet
-   i nais.yaml bekrefter at dette systemet har en slik.»
-
-### Forankre alltid enighet i en autoritativ kilde
-
-Når agenten bekrefter at noe er riktig, skal begrunnelsen sitere kilden:
 - Kravtekst eller SK-beskrivelse hentet fra API-et
 - Lovtekst (lovdata-URL eller eksakt paragraf og ledd)
 - Kode (filnavn og linje)
 - NAIS-dokumentasjon (docs.nais.io)
 - API-respons fra etterlevelse- eller behandlingskatalog-API-et
 
-Aldri bare «stemmer» eller «det er riktig» uten at kilden er navngitt.
+Eksempel på korreksjon som er forankret framfor myknet:
 
-### Korriger feilaktige premisser, også når bruker virker sikker
-
-Hvis en bruker presenterer en hypotese som ikke støttes av kildene, skal agenten si det
-direkte — uavhengig av hvor selvsikkert hypotesen er fremsatt:
-
-❌ Bruker: «Kontortilhørighet er vel bare et organisatorisk felt — ikke personsensitivt?»  
-❌ Agent: «Det er en forståelig tanke, men [...]» ← unødvendig mykning
-
-✅ Agent: «GDPR art. 4(1) definerer personopplysning som enhver opplysning som kan knyttes
-   til en identifiserbar person. Kontortilhørighet kombinert med fnr og navn identifiserer
-   personen i sin arbeidskontekst og er en personopplysning.»
-
-Brukerens premiss er enten støttet av kildene eller ikke. Agentens jobb er å klargjøre
-hvilken av delene som er tilfelle — ikke å finne en formulering begge parter kan leve med.
+> ❌ Bruker: «Kontortilhørighet er vel bare et organisatorisk felt — ikke en personopplysning?»
+> ❌ Agent: «Det er en forståelig tanke, men [...]»
+>
+> ✅ Agent: «GDPR art. 4(1) definerer personopplysning som enhver opplysning om en identifisert
+> eller identifiserbar fysisk person. Kontortilhørighet er lagret på brukerens fødselsnummer og
+> sier hvilket Nav-kontor som følger vedkommende opp — det er en opplysning om en identifiserbar
+> person i en veiledningskontekst, og dermed en personopplysning.»
 
 ## Relaterte skills
 
@@ -464,9 +445,10 @@ Ref: [filnavn, linje/funksjon eller nais.yaml-felt]
 ```
 
 Et krav som virker irrelevant basert på kravnavnet alene kan bli svært relevant når
-`utdypendeBeskrivelse` og suksesskriterienenes `beskrivelse` leses (eksempel: K205.1
-gjaldt bare enkeltvedtak, men K205.2 utvidet til forhåndsvarsel og meldinger — dette
-fremgikk av `versjonEndringer`).
+`utdypendeBeskrivelse` og suksesskriterienes `beskrivelse` leses. Eksempel: K102.2 sitt
+`versjonEndringer`-felt forklarer at suksesskriteriene er slått sammen, og at et tidligere
+separat krav om gjenbruk av personopplysninger nå er omfattet av dette kravet — en utvidelse
+av omfanget som ikke fremgår av kravnavnet.
 
 #### ⛔ OBLIGATORISK: Vurdering av IKKE_RELEVANT-statuser
 
@@ -474,7 +456,7 @@ fremgikk av `versjonEndringer`).
 
 Fremgangsmåte:
 
-1. **Hent SK-beskrivelsen** for hvert SK som er satt til IKKE_RELEVANT (via GraphQL `kravById`)
+1. **Hent SK-beskrivelsen** for hvert SK som er satt til IKKE_RELEVANT (med `get_krav`)
 2. **Formuler spørsmålet** SK-et stiller: *«Dette kriteriet spør: [...]»*
 3. **Vurder om grunnlaget er gyldig.** Gyldige grunner for IKKE_RELEVANT:
    - Systemets egenskaper (`relevansFor`) matcher ikke SK-ets forutsetning (f.eks. SK gjelder
@@ -493,14 +475,16 @@ Fremgangsmåte:
 SK spør «Har dere dokumentert valget av behandlingsgrunnlag?»
 Eksisterende begrunnelse: «Grunnlaget er åpenbart — hjemmel i lov.»
 → Feil: begrunnelsen svarer på «er grunnlaget klart?», ikke «er det dokumentert?»
-→ Korrekt status: OPPFYLT med B-nummer-referanse
+→ Riktig: begrunnelsen skal vise til dokumentasjonen i Behandlingskatalogen med B-nummer.
+  Konklusjonen «bør være OPPFYLT» er en anbefaling til teamet — agenten kan ikke sette
+  OPPFYLT selv, det gjøres manuelt i etterlevelse.ansatt.nav.no.
 
 
 Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 - `AKTIV` → kravet er gjeldende, kan oppdateres
 - `UTGAATT` → kravet er erstattet av ny versjon, **IKKE oppdater etterlevelse på denne versjonen**
 
-**Versjonsmodellen:** Når et krav får ny versjon (f.eks. K205.1 → K205.2):
+**Versjonsmodellen:** Når et krav får ny versjon (f.eks. K102.2 → K102.3):
 - Gammel versjon settes til `status: UTGAATT` i API-et
 - UI-et viser IKKE gammel versjon som «utgått» — den eksisterende etterlevelsen forblir synlig
 - I stedet vises «Ny versjon {dato}» på det nye kravet i UI-et
@@ -508,6 +492,8 @@ Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 
 Sjekk via `get_krav` (f.eks. `K114.1`) — feltet `status` i responsen.
 Hvis `status: "UTGAATT"`, finn den AKTIVE versjonen av samme kravNummer og jobb med den.
+Merk at et utgått krav ikke alltid har en ny versjon: K114.1 er utgått fordi det er erstattet
+av Digital PVK, ikke av en K114.2. Finner du ingen aktiv versjon, skal kravet ikke besvares.
 
 #### Identifiser krav som skal vurderes:
 
@@ -1266,93 +1252,23 @@ verktøyene støtter ikke disse statusene direkte.
 - Sett først krav-status til `IKKE_RELEVANT` (via `write_krav_status`) når hele kravet er
   irrelevant og ingen SK er vurdert som gjeldende.
 
-## API for etterlevelsesdokumentasjon (prioritert kravliste m.m.)
+## Dokumentegenskaper (prioritert kravliste m.m.)
 
-### Opprett ny (POST):
-```
-POST /api/etterlevelsedokumentasjon
-Content-Type: application/json
-```
-**VIKTIG:**
-- Feltet `etterlevelseNummer` MÅ inkluderes med verdi `0` i POST-body.
-  Backend auto-genererer det faktiske nummeret (f.eks. E718). Uten dette feltet får du NPE.
-- Feltet `etterlevelseDokumentVersjon` MÅ settes til `1` (første versjon).
-  Uten dette vises dokumentet som "E718.null" i stedet for "E718.1" i søk og UI.
+Bruk MCP-verktøyene — ikke rå REST. `create_etterlevelse_dokumentasjon` oppretter nytt dokument
+(`etterlevelseNummer` og `etterlevelseDokumentVersjon` settes automatisk), og
+`write_etterlevelse_dokumentasjon` gjør en trygg partial update: den henter dokumentet, fjerner
+read-only-felter og fletter inn endringene dine. Du skal altså verken bygge POST-body manuelt
+eller vite hvilke felter som må strippes før PUT.
 
-Minimalt POST-body:
-```json
-{
-  "title": "Oppfølging mot arbeid: <undertema>",
-  "etterlevelseNummer": 0,
-  "etterlevelseDokumentVersjon": 1,
-  "beskrivelse": "<OBLIGATORISK: Beskriv løsningen, målgruppe og kontekst>",
-  "behandlingIds": ["<uuid fra behandlingskatalogen>"],
-  "dpBehandlingIds": [],
-  "behandlerPersonopplysninger": true,
-  "teams": ["<team-uuid>"],
-  "resources": [],
-  "nomAvdelingId": "<NOM-id for avdeling, f.eks. dy639w>",
-  "avdelingNavn": "<Avdelingsnavn, f.eks. Arbeidsavdelingen>",
-  "risikoeiere": [],
-  "irrelevansFor": ["VEDTAKSBEHANDLING", "OKONOMISYSTEM"],
-  "seksjoner": [{"nomSeksjonId": "xxx", "nomSeksjonName": "Seksjonsnavn"}],
-  "varslingsadresser": [{"adresse": "SLACK_CHANNEL_ID", "type": "SLACK"}],
-  "gjenbrukBeskrivelse": "",
-  "tilgjengeligForGjenbruk": false,
-  "forGjenbruk": false,
-  "prioritertKravNummer": [],
-  "knpivotenhetIds": [],
-  "knpivotenhetNavn": [],
-  "status": "UNDER_ARBEID"
-}
+**Oppslag som ikke har egne MCP-verktøy:**
+
+```
+GET /api/nom/seksjon/avdeling/{nomAvdelingId}   → [{id, navn}], bruk id som nomSeksjonId
 ```
 
-**Behandlingssøk:**
-```
-GET /api/behandling/search/{Bxxx-nummer}
-```
-Returnerer `{content: [{id, navn, nummer, overordnetFormaal, formaal, ...}]}`.
+Slack-kanaler hentes med `search_slack_channel`, avdelinger med `list_nom_avdelinger`.
 
-### Les:
-```
-GET /api/etterlevelsedokumentasjon/{dok-id}
-```
-
-### Oppdater (PUT):
-```
-PUT /api/etterlevelsedokumentasjon/{dok-id}
-```
-
-**VIKTIG: Fjern enriched/read-only felter** fra GET-responsen før PUT:
-Fjern: `changeStamp`, `teamsData`, `risikoeiereData`, `behandlinger`, `dpBehandlinger`,
-`produktOmradetData`, `resourcesData`, `hasCurrentUserAccess`,
-`versjonHistorikk`, `stats`, `sistEndretEtterlevelse`,
-`sistEndretDokumentasjon`, `sistEndretEtterlevelseAvMeg`, `sistEndretDokumentasjonAvMeg`,
-`hasCurrentUser`, `irrepirsibleFields`, `prioritertKravNummer`, `resources`.
-Fjern ALLE felter som inneholder nestede objekter — API-et aksepterer kun primitive typer
-og lister av strenger/UUIDs. Spesielt: `irrelevansFor` returneres som objekter fra GET
-(`[{code: "X", ...}]`) men MÅ sendes som kode-strenger ved PUT (`["X"]`).
-
-**Felter som KAN sendes som objekter:**
-- `seksjoner`: `[{"nomSeksjonId": "abc123", "nomSeksjonName": "Seksjonsnavn"}]`
-- `varslingsadresser`: `[{"adresse": "SLACK_CHANNEL_ID", "type": "SLACK"}]`
-  (type: SLACK, SLACK_USER, eller EPOST)
-
-### Dokumentegenskaper — API-endepunkter for oppslag
-
-**Seksjoner per avdeling:**
-```
-GET /api/nom/seksjon/avdeling/{nomAvdelingId}
-```
-Returnerer `[{id, navn}]`. Bruk `id` som `nomSeksjonId`.
-
-**Slack-kanaler (for varslingsadresser):**
-```
-GET /api/team/slack/channel/search/{søkeord}
-```
-Returnerer `{content: [{id, name, numMembers}]}`. Bruk `id` som `adresse`.
-
-**Dokumentegenskaper agenten ALLTID skal fylle ut:**
+### Dokumentegenskaper agenten ALLTID skal fylle ut
 
 1. **`beskrivelse`** (OBLIGATORISK) — Beskriv etterlevelsens kontekst: hvilken løsning/funksjon,
    målgruppe, applikasjoner og arbeid som omfattes. Eksempel: "Start oppfolgingsperiode er 
@@ -1384,33 +1300,13 @@ Returnerer `{content: [{id, name, numMembers}]}`. Bruk `id` som `adresse`.
 
 **Fremgangsmåte for å finne avdeling, seksjon og risikoeier:**
 
-a) **Beste kilde: Eksisterende dokumentasjon for samme team.**
-   Hent en annen etterlevelsesdokumentasjon for teamet og kopier organisasjonsfeltene:
-   ```
-   GET /api/etterlevelsedokumentasjon/{annen-dok-id}
-   → nomAvdelingId, avdelingNavn, seksjoner, risikoeiere
-   ```
-   Finn andre dokumentasjoner via GraphQL:
-   ```graphql
-   { etterlevelseDokumentasjon(filter: {teams: ["<team-uuid>"]}) {
-       content { id etterlevelseNummer title nomAvdelingId avdelingNavn 
-                 seksjoner { nomSeksjonId nomSeksjonName }
-                 risikoeiere } } }
-   ```
+`get_my_teams` returnerer `nomAvdelingId` og `avdelingNavn` direkte per team — bruk verdiene fra
+det teamet brukeren velger. For seksjon og risikoeier: hent en annen etterlevelsesdokumentasjon
+for samme team med `list_etterlevelse_dokumentasjoner` + `get_etterlevelse_dokumentasjon` og kopier
+organisasjonsfeltene. Spør brukeren hvis informasjonen ikke finnes noe sted.
 
-b) **Alternativ: teamsData fra etterlevelse-API.**
-   `teamsData` i GET-responsen inneholder `productAreaId` og `members`.
-   Teamkatalogen (teamkatalog.nav.no) har mer detaljer men krever separat autentisering.
-
-c) **Spør bruker** om informasjonen ikke finnes i eksisterende dokumentasjoner.
-
-**Aldri bruk HTML** — feltet bruker `escapeHtml=true` og HTML-tagger vises som rå tekst.
-
-Retningslinjer:
-- Bruk punktlister for tiltak, funn og kodehenvisninger
-- Bruk backticks for filnavn, konfigurasjonsnøkler og tekniske begreper
-- Hold overskrifter til `###` eller unngå dem — begrunnelsesfeltet er ikke et dokument
-- Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
+**Aldri bruk HTML** i begrunnelsesfelt — de bruker `escapeHtml=true`, så HTML-tagger vises som
+rå tekst. Bruk markdown, se «Tekstformatering».
 
 Agenten kan utlede: `irrelevansFor` (fra kodeanalyse), `behandlerPersonopplysninger`,
 `gjenbrukBeskrivelse`, `behandlingIds` og `dpBehandlingIds` (fra Behandlingskatalogen — B-nummer der
@@ -1428,7 +1324,7 @@ Nav er behandlingsansvarlig, D-nummer der Nav kun er databehandler).
 | K231 Klarspråk | Tekstkvalitet, NAV DS-bruk. SK om kontakt med klarspråk = organisatorisk |
 | K232 Bokmål/nynorsk | i18n-rammeverk, språkvalg-UI, hardkodet tekst |
 | K245 Risikovurdering | CSP-policy, sårbarheter, sikkerhetstiltak |
-| K253 Oppslagslogg | Kun for **visning av personopplysninger til Nav-ansatte** i fagsystemer — ikke skrive-operasjoner, bakgrunnsjobber, meldingskonsumenter, tilgangskontrollsjekker eller listevisning uten direkte oppslag. Identifiser HTTP-endepunkter/GraphQL-resolvere som returnerer brukerdata til saksbehandler-frontend. Verifiser at disse logger til ArcSight/CEF. Spring = logback-naudit, Node.js = Winston-syslog. Ref: [sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/) |
+| K253 Oppslagslogg | Kun for **visning av personopplysninger til Nav-ansatte** i fagsystemer — ikke skrive-operasjoner, bakgrunnsjobber, meldingskonsumenter, tilgangskontrollsjekker eller listevisning uten direkte oppslag. Identifiser HTTP-endepunkter/GraphQL-resolvere som returnerer brukerdata til saksbehandler-frontend. Verifiser at disse logger til ArcSight på CEF-format over Syslog. Java/Kotlin: `logback` (se [navikt/naudit](https://github.com/navikt/naudit) for Syslog-oppsett, eller Team Komets `audit-log`-modul). Node.js: Winston / `winston-syslog`. Ref: [sikkerhet.nav.no](https://sikkerhet.nav.no/docs/sikker-utvikling/oppslagslogg/) |
 
 ## Rapport
 
