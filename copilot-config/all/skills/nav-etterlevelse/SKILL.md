@@ -445,9 +445,10 @@ Ref: [filnavn, linje/funksjon eller nais.yaml-felt]
 ```
 
 Et krav som virker irrelevant basert på kravnavnet alene kan bli svært relevant når
-`utdypendeBeskrivelse` og suksesskriterienenes `beskrivelse` leses (eksempel: K205.1
-gjaldt bare enkeltvedtak, men K205.2 utvidet til forhåndsvarsel og meldinger — dette
-fremgikk av `versjonEndringer`).
+`utdypendeBeskrivelse` og suksesskriterienes `beskrivelse` leses. Eksempel: K102.2 sitt
+`versjonEndringer`-felt forklarer at suksesskriteriene er slått sammen, og at et tidligere
+separat krav om gjenbruk av personopplysninger nå er omfattet av dette kravet — en utvidelse
+av omfanget som ikke fremgår av kravnavnet.
 
 #### ⛔ OBLIGATORISK: Vurdering av IKKE_RELEVANT-statuser
 
@@ -483,7 +484,7 @@ Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 - `AKTIV` → kravet er gjeldende, kan oppdateres
 - `UTGAATT` → kravet er erstattet av ny versjon, **IKKE oppdater etterlevelse på denne versjonen**
 
-**Versjonsmodellen:** Når et krav får ny versjon (f.eks. K205.1 → K205.2):
+**Versjonsmodellen:** Når et krav får ny versjon (f.eks. K102.2 → K102.3):
 - Gammel versjon settes til `status: UTGAATT` i API-et
 - UI-et viser IKKE gammel versjon som «utgått» — den eksisterende etterlevelsen forblir synlig
 - I stedet vises «Ny versjon {dato}» på det nye kravet i UI-et
@@ -491,6 +492,8 @@ Hvert krav har et `status`-felt. Sjekk dette ALLTID før oppdatering:
 
 Sjekk via `get_krav` (f.eks. `K114.1`) — feltet `status` i responsen.
 Hvis `status: "UTGAATT"`, finn den AKTIVE versjonen av samme kravNummer og jobb med den.
+Merk at et utgått krav ikke alltid har en ny versjon: K114.1 er utgått fordi det er erstattet
+av Digital PVK, ikke av en K114.2. Finner du ingen aktiv versjon, skal kravet ikke besvares.
 
 #### Identifiser krav som skal vurderes:
 
