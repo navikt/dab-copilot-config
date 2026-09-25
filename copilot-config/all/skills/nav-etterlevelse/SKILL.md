@@ -156,12 +156,13 @@ uten at kilden er navngitt. Gyldige kilder:
 
 Eksempel på korreksjon som er forankret framfor myknet:
 
-> ❌ Bruker: «Kontortilhørighet er vel bare et organisatorisk felt — ikke personsensitivt?»
+> ❌ Bruker: «Kontortilhørighet er vel bare et organisatorisk felt — ikke en personopplysning?»
 > ❌ Agent: «Det er en forståelig tanke, men [...]»
 >
-> ✅ Agent: «GDPR art. 4(1) definerer personopplysning som enhver opplysning som kan knyttes
-> til en identifiserbar person. Kontortilhørighet kombinert med fnr og navn identifiserer
-> personen i sin arbeidskontekst og er en personopplysning.»
+> ✅ Agent: «GDPR art. 4(1) definerer personopplysning som enhver opplysning om en identifisert
+> eller identifiserbar fysisk person. Kontortilhørighet er lagret på brukerens fødselsnummer og
+> sier hvilket Nav-kontor som følger vedkommende opp — det er en opplysning om en identifiserbar
+> person i en veiledningskontekst, og dermed en personopplysning.»
 
 ## Relaterte skills
 
