@@ -763,8 +763,6 @@ visningspanel.
 Verktøyet lagrer alltid som **utkast** (`sendtTilPvoDato = ""`). Teamet trykker
 «Send inn» i UI-et når de er klare. Agenten setter aldri sendt-feltene.
 
-Feilen `"JSON parse error: Cannot deserialize value of type 'java.lang.String' from Object value (token 'JsonToken.START_OBJECT')"` betyr nesten alltid at `ytterligereEgenskaper` ble sendt som objekter.
-
 **Agenten sender ALDRI selv (setter ikke sendt-felter).** Lagre alltid som utkast og la
 teamet trykke «Send inn» i UI-et, eller bekrefte eksplisitt at de vil sende.
 
