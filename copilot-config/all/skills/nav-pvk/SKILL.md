@@ -694,7 +694,7 @@ Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`
   Anbefalt flyt:
   1. Kall `list_tiltak` og identifiser tiltak knyttet til scenarioet
   2. Vis tiltak som påvirkes og be om eksplisitt bekreftelse fra bruker, sammen med en kort begrunnelse for slettingen
-  3. Tiltak som bare er koblet til dette scenarioet: slett med `delete_tiltak` (`tiltakId`, `kommentar`). Tiltak som også dekker andre scenarioer: fjern bare koblingen med `write_tiltak` (tiltakets eksisterende felter og `risikoscenarioIder` uten dette scenarioet)
+  3. Tiltak som bare er koblet til dette scenarioet: slett med `delete_tiltak` (`tiltakId`, `kommentar`). Tiltak som også dekker andre scenarioer: fjern bare koblingen med `write_tiltak` (`tiltakId`, `navn`, `beskrivelse` og `risikoscenarioIder` uten dette scenarioet)
   4. Slett deretter scenarioet med `delete_risikoscenario` (`scenarioId`, `kommentar`)
 - **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
 - **Fjern kravkobling:** `unlink_krav_from_risikoscenario`
