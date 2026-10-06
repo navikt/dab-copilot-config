@@ -675,7 +675,7 @@ PVK er integrert i etterlevelsesløsningen. For å lese PVK-data må dokumentet 
 med `lock_document` (dokumentets UUID) — dette gir tilgang til PVK-verktøyene.
 
 Bruk deretter `get_pvk_dokument` for å sjekke om PVK finnes og hente nøkkelfelter:
-- `pvkVurdering`: `SKAL_UTFORE` / `SKAL_IKKE_UTFORE` / `ALLEREDE_UTFORT`
+- `pvkVurdering`: `SKAL_UTFORE` / `SKAL_IKKE_UTFORE` / `ALLEREDE_UTFORT` / `LEGGE_OVER_EKSISTERENDE`
 - `status`: `UNDERARBEID` → `SENDT_TIL_PVO` → `VURDERT_AV_PVO` → `GODKJENT_AV_RISIKOEIER`
 - `ytterligereEgenskaper[]` — DPIA-triggende egenskaper (stor skala, sårbare, art.9 etc.)
 - `harInvolvertRepresentant` / `representantInvolveringsBeskrivelse`
