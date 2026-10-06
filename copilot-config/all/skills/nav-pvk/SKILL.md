@@ -693,8 +693,8 @@ Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`
 - **Slett:** `delete_risikoscenario` med `scenarioId` og påkrevd `kommentar` (kort slettebegrunnelse). Feiler med feilmelding hvis scenarioet har tilknyttede tiltak.
   Anbefalt flyt:
   1. Kall `list_tiltak` og identifiser tiltak knyttet til scenarioet
-  2. Vis tiltak som vil slettes og be om eksplisitt bekreftelse fra bruker, sammen med en kort begrunnelse for slettingen
-  3. Slett hvert tiltak med `delete_tiltak` (`tiltakId`, `kommentar`)
+  2. Vis tiltak som påvirkes og be om eksplisitt bekreftelse fra bruker, sammen med en kort begrunnelse for slettingen
+  3. Tiltak som bare er koblet til dette scenarioet: slett med `delete_tiltak` (`tiltakId`, `kommentar`). Tiltak som også dekker andre scenarioer: fjern bare koblingen med `write_tiltak` (`tiltakId`, `navn`, `beskrivelse` og `risikoscenarioIder` uten dette scenarioet)
   4. Slett deretter scenarioet med `delete_risikoscenario` (`scenarioId`, `kommentar`)
 - **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
 - **Fjern kravkobling:** `unlink_krav_from_risikoscenario`
@@ -706,7 +706,9 @@ Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`
 Bruk MCP-tools for tiltak (krever aktiv `lock_document`):
 
 - **Les:** `list_tiltak` — alle tiltak for låst PVK-dokument
-- **Opprett/oppdater:** `write_tiltak` med `risikoscenarioId`, `navn`, `beskrivelse`, og `frist` (YYYY-MM-DD). Ansvarlig person settes manuelt i UI.
+- **Opprett/oppdater:** `write_tiltak` med `risikoscenarioIder` (liste med UUID-er, ett eller flere scenarioer), `navn`, `beskrivelse`, og valgfritt `frist` (YYYY-MM-DD), `iverksatt`, `iverksattDato` (YYYY-MM-DD) og `iverksettingsKommentar`. Ansvarlig person settes manuelt i UI.
+  - Et tiltak kan dekke flere scenarioer. Ved oppdatering synkroniseres koblingene mot lista: scenarioer som ikke er med, kobles fra. Send derfor alltid hele settet.
+  - Ved oppretting med `iverksatt=true` setter backend `iverksattDato` til dagens dato, uansett hva som sendes.
 - **Slett:** `delete_tiltak` med `tiltakId` og påkrevd `kommentar` (kort slettebegrunnelse)
 
 ### PVK Steg 7: Risikobildet etter tiltak
@@ -830,7 +832,7 @@ Alle delete-tools krever en kort `kommentar` (slettebegrunnelse). Den lagres i e
 | `link_krav_to_risikoscenario` | Koble krav til scenarioer |
 | `unlink_krav_from_risikoscenario` | Fjern kravkobling |
 | `list_tiltak` | List tiltak |
-| `write_tiltak` | Opprett/oppdater tiltak |
+| `write_tiltak` | Opprett/oppdater tiltak, koblet til ett eller flere scenarioer (`risikoscenarioIder`) |
 | `delete_tiltak` | Slett tiltak (krever `kommentar`) |
 
 ## Markdown-støtte per felt
