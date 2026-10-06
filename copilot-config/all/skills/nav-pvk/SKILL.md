@@ -366,7 +366,17 @@ Hent spesifikke sider fra NAIS-docs ved behov — ikke hele docs.nais.io:
 ## Når er PVK påkrevd?
 
 Før PVK-veiviseren starter bør agenten hjelpe teamet å vurdere om PVK faktisk er nødvendig.
-Bruk `write_pvk_egenskaper` med riktig `pvkVurdering` basert på vurderingen under.
+
+Bestem `pvkVurdering` i behovsvurderingen **før** du oppretter PVK-dokumentet, og send den til `create_pvk_dokument`. Opprett aldri et PVK-dokument uten vurdering. Bruk `write_pvk_egenskaper` kun for å **endre** vurderingen senere, eller for de øvrige DPIA-egenskapene (profilering, helautomatisk, `ytterligereEgenskaper`).
+
+| `pvkVurdering` | Når | Begrunnelse (`pvkVurderingsBegrunnelse`) |
+|---|---|---|
+| `SKAL_UTFORE` | PVK gjennomføres digitalt i løsningen | Nei |
+| `SKAL_IKKE_UTFORE` | PVK ikke nødvendig | Ja |
+| `ALLEREDE_UTFORT` | Behold eksisterende, godkjent PVK i Word | Ja |
+| `LEGGE_OVER_EKSISTERENDE` | Overfør eksisterende, godkjent Word-PVK uendret til løsningen for digital godkjenning hos risikoeier, uten ny PVO-vurdering | Ja |
+
+`create_pvk_dokument` avviser kallet med valideringsfeil hvis `pvkVurdering` mangler, eller hvis begrunnelse mangler for en vurdering som krever det.
 
 ### To-steg-vurdering (GDPR art. 35 / Datatilsynets veileder)
 
@@ -804,7 +814,7 @@ Alle delete-tools krever en kort `kommentar` (slettebegrunnelse). Den lagres i e
 |---|---|
 | `lock_document` | Lås dokument — aktiverer PVK-verktøyene |
 | `get_pvk_dokument` | Hent PVK-status og nøkkelfelter |
-| `create_pvk_dokument` | Opprett nytt PVK-dokument |
+| `create_pvk_dokument` | Opprett nytt PVK-dokument. Krever `pvkVurdering`; `pvkVurderingsBegrunnelse` kreves for alle unntatt `SKAL_UTFORE` |
 | `delete_pvk_dokument` | Slett PVK-dokumentet (krever `kommentar`) |
 | `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
 | `write_pvk_involvering` | Oppdater involveringsfelter |
