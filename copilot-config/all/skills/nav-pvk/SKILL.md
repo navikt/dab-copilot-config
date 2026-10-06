@@ -378,6 +378,8 @@ Bestem `pvkVurdering` i behovsvurderingen **før** du oppretter PVK-dokumentet, 
 
 `create_pvk_dokument` avviser kallet med valideringsfeil hvis `pvkVurdering` mangler, eller hvis begrunnelse mangler for en vurdering som krever det.
 
+`write_pvk_egenskaper` støtter de samme fire vurderingene og samme begrunnelsesregel når `pvkVurdering` settes. Vurderingen kan dermed endres til `LEGGE_OVER_EKSISTERENDE` etter at dokumentet er opprettet.
+
 ### To-steg-vurdering (GDPR art. 35 / Datatilsynets veileder)
 
 **Steg 1 — Sjekk Datatilsynets blacklist** (disse krever *alltid* PVK):
@@ -581,14 +583,13 @@ PUT  /api/behandlingens-art-og-omfang/{id}                          -> oppdater 
 
 **ytterligereEgenskaper-koder:**
 
-| Kode | Beskrivelse |
-|------|-------------|
-| `PERSONOPPLYSNINGER_BEHANDLES` | Personopplysninger behandles i stor skala |
-| `TILGANGER_TIL_TJENESTE` | Behandlingen tillater/endrer/nekter tilgang til tjeneste/avtale |
-| `MATCHING_ELLER_SAMMENSTILLING` | Matching eller sammenstilling av datasett |
-| `SAARBARE_PERSONOPPLYSNING` | Personopplysninger om sårbare registrerte (barn, etc.) |
-| `SYSTEMATISK_OVERVAAKNING` | Systematisk overvåkning/monitorering i stor skala |
-| `BRUK_AV_TEKNOLOGI` | Bruk av ny teknologi (fingeravtrykk, ansiktsgjenkjenning mv.) |
+Kodene er en codelist (`YTTERLIGERE_EGENSKAPER`) som administreres i etterlevelsesløsningen, ikke faste verdier. Skillteksten lister dem derfor ikke.
+
+1. Kall `get_ytterligere_egenskaper_koder` før `write_pvk_egenskaper`. Verktøyet er read-only, tar ingen parametere og returnerer `code`, `navn` og `beskrivelse` for hver kode.
+2. Vurder behandlingen mot `navn` og `beskrivelse`, og vis de aktuelle kodene for brukeren.
+3. Send `code`-verdiene som en liste med strenger i `ytterligereEgenskaper`.
+
+`write_pvk_egenskaper` validerer kodene mot den samme codelisten. Ved ugyldig kode skrives ingenting, og feilmeldingen lister de gyldige kodene.
 
 ### PVK Steg 4: Tilhørende dokumentasjon
 
@@ -816,7 +817,8 @@ Alle delete-tools krever en kort `kommentar` (slettebegrunnelse). Den lagres i e
 | `get_pvk_dokument` | Hent PVK-status og nøkkelfelter |
 | `create_pvk_dokument` | Opprett nytt PVK-dokument. Krever `pvkVurdering`; `pvkVurderingsBegrunnelse` kreves for alle unntatt `SKAL_UTFORE` |
 | `delete_pvk_dokument` | Slett PVK-dokumentet (krever `kommentar`) |
-| `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
+| `get_ytterligere_egenskaper_koder` | Hent gyldige `ytterligereEgenskaper`-koder fra codelisten (read-only) |
+| `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering. `pvkVurderingsBegrunnelse` kreves for alle vurderinger unntatt `SKAL_UTFORE`; `ytterligereEgenskaper` valideres mot codelisten |
 | `write_pvk_involvering` | Oppdater involveringsfelter |
 | `write_pvk_risikoeier` | Skriv merknad til risikoeier (lederrettet, markdown) |
 | `write_pvk_melding_til_pvo` | Skriv utkast til melding til PVO (merknad + endringsnotat) |
