@@ -679,12 +679,12 @@ Bruk MCP-tools for alle risikoscenario-operasjoner (krever aktiv `lock_document`
 | `nivaaBegrunnelseEtterTiltak` | string | Begrunnelse for risikonivå etter tiltak |
 | `generelScenario` | bool | `true` = øvrig scenario uten kravkobling |
 | `ingenTiltak` | bool | `true` = scenarioet håndteres uten tiltak |
-- **Slett:** `delete_risikoscenario` — feiler med feilmelding hvis scenarioet har tilknyttede tiltak.
+- **Slett:** `delete_risikoscenario` med `scenarioId` og påkrevd `kommentar` (kort slettebegrunnelse). Feiler med feilmelding hvis scenarioet har tilknyttede tiltak.
   Anbefalt flyt:
   1. Kall `list_tiltak` og identifiser tiltak knyttet til scenarioet
-  2. Vis tiltak som vil slettes og be om eksplisitt bekreftelse fra bruker
-  3. Slett hvert tiltak med `delete_tiltak`
-  4. Slett deretter scenarioet med `delete_risikoscenario`
+  2. Vis tiltak som vil slettes og be om eksplisitt bekreftelse fra bruker, sammen med en kort begrunnelse for slettingen
+  3. Slett hvert tiltak med `delete_tiltak` (`tiltakId`, `kommentar`)
+  4. Slett deretter scenarioet med `delete_risikoscenario` (`scenarioId`, `kommentar`)
 - **Koble krav:** `link_krav_to_risikoscenario` med `kravnummer` og liste av scenario-UUIDs
 - **Fjern kravkobling:** `unlink_krav_from_risikoscenario`
 
@@ -696,7 +696,7 @@ Bruk MCP-tools for tiltak (krever aktiv `lock_document`):
 
 - **Les:** `list_tiltak` — alle tiltak for låst PVK-dokument
 - **Opprett/oppdater:** `write_tiltak` med `risikoscenarioId`, `navn`, `beskrivelse`, og `frist` (YYYY-MM-DD). Ansvarlig person settes manuelt i UI.
-- **Slett:** `delete_tiltak`
+- **Slett:** `delete_tiltak` med `tiltakId` og påkrevd `kommentar` (kort slettebegrunnelse)
 
 ### PVK Steg 7: Risikobildet etter tiltak
 
@@ -798,28 +798,30 @@ UNDERARBEID
 
 Alle skriveoperasjoner krever aktiv `lock_document` (dokumentets UUID).
 
+Alle delete-tools krever en kort `kommentar` (slettebegrunnelse). Den lagres i etterlevelse-backend sin auditlogg og er påkrevd av backend. Uten `kommentar` returnerer verktøyet en valideringsfeil og sletter ingenting.
+
 | Tool | Beskrivelse |
 |---|---|
 | `lock_document` | Lås dokument — aktiverer PVK-verktøyene |
 | `get_pvk_dokument` | Hent PVK-status og nøkkelfelter |
 | `create_pvk_dokument` | Opprett nytt PVK-dokument |
-| `delete_pvk_dokument` | Slett PVK-dokumentet |
+| `delete_pvk_dokument` | Slett PVK-dokumentet (krever `kommentar`) |
 | `write_pvk_egenskaper` | Oppdater DPIA-egenskaper og PVK-behovsvurdering |
 | `write_pvk_involvering` | Oppdater involveringsfelter |
 | `write_pvk_risikoeier` | Skriv merknad til risikoeier (lederrettet, markdown) |
 | `write_pvk_melding_til_pvo` | Skriv utkast til melding til PVO (merknad + endringsnotat) |
 | `get_behandlingens_livsloep` | Hent livsløpsbeskrivelse |
 | `write_behandlingens_livsloep` | Opprett/oppdater livsløp (støtter filvedlegg som base64) |
-| `delete_behandlingens_livsloep` | Slett livsløp |
+| `delete_behandlingens_livsloep` | Slett livsløp (krever `kommentar`) |
 | `write_behandlingens_art_og_omfang` | Oppdater art og omfang (steg 3) |
 | `list_risikoscenarioer` | List risikoscenarioer |
 | `write_risikoscenario` | Opprett/oppdater risikoscenario |
-| `delete_risikoscenario` | Slett (feiler hvis tiltak gjenstår — slett tiltak først) |
+| `delete_risikoscenario` | Slett (krever `kommentar`; feiler hvis tiltak gjenstår, slett tiltak først) |
 | `link_krav_to_risikoscenario` | Koble krav til scenarioer |
 | `unlink_krav_from_risikoscenario` | Fjern kravkobling |
 | `list_tiltak` | List tiltak |
 | `write_tiltak` | Opprett/oppdater tiltak |
-| `delete_tiltak` | Slett tiltak |
+| `delete_tiltak` | Slett tiltak (krever `kommentar`) |
 
 ## Markdown-støtte per felt
 
