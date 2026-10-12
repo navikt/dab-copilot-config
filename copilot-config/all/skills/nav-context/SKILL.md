@@ -50,12 +50,8 @@ Kunnskap spesifikk for ett system:
 
 ## Arbeidsflyt
 
-**Anbefalt arbeidsmappe:** Kjør nav-context fra en dedikert tom mappe for gjennomgangen.
-Kontekstfilene skrives til CWD og brukes av nav-etterlevelse og nav-pvk herfra:
-
-```bash
-mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
-```
+**Arbeidsmappe:** Kontekstfilene skrives i arbeidsmappen (CWD), der nav-etterlevelse og
+nav-pvk leser dem. Opprett aldri filer eller mapper utenfor arbeidsmappen, for eksempel i `~/`.
 
 ### Steg 1: Sjekk om filene allerede finnes
 
@@ -74,9 +70,8 @@ ls -la ./domain-context.md ./system-context*.md 2>/dev/null || echo "Ingen konte
 | `domain-context.md` mangler i CWD, og bundlet fil matcher ikke | **Opprett ny** for riktig domene |
 | Begge finnes og matcher | Spør bruker om oppdatering er ønsket; avslutt ellers |
 
-**`system-context.md` skal alltid opprettes hvis den mangler** — selv om `domain-context.md`
-finnes fra før. Domenekonteksten er generell; systemkonteksten er unik per system og er
-det nav-etterlevelse og nav-pvk trenger for presise vurderinger.
+**Begge filene skal finnes når nav-context er ferdig.** `system-context.md` opprettes alltid
+hvis den mangler. `domain-context.md` gjenbrukes, kopieres eller opprettes etter tabellen over.
 
 **Domain-match-sjekk:** Les første linje/tittel i eksisterende `domain-context.md` og
 sammenlign med systemets fagområde (f.eks. «Arbeidsrettet oppfølging» vs. «Sosiale tjenester»).
@@ -210,26 +205,51 @@ Hentes via MCP-tools `list_navet_pages` og `get_navet_page` — ingen manuell p�
 
 Hvis fagområdet ikke er i listen, be bruker om å kontakte #tech-azure for tilgang.
 
-### Steg 5: Inspiser kildekode (valgfritt)
+**Ukjent fagområde eller manglende Navet-tilgang:** lag ikke `domain-context.md` på egen hånd.
+Uten Navet mangler agenten fagretningslinjer og restriksjoner. Be om bidrag og vent på svar:
 
-Bruk explore-agenter parallelt for å finne personvernrelevante funn i repoene:
+> Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
+>
+> **A)** Lim inn eller oppsummer Navet-sider om «Personvern», «Rutiner» og «Lover og regler».
+>
+> **B)** Fortell hvilket fagområde dette er, og hva de viktigste faglige restriksjonene er.
+>    Jeg lager et utkast som du kvalitetssikrer.
+>
+> **C)** Oppgi B- eller D-nummer. Jeg bruker behandlingskatalogen som grunnlag, og du supplerer
+>    med Navet-kunnskap etterpå.
 
+### Steg 5: Lett kodegjennomgang (når repoer er oppgitt)
+
+Målet er å beskrive systemet, ikke å analysere det. Den grundige kodeanalysen gjør
+nav-etterlevelse eller nav-pvk etterpå, på den samme koden.
+
+**Hent koden til arbeidsmappen** hvis den ikke alt ligger der. Bruk kildeeksport, ikke
+`git clone` (cplt blokkerer `.git` i en ren arbeidsmappe) og ikke `gh api` (gh-guard):
+
+```bash
+mkdir -p {repo}
+curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+  https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
 ```
-task explore: "Søk i navikt/{repo} etter: database-skjemaer (entities, SQL), personopplysningstyper 
-som lagres, tilgangsmekanismer (auth), Kafka-topics med persondata, og slettelogikk. 
-Gi en kompakt oppsummering (maks 300 ord)."
-```
 
-Fokuser på:
-- Hvilke personidentifikatorer brukes? (fnr, aktørId, aktorId)
-- Hva lagres i database? (entity-klasser, SQL migrations)
-- Hvem sender/mottar data? (Kafka-topics, REST-klienter)
-- Når slettes data? (slettejobber, retention-mekanismer)
+La koden ligge i `{repo}/`, så analysen etterpå bruker den uten ny nedlasting.
+
+Bruk explore-agenter på de lokale mappene og hent bare det malen trenger:
+- Hvilke personidentifikatorer brukes? (fnr, aktørId)
+- Hva lagres? (entity-klasser, SQL-migreringer, filer)
+- Hvem sender og mottar data? (Kafka-topics, REST-klienter)
+- Hvordan autentiseres brukere og tjenester?
+- Når slettes data? (slettejobber, retention)
 
 ### Steg 6: Generer kontekstfiler
 
 Skriv filene til CWD. Bruk malene under. Fyll ut alle seksjoner basert på innsamlet informasjon.
 Der informasjon mangler, skriv `[Teamet må fylle inn: ...]` som placeholder.
+
+**Kontekstfilene beskriver, de vurderer ikke.** Skriv hva koden, behandlingskatalogen og Navet
+viser. Ikke skriv tiltak, risikovurderinger eller konklusjoner om lovlighet og etterlevelse,
+heller ikke når funnene er alvorlige. Alvorlige funn beskrives som fakta (fil og hva koden gjør).
+Vurderingen gjør nav-etterlevelse eller nav-pvk etterpå.
 
 ```bash
 cat > ./domain-context.md << 'EOF'
@@ -241,11 +261,18 @@ cat > ./system-context.md << 'EOF'
 EOF
 ```
 
-**Fortell brukeren:**
-- Hvilke seksjoner som er automatisk utfylt (fra behandlingskatalog/Navet/kode)
-- Hvilke placeholders som trenger manuell utfylling
-- At `system-context.md` bør committes til repoet og oppdateres ved endringer
-- At `domain-context.md` kan deles på tvers av systemer i samme fagområde
+### Steg 7: Stopp for gjennomgang
+
+Vis brukeren:
+- hvilke filer som er laget eller gjenbrukt
+- hvilke seksjoner som er fylt ut automatisk (behandlingskatalog, Navet, kode)
+- hvilke `[Teamet må fylle inn: ...]`-felt som gjenstår
+
+Be brukeren gå gjennom filene og si «klar». **Stopp der.** Ikke tilby neste steg, som
+kravbesvarelser, PVK eller vurderinger. Skillen som kalte nav-context, tar over etter «klar».
+
+`system-context.md` bør committes i systemets repo. `domain-context.md` kan deles på tvers av
+systemer i samme fagområde.
 
 ---
 

@@ -38,7 +38,7 @@ for komplett oppsett. Spesifikt for nav-pvk:
 
 - `sandbox.allow_browser = true` er påkrevd for OAuth-flow mot nav-etterlevelse-mcp
 - `proxy.allow_private_domains = ["intern.nav.no"]` er påkrevd for MCP-tilgang
-- **Kodeanalyse (Forberedelse D):** bruk github-mcp eller HTTPS-kloning — SSH (port 22) er blokkert
+- **Kodeanalyse (Forberedelse D):** hent koden som kildeeksport med `curl` og `GH_TOKEN`, ikke `git clone` eller `gh api`
 - **git push er aldri tilgjengelig** i sandkassen — be brukeren pushe manuelt
 **MCP-autentisering varierer per rammeverk** (alle forutsetter `allow_browser = true`):
 - **Copilot CLI:** autentiserer automatisk inne i sandkassen — ingen manuell handling nødvendig
@@ -107,105 +107,43 @@ GDPR-tekst og personvernombudets anbefalinger. Agenten skal ikke forhandle om ri
   kan bruke funn fra en etterlevelsesgjennomgang, og etterlevelse-skillen leser PVK-data
   (steg 3e). Kjør gjerne etterlevelse-skillen først for å bygge grunnlag.
 
-## Domenekontekst
+## Kontekstfiler
 
-Domenekontekst gir viktig bakgrunnsinformasjon utover det koden kan si:
-- Rettslig grunnlag og formål for behandlingen
-- Kategorier av registrerte og personopplysninger
-- Behandlingens livsløp (oppstart, avslutning)
-- Hva som er/ikke er tillatt å lagre (formålsbegrensninger)
-- Tilgangsstyring og databehandlerforhold
+`domain-context.md` (fagområdet) og `system-context.md` (systemet) gir kunnskap koden ikke
+viser: rettslig grunnlag og formål, kategorier av registrerte og personopplysninger,
+behandlingens livsløp, hva som er tillatt å lagre, og tilgangsstyring. Les begge og bruk dem
+aktivt gjennom hele analysen.
 
-**Les domenekontekst tidlig i arbeidsflyten**, som første handling før steg 1.
+⛔ **Kontekstfilene lages bare av nav-context-skillen.** Skriv dem aldri selv, heller ikke én
+av dem. nav-context velger fagområde, henter fra Navet og bruker malene. Gaten står i Forberedelse A.
 
-### ⛔ OBLIGATORISK: Sjekk kontekstfiler FØR arbeidsflyten starter
-
-1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
-2. Sjekk om `domain-context.md` finnes i CWD
-
-**Hvis `domain-context.md` mangler:**
-→ Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
-`domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
-til `./domain-context.md` i CWD.
-
-→ Hvis ingen bundlet fil passer: **prøv automatisk Navet-henting først.**
-Identifiser fagområdet fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
-Hvis fagområdet finnes i nav-context sin fagområde-tabell (alle har Navet-tilgang innvilget),
-invokér nav-context — den henter fagretningslinjer, lovhjemler og restriksjoner fra Navet
-automatisk via `list_navet_pages`/`get_navet_page` og genererer `domain-context.md`. Den
-obligatoriske menneskelige gjennomgangen nedenfor er fortsatt påkrevd etterpå.
-
-→ **Fallback — kun hvis fagområdet er ukjent eller mangler Navet-tilgang:** ikke generer
-domain-context på egen hånd. Agenten mangler da nødvendig domenekunnskap (fagretningslinjer,
-lovgrunnlag, Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
-
-> Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
->
-> **A)** Åpne den relevante Navet-siden og lim inn eller oppsummer innhold fra sider om
->    «Personvern», «Rutiner» og «Lover og regler» (Navet-URL-er finnes i nav-context-skillen).
->
-> **B)** Fortell meg: hvilket fagområde gjelder dette, og hva er de viktigste faglige
->    restriksjonene? Jeg lager et utkast, men du må kvalitetssikre det.
->
-> **C)** Oppgi behandlings-ID (B-nummer der Nav er behandlingsansvarlig, eller D-nummer der
->    Nav kun er databehandler) — jeg bruker behandlingskatalogen som grunnlag, men Navet-kunnskap
->    må du supplere selv etterpå.
-
-Vent på brukerens bidrag, og invokér deretter nav-context med den innsamlede informasjonen.
-
-**Hvis `system-context.md` mangler:**
-→ Invokér nav-context-skillen. System-kontekst kan delvis genereres fra
-behandlingskatalog og kode, men krever brukerens gjennomgang etterpå.
-
-**⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
-
-Vis hva som ble generert og be teamet kvalitetssikre før analysen starter:
-
-> Kontekstfilene er klare. Gå gjennom dem og:
-> 1. Verifiser at beskrivelsene er korrekte
-> 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
-> 3. Suppler med fagkunnskap som ikke fremgår av kode eller behandlingskatalog
->
-> Si «klar» eller «fortsett» når filene er godkjent.
-
-**Ikke gå videre til Forberedelse B før bruker bekrefter.**
-
-**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
-
-Kildene leses i prioritert rekkefølge:
-
-1. **`./domain-context.md`** — domenekontekst for fagområdet (deles på tvers av systemer)
-2. **`./system-context.md`** — systemspesifikk kontekst for dette repoet
-3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
-   NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`). Bruk den som
-   passer fagområdet systemet tilhører.
+**Koden går foran `system-context.md`.** Når analysen viser noe annet enn filen, bruk det koden
+viser og noter avviket i rapporten. Tilby til slutt å oppdatere filen med nav-context.
 
 ## Arbeidsflyt
 
-### Forberedelse A: Innhent informasjon fra bruker
+### Forberedelse A: Modellvalg, arbeidsmappe, opplysninger og kontekstfiler
 
-**Sjekk arbeidsmappen FØR du spør om noe annet:**
+**⛔ Ditt første svar til brukeren starter med modellanbefalingen**, før spørsmål og
+oppsummeringer:
+
+> PVK-en er juridisk og teknisk risikovurdering, og kvaliteten avhenger merkbart av modellen.
+> Bytt til den sterkeste modellen du har tilgang til før vi går videre, hvis du ikke alt har gjort det.
+
+Gå videre uten å insistere. Det er en anbefaling, ikke en blokker. Se «Modellvalg for deloppgaver».
+
+**Arbeidsmappe.** Alle filer (kildekode, kontekstfiler, rapport, figurer) lages i arbeidsmappen
+(CWD). Opprett aldri filer eller mapper utenfor den, for eksempel i `~/`. Sjekk CWD før du spør
+om noe annet:
 
 ```bash
 pwd && ls -la
 ```
 
-Vurder CWD:
-- **Tom mappe eller mappe som allerede inneholder kontekstfiler/repoer for denne gjennomgangen** → fortsett herfra
-- **Inne i et Git-repo** (`ls .git`) eller **mappe med urelatert innhold** → informer bruker:
-
-> Jeg anbefaler å opprette en dedikert arbeidsmappe for denne PVK-gjennomgangen.
-> En PVK produserer flere filer (rapport, figurer, kontekstfiler) og involverer
-> ofte flere repoer. En egen mappe holder alt samlet:
->
-> ```bash
-> mkdir ~/pvk-{systemnavn} && cd ~/pvk-{systemnavn}
-> ```
->
-> Kildekoden klones som undermapper her, og rapport og figurer lagres samme sted.
-> Vil du opprette en slik mappe før vi starter?
-
-Vent på brukerens svar før du fortsetter.
+- **Tom mappe, eller mappe med kontekstfiler eller repoer for denne gjennomgangen** → fortsett
+  her, rett i mappen. Lag ikke en egen undermappe for gjennomgangen.
+- **Git-repo** (`ls .git`) **eller mappe med urelatert innhold** → be brukeren lage en tom mappe
+  selv og starte sesjonen på nytt derfra. Vent på svar.
 
 Spør bruker om:
 - **Etterlevelsesdokumentasjon**: URL eller ID (format: `a5cc7dfe-2fb9-4ff2-...`)
@@ -216,6 +154,16 @@ Spør bruker om:
   - **Eksisterende system** — systemet er under utvikling eller i drift, kildekode er tilgjengelig.
 - **GitHub-repoer**: navikt/{repo} — ett eller flere repoer (kun for eksisterende systemer)
 - **Gjennomgangstype**: Ny PVK eller oppdatering av eksisterende?
+
+**⛔ Gate før Forberedelse B: kontekstfiler**
+
+1. Sjekk om `domain-context.md` og `system-context.md` (eller `system-context-*.md`) finnes i arbeidsmappen.
+2. Mangler én av dem: invokér nav-context-skillen. Den lager det som mangler og stopper for gjennomgang.
+3. Finnes begge: les dem, og be brukeren bekrefte at de er gjennomgått.
+
+Gå ikke videre til Forberedelse B før **begge** filene finnes og brukeren har sagt «klar». Før
+det skal du ikke skrive risikoscenarioer, tiltak eller PVK-tekst, tilby å lage dem eller
+konkludere om risiko. Alvorlige funn i koden kan nevnes, men vurderingen gjøres i PVK-stegene.
 
 ### Forberedelse B: Autentisering via MCP-serveren
 
@@ -315,14 +263,14 @@ For hvert repo som skal analyseres:
    ```
    Spør bruker om de vil pulle hvis det er commits bak `origin/main`.
 
-3. **Hvis ikke funnet — klon inn i arbeidsmappen:**
+3. **Hvis ikke funnet — hent koden inn i arbeidsmappen som kildeeksport:**
    ```bash
-   # Offentlige repoer:
-   git clone https://github.com/navikt/{repo}.git
-   # Private repoer (SSH er blokkert i cplt — bruk HTTPS):
-   git clone https://x-access-token:$GH_TOKEN@github.com/navikt/{repo}.git
+   mkdir -p {repo}
+   curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+     https://api.github.com/repos/navikt/{repo}/tarball/{ref} | tar -xz -C {repo} --strip-components=1
    ```
-   Repoet klones da som undermappe i CWD (`{repo}/`).
+   `git clone` feiler i en ren arbeidsmappe under cplt, og `gh api` blokkeres av gh-guard.
+   Koden havner i `{repo}/` i arbeidsmappen.
 
 Bruk deretter lokale verktøy (`bash`, `ripgrep`, `find`) og explore-agenter parallelt.
 
