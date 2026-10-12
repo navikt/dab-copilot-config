@@ -169,111 +169,42 @@ Eksempel på korreksjon som er forankret framfor myknet:
 - **nav-pvk**: Gjennomfører personvernkonsekvensvurdering (PVK/DPIA). Bruk denne for å
   opprette/oppdatere PVK-dokumenter, risikoscenarioer og tiltak. Etterlevelse-skillen
   LESER PVK-data (steg 3e), men PVK-skillen SKRIVER til PVK-modulen.
-## Domenekontekst
 
-Domenekontekst gir bakgrunnsinformasjon som koden alene ikke forteller — faglige
-restriksjoner, rettslig grunnlag, hva som er tillatt å lagre, og behandlingens livsløp.
-Bruk denne for å skrive mer presise og faglig riktige etterlevelsesbesvarelser.
+## Kontekstfiler
 
-### ⛔ OBLIGATORISK: Sjekk kontekstfiler FØR analysen starter
+`domain-context.md` (fagområdet) og `system-context.md` (systemet) gir kunnskap koden ikke
+viser: faglige restriksjoner, rettslig grunnlag, hva som er tillatt å lagre, og behandlingens
+livsløp. Les begge og bruk dem aktivt gjennom hele analysen.
 
-**Gjør dette alltid som første handling i arbeidsflyten (steg 1):**
-
-1. Sjekk om `system-context.md` (eller `system-context-*.md`) finnes i CWD
-2. Sjekk om `domain-context.md` finnes i CWD
-
-**Hvis `domain-context.md` mangler:**
-→ Sjekk nav-context skill-mappen for bundlede domenekontekster (f.eks.
-`domain-context-arbeidsrettet-oppfolging.md`). Hvis en passer fagområdet, kopier den
-til `./domain-context.md` i CWD.
-
-→ Hvis ingen bundlet fil passer: **prøv automatisk Navet-henting først.**
-Identifiser fagområdet fra behandlingskatalogen (`purposes`, `description`) eller spør bruker.
-Hvis fagområdet finnes i nav-context sin fagområde-tabell (alle har Navet-tilgang innvilget),
-invokér nav-context — den henter fagretningslinjer, lovhjemler og restriksjoner fra Navet
-automatisk via `list_navet_pages`/`get_navet_page` og genererer `domain-context.md`. Den
-obligatoriske menneskelige gjennomgangen nedenfor er fortsatt påkrevd etterpå.
-
-→ **Fallback — kun hvis fagområdet er ukjent eller mangler Navet-tilgang:** ikke generer
-domain-context på egen hånd. Agenten mangler da nødvendig domenekunnskap (fagretningslinjer,
-lovgrunnlag, Navet-restriksjoner) til å lage en presis fil uten input fra bruker. Be om bidrag:
-
-> Jeg trenger domenekunnskap for å lage `domain-context.md`. Du kan bidra på én av disse måtene:
->
-> **A)** Åpne den relevante Navet-siden og lim inn eller oppsummer innhold fra sider om
->    «Personvern», «Rutiner» og «Lover og regler» (Navet-URL-er finnes i nav-context-skillen).
->
-> **B)** Fortell meg: hvilket fagområde gjelder dette, og hva er de viktigste faglige
->    restriksjonene? Jeg lager et utkast, men du må kvalitetssikre det.
->
-> **C)** Oppgi behandlings-ID (B-nummer der Nav er behandlingsansvarlig, eller D-nummer der
->    Nav kun er databehandler) — jeg bruker behandlingskatalogen som grunnlag, men Navet-kunnskap
->    må du supplere selv etterpå.
-
-Vent på brukerens bidrag, og invokér deretter nav-context med den innsamlede informasjonen.
-
-**Hvis `system-context.md` mangler:**
-→ Invokér nav-context-skillen. System-kontekst kan delvis genereres fra
-behandlingskatalog og kode, men krever brukerens gjennomgang etterpå.
-
-**⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
-
-Vis hva som ble generert og be teamet kvalitetssikre før analysen starter:
-
-> Kontekstfilene er klare. Gå gjennom dem og:
-> 1. Verifiser at beskrivelsene er korrekte
-> 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
-> 3. Suppler med fagkunnskap som ikke fremgår av kode eller behandlingskatalog
->
-> Si «klar» eller «fortsett» når filene er godkjent.
-
-**Ikke gå videre til steg 2 før bruker bekrefter.**
-
-**Hvis begge kontekstfiler finnes:** Les dem og bruk innholdet aktivt gjennom hele analysen.
-
-Kildene leses i prioritert rekkefølge:
-
-1. **`./system-context.md`** (eller `system-context-{systemnavn}.md`) — systemspesifikk kontekst
-2. **`./domain-context.md`** — domenekontekst for fagområdet
-3. **`domain-context.md` i nav-context skillmappen** — bundlede domenekontekster for kjente
-   NAV-fagområder (f.eks. `domain-context-arbeidsrettet-oppfolging.md`)
+⛔ **Kontekstfilene lages bare av nav-context-skillen.** Skriv dem aldri selv, heller ikke én
+av dem. nav-context velger fagområde, henter fra Navet og bruker malene. Gaten står i steg 1.
 
 ## Arbeidsflyt
 
-### Steg 1: Innhent informasjon fra bruker og sjekk kontekst
+### Steg 1: Modellvalg, arbeidsmappe, opplysninger og kontekstfiler
 
-**Sjekk arbeidsmappen FØR du spør om noe annet:**
+**⛔ Ditt første svar til brukeren starter med modellanbefalingen**, før spørsmål og
+oppsummeringer:
+
+> Gjennomgangen er juridisk og teknisk analyse, og kvaliteten avhenger merkbart av modellen.
+> Bytt til den sterkeste modellen du har tilgang til før vi går videre, hvis du ikke alt har gjort det.
+
+Gå videre uten å insistere. Det er en anbefaling, ikke en blokker. Se «Modellvalg for deloppgaver».
+
+**Arbeidsmappe.** Alle filer (kildekode, kontekstfiler, rapport) lages i arbeidsmappen (CWD).
+Opprett aldri filer eller mapper utenfor den, for eksempel i `~/`. Sjekk CWD før du spør om
+noe annet:
 
 ```bash
 pwd && ls -la
 ```
 
-Vurder CWD:
-- **Tom mappe eller mappe som allerede inneholder kontekstfiler/kildekode for denne gjennomgangen** → fortsett herfra
-- **Inne i repoet som skal vurderes** (enkelt-repo-system) → helt greit å jobbe her hvis det er
-  mest praktisk. Artefakter (rapport, kontekstfiler) lagres da i repoet; legg dem gjerne i en
-  gitignorert undermappe for ryddighet. Agenten endrer aldri koden den vurderer — om et menneske
-  velger å sjekke inn rapporten eller endre kode, er det brukerens ansvar.
-- **Inne i et urelatert repo, eller en mappe med urelatert innhold** → anbefal en dedikert arbeidsmappe:
-
-> Jeg anbefaler å opprette en dedikert arbeidsmappe for denne gjennomgangen.
-> En etterlevelsesgjennomgang består ofte av flere repoer og produserer flere filer
-> (rapport, kontekstfiler, figurer). En egen mappe holder alt samlet:
->
-> ```bash
-> mkdir ~/etterlevelse-{systemnavn} && cd ~/etterlevelse-{systemnavn}
-> ```
->
-> Kildekoden hentes inn som undermapper (kildeeksport, ikke klon — se «Kodeanalyse i sandkassen»),
-> og rapport og kontekstfiler lagres samme sted.
-> Vil du opprette en slik mappe før vi starter?
-
-Vent på brukerens svar før du fortsetter.
-
-**Nevn modellvalg tidlig, én gang:** analysen i steg 4 og 6 er juridisk og teknisk vurdering
-der kvaliteten avhenger merkbart av modellen. Anbefal brukeren å kjøre gjennomgangen på den
-sterkeste modellen de har tilgang til, og gå videre uten å insistere — dette er en anbefaling,
-ikke en blokker. Se «Modellvalg for deloppgaver».
+- **Tom mappe, eller mappe med kontekstfiler eller kildekode for denne gjennomgangen** → fortsett
+  her, rett i mappen. Lag ikke en egen undermappe for gjennomgangen.
+- **Repoet som skal vurderes** (enkelt-repo-system) → greit. Legg artefaktene i en gitignorert
+  undermappe. Agenten endrer aldri koden den vurderer.
+- **Urelatert repo eller mappe med urelatert innhold** → be brukeren lage en tom mappe selv og
+  starte sesjonen på nytt derfra. Vent på svar.
 
 Spør brukeren om:
 1. **GitHub-repoer** som skal vurderes (f.eks. `navikt/veilarbdialog`, `navikt/arbeidsrettet-dialog`)
@@ -292,27 +223,15 @@ Spør brukeren om:
      Verifiser at eksisterende begrunnelser stemmer med faktisk kode, og foreslå
      forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
 
-**Etter at du har fått svar — sjekk kontekstfiler (se «Domenekontekst» over).**
-Hvis `system-context.md` eller `domain-context.md` mangler i CWD: invokér nav-context-skillen nå, og vent til begge filer er opprettet.
+**⛔ Gate før steg 2: kontekstfiler**
 
-**⛔ STOPP etter nav-context — obligatorisk gjennomgang av kontekstfiler.**
+1. Sjekk om `domain-context.md` og `system-context.md` (eller `system-context-*.md`) finnes i arbeidsmappen.
+2. Mangler én av dem: invokér nav-context-skillen. Den lager det som mangler og stopper for gjennomgang.
+3. Finnes begge: les dem, og be brukeren bekrefte at de er gjennomgått.
 
-Når nav-context er ferdig, vis en kort oppsummering av hva som ble generert og be teamet
-kvalitetssikre filene før analysen starter:
-
-> Kontekstfilene er opprettet:
-> - `domain-context.md` — domenekontekst for fagområdet
-> - `system-context.md` — systemspesifikk kontekst
->
-> Vennligst gå gjennom filene og:
-> 1. Verifiser at domene- og systembeskrivelsen er korrekt
-> 2. Fyll inn seksjoner merket `[Teamet må fylle inn: ...]`
-> 3. Suppler med kunnskap som ikke fremgår av kode eller behandlingskatalog
->    (f.eks. særlige faglige restriksjoner, planlagte endringer, kjente risikoer)
->
-> Si «klar» eller «fortsett» når kontekstfilene er godkjent.
-
-**Ikke gå videre til steg 2 før bruker bekrefter at kontekstfilene er gjennomgått.**
+Gå ikke videre til steg 2 før **begge** filene finnes og brukeren har sagt «klar». Før det skal
+du ikke skrive kravbesvarelser, tilby å lage dem eller konkludere om etterlevelse. Alvorlige
+funn i koden kan nevnes, men vurderingen gjøres i steg 4–6.
 
 ### Steg 2: Autentisering via MCP-serveren
 
