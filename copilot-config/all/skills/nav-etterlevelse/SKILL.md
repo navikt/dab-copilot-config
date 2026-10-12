@@ -119,20 +119,33 @@ laste ned og dele relevante filer manuelt, eller konfigurere én av metodene ove
 
 ## Språk og tilgjengelighet
 
-Etterlevelsesbesvarelser leses av både teknisk og ikke-teknisk personell (jurister,
-risikoeiere, ledere). Skriv derfor i et klart og tilgjengelig språk:
+⛔ **SK-begrunnelser skrives for jurister.** Det er ofte jurister som vurderer kvaliteten,
+sammen med risikoeiere og ledere. Test hver setning: *Kan en jurist uten teknisk bakgrunn
+forstå og vurdere den?* Hvis ikke, skriv den om.
 
-- **Bruk alltid norske tegn (æ, ø, å).** Skriv «oppfølging», ikke «oppfolging».
-  Skriv «nødvendig», ikke «nodvendig». Aldri bruk ASCII-erstatninger (ae, oe, aa).
-- **Forklar tekniske funn i kontekst.** Skriv «Applikasjonen krever innlogging med BankID
-  (sikkerhetsnivå høyt) via ID-porten» i stedet for «Auth via OIDC med acr=Level4 i
-  id-porten sidecar». Tekniske detaljer kan nevnes i parentes som referanse.
-- **Fokuser på hva systemet faktisk gjør**, ikke på implementasjonsdetaljer.
-  «Meldinger krypteres ved lagring» er bedre enn «AES-256 via Cloud SQL encryption at rest».
-- **Bruk juridisk/regulatorisk terminologi der det er naturlig.** Termer som «rettslig
-  grunnlag», «dataminimering» og «den registrerte» er presise og forventede i denne konteksten.
-- **Unngå unødvendig teknisk sjargong** i selve begrunnelsene. Henvis heller til kode
-  eller konfigurasjon som vedlegg/referanse (f.eks. «Se nais.yaml for fullstendig konfigurasjon»).
+- **Beskriv hva systemet gjør**, for den registrerte og for Nav, ikke hvordan det er bygget.
+  «Meldinger krypteres når de lagres» i stedet for «AES-256 via Cloud SQL encryption at rest».
+- **Juridisk terminologi er ønsket.** «Rettslig grunnlag», «dataminimering», «den registrerte»
+  og «formålsbegrensning» er presise og forventede.
+- **Dette hører ikke hjemme i begrunnelsen:** filnavn, klasse- og funksjonsnavn, kodesitater,
+  konfigurasjonsnøkler, miljøvariabler, API-stier og versjonsnumre. Unntak: SK-et spør
+  uttrykkelig om en teknisk detalj.
+- **Nødvendige tekniske begreper forklares** i en kort bisetning første gang: «ID-porten,
+  Nav sin felles innlogging med BankID», «Kafka, et system for å sende meldinger mellom tjenester».
+- **Sporbarhet i én linje til slutt:** «Teknisk grunnlag:» med høyst tre henvisninger (fil eller
+  konfigurasjon), uten kodesitater. Detaljerte tekniske bevis hører hjemme i rapporten (steg 6).
+- **Bruk alltid norske tegn (æ, ø, å).** Aldri ASCII-erstatninger (ae, oe, aa).
+
+❌ For teknisk:
+> Auth via OIDC med `acr=idporten-loa-high` i Wonderwall-sidecar. Token valideres mot
+> `NAIS_TOKEN_INTROSPECTION_ENDPOINT` i `src/auth/middleware.ts`.
+
+✅ Riktig nivå:
+> Brukerne må logge inn med BankID eller tilsvarende (sikkerhetsnivå høyt) gjennom ID-porten,
+> Nav sin felles innlogging. Systemet sjekker innloggingen på nytt ved hver forespørsel, og
+> ingen personopplysninger vises uten gyldig innlogging.
+>
+> Teknisk grunnlag: `.nais/prod.yaml`, `src/auth/middleware.ts`
 
 ## Faglig integritet og objektivitet
 
@@ -224,7 +237,7 @@ Spør brukeren om:
      kravliste mot eksisterende etterlevelser og flagg avvik.
    - **Full gjennomgang (deep)** — kvalitetssikre ALLE krav, inkludert de som allerede er utfylt.
      Verifiser at eksisterende begrunnelser stemmer med faktisk kode, og foreslå
-     forbedringer der begrunnelsene er utdaterte, upresise eller mangler kodehenvisninger.
+     forbedringer der begrunnelsene er utdaterte, upresise eller ikke underbygget av koden.
 
 **⛔ Gate før steg 2: kontekstfiler**
 
@@ -354,16 +367,17 @@ En begrunnelse som svarer på feil spørsmål er verre enn ingen begrunnelse.
 - Begrunnelsen skal svare direkte på det suksesskriteriet faktisk spør om
 - Ikke skriv generelt om systemet — svar på det konkrete spørsmålet fra `beskrivelse`
 - Hvis `beskrivelse` lister opp spesifikke punkter (f.eks. en sjekkliste), adresser hvert punkt
-- Bruk funn fra kodegjennomgangen som bevis
+- Bruk funn fra kodegjennomgangen som bevis, beskrevet som det systemet gjør (se «Språk og tilgjengelighet»)
 
 **Strukturmal for begrunnelse:**
 ```
 [Svar direkte på spørsmålet fra SK beskrivelse, 1-2 setninger]
 
-[Konkrete funn fra kode/konfigurasjon som underbygger vurderingen]
-Ref: [filnavn, linje/funksjon eller nais.yaml-felt]
+[Hva systemet gjør som underbygger vurderingen, i klart språk]
 
 [Eventuelle forbehold eller punkter teamet må bekrefte]
+
+Teknisk grunnlag: [høyst tre filer eller konfigurasjoner]
 ```
 
 Et krav som virker irrelevant basert på kravnavnet alene kan bli svært relevant når
@@ -474,8 +488,9 @@ Sammenlign gjeldende kravliste mot eksisterende etterlevelser for å finne avvik
 - ALLE krav vurderes, også de med utfylt begrunnelse
 - For utfylte krav: verifiser at begrunnelsen stemmer med faktisk kode
 - Flagg begrunnelser som er utdaterte (f.eks. refererer til kode som er endret)
-- Flagg begrunnelser som er vage (mangler konkrete kode/config-referanser)
-- Foreslå forbedringer med spesifikke kodehenvisninger
+- Flagg begrunnelser som er vage (sier ikke hva systemet faktisk gjør)
+- Flagg begrunnelser som er for tekniske for en jurist (se «Språk og tilgjengelighet»)
+- Foreslå forbedringer i klart språk, med teknisk grunnlag i siste linje
 - Sjekk at status (OPPFYLT/UNDER_ARBEID etc.) reflekterer virkeligheten
 - Inkluderer automatisk logikken fra «Nye og oppdaterte krav»-modus
 
@@ -873,20 +888,19 @@ Generer en komplett rapport (`rapport-E{nr}-{teamnavn}.md`, f.eks.
 **Ved full gjennomgang (deep)**, inkluder også i rapporten:
 8. **Kvalitetsvurdering av eksisterende begrunnelser** — for hvert utfylt krav:
    - ✅ **OK** — begrunnelsen er korrekt og godt underbygget
-   - ⚠️ **Forbedringsforslag** — begrunnelsen er riktig men kan styrkes (f.eks. mangler koderef)
+   - ⚠️ **Forbedringsforslag** — begrunnelsen er riktig, men kan styrkes (f.eks. for teknisk eller for vag)
    - 🔴 **Utdatert/feil** — begrunnelsen stemmer ikke med nåværende kode
    
    Eksempel:
    ```
    K245.2 SK1 – Risikovurdering er gjennomført
    Status: ✅ OK
-   Eksisterende begrunnelse stemmer. Bekreftet i kode: TryggNok ROS ID 1720.
+   Eksisterende begrunnelse stemmer. ROS-analysen i TryggNok (ID 1720) er gjennomført og oppdatert.
    
    K196.6 SK3 – UU-testing
    Status: ⚠️ Forbedringsforslag
-   Begrunnelsen nevner "NAV Designsystem" generelt. Forslag: legg til spesifikke
-   versjoner (@navikt/ds-react v8.6.0) og konkrete WCAG-tiltak (aria-labels i
-   DialogHeader.tsx, fokusadministrasjon i NyDialogForm.tsx).
+   Begrunnelsen sier bare at Navs designsystem brukes. Forslag: beskriv hva som er testet,
+   for eksempel at skjemaene kan brukes med tastatur og skjermleser, og hvem som har testet.
    ```
 
 #### Revider prioritert kravliste
@@ -908,14 +922,15 @@ Prioriteringskriterier:
 
 Filtrer ut utgåtte krav (status=UTGAATT). Listen skal kun inneholde AKTIVE krav.
 
-Begrunnelsene i rapporten skal:
-- Være konkrete og referere til faktisk kode (filnavn, klassenavn, metoder)
-- Referere til NAIS-konfigurasjon der relevant
-- Referere til Behandlingskatalogen (B-nummer)
-- Inkludere sitater fra kode som bevis
+De foreslåtte begrunnelsene i rapporten skal:
+- Følge «Språk og tilgjengelighet»: klart språk for jurister, teknisk grunnlag bare i siste linje
+- Referere til Behandlingskatalogen (B-nummer) der det er relevant
 - Være skrevet på norsk (bokmål)
 - Skille mellom vurdering og praktisk veiledning
 - Marker `[Teamet må dokumentere: ...]` der koden ikke gir svar
+
+Detaljerte tekniske bevis (filnavn, klasser, kodesitater, NAIS-konfigurasjon) står i
+rapportens risikofunn og positive funn, ikke i de foreslåtte begrunnelsene.
 
 Kopier rapporten til arbeidskataloget slik at bruker enkelt kan dele den med teamet.
 
@@ -1125,25 +1140,25 @@ gjøre besvarelsene mer lesbare — særlig for ikke-teknisk personell som juris
 | Punktliste | `- punkt` |
 | Nummerert liste | `1. punkt` |
 | Overskrift (nivå 3) | `### Overskrift` |
-| Kodereferanse (inline) | `` `filnavn.ts` `` |
+| Kodereferanse (inline) | `` `filnavn.ts` `` (kun i linjen «Teknisk grunnlag») |
 | Lenke | `[tekst](url)` |
 | Sitat/notat | `> tekst` |
 
 **Eksempel på god begrunnelse med markdown:**
 ```
-Applikasjonen benytter ID-porten via NAIS-sidecar med sikkerhetsnivå høyt
-(`idporten-loa-high`), konfigurert i `.nais/prod.yaml`:
+Brukerne må logge inn med BankID eller tilsvarende (sikkerhetsnivå høyt) gjennom
+ID-porten, Nav sin felles innlogging:
 
-- Alle forespørsler til `/api/*` krever gyldig sesjon
-- Token valideres mot `NAIS_TOKEN_INTROSPECTION_ENDPOINT` ved hvert kall
-- Sesjonslengde er begrenset til 1 time inaktivitet
+- Ingen personopplysninger vises uten gyldig innlogging
+- Innloggingen sjekkes på nytt ved hver forespørsel
+- Brukeren logges ut etter én time uten aktivitet
 
-Se `src/auth/middleware.ts` for implementasjonen.
+Teknisk grunnlag: `.nais/prod.yaml`, `src/auth/middleware.ts`
 ```
 
 **Retningslinjer:**
-- Bruk punktlister for å ramse opp tiltak, funn eller kodehenvisninger
-- Bruk kodereferanser (backticks) for filnavn, konfigurasjonsnøkler og tekniske begreper
+- Bruk punktlister for å ramse opp tiltak eller funn
+- Backticks brukes bare i linjen «Teknisk grunnlag»
 - Hold overskrifter til nivå 3 (`###`) eller unngå dem — begrunnelsesfeltet er ikke et dokument
 - Unngå kompleks nestet formatering — lesbarhet er viktigere enn fullstendighet
 
