@@ -179,6 +179,9 @@ livsløp. Les begge og bruk dem aktivt gjennom hele analysen.
 ⛔ **Kontekstfilene lages bare av nav-context-skillen.** Skriv dem aldri selv, heller ikke én
 av dem. nav-context velger fagområde, henter fra Navet og bruker malene. Gaten står i steg 1.
 
+**Koden går foran `system-context.md`.** Når analysen viser noe annet enn filen, bruk det koden
+viser og noter avviket i rapporten. Tilby til slutt å oppdatere filen med nav-context.
+
 ## Arbeidsflyt
 
 ### Steg 1: Modellvalg, arbeidsmappe, opplysninger og kontekstfiler
